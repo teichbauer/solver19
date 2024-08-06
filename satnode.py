@@ -35,15 +35,16 @@ class SatNode:
         else:
             # when there is no more vk3
             Center.last_nov = self.nov
-            snode = self
-            for chv, tail in snode.taildic.items():
-                tail.sat_filter(snode.parent)
+            Center.sat_paths = [] # list of sat-path(dics)
+            for tail in self.taildic.values():
+                tail.sat_filter()
             # while snode:
             #     snode.all_hitbits()
             #     snode = snode.parent
             x = 1
-    def find_path(self, sat):
-        xx = 0
+    def find_paths(self, sat, path):
+        for tail in self.taildic.values():
+            tail.find_path(sat,path)
 
     def add_sat(self, bit, val, cv,satdic=None):
         if not satdic:

@@ -1,3 +1,12 @@
+from center import Center
+
+def sat_conflict(sat1, sat2):
+    intersection_bits1 = set(sat1).intersection(sat2)
+    for b in intersection_bits1:
+        if sat1[b] != sat2[b]:
+            return True
+    return False
+
 def get_vk2sats(vk2):
     d = vk2.dic
     sats = []
@@ -7,6 +16,19 @@ def get_vk2sats(vk2):
     sats.append({k1: int(not(d[k1])), k2: int(not d[k2])})
     return sats
 
+def multi_vk2_sats(vk2s):
+    all_sats = []
+    sats = get_vk2sats(vk2s.pop(0))
+    while len(vk2s) > 0:
+        satxs = get_vk2sats(vk2s.pop(0))
+        for sat in sats:
+            for satx in satxs:
+                if not sat_conflict(sat, satx):
+                    ss = sat.copy()
+                    ss.update(satx)
+                    if ss not in all_sats:
+                        all_sats.append(ss)
+    return all_sats
 
 class STail:
     def __init__(self, snode, chval): #vkm, anc_bits, check_val):
@@ -17,18 +39,27 @@ class STail:
         self.root_sats = snode.bgrid.grid_sat(chval)
         self.satdic = {}  # {<bit>: <val>}
 
-    def sat_filter(self, snode):
+    def sat_filter(self):
+
         sat = self.root_sats.copy()
         vk2s = self.vk2s.copy()
         if len(vk2s):
-            vk2_sats = get_vk2sats(vk2s.pop())
+            vk2_sats = get_vk2sats(vk2s.popitem()[1])
             for s in vk2_sats:
                 ss = sat.copy()
                 ss.update(s)
-                snode.find_path(sat)
+                self.snode.parent.find_paths(ss)
         else:
-            snode.find_path(sat)
+            pass
+            # self.snode.find_path(sat)
 
+    def tail_bits(self):
+        bits = set(self.bdic)
+        bits.update(self.satdic)
+        return bits
+
+    def find_path(self, sat, path):
+        bits = self.tail_bits()
 
     def add_vk2(self, vk2):
         self.vk2s[vk2.kname] = vk2

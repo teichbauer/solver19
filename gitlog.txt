@@ -1,3 +1,8 @@
+2024-08-05->19.310
+- in stail: 
+  added tools: multi_vk2_sats/sat_conflict/get_vk2sats
+  some changed in STail
+- snode changed
 2024-08-02->19.309
 - new approach solver19, branched off from solver16
 2022-06-29->0.308

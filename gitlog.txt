@@ -1,3 +1,7 @@
+2024-08-08->19.321
+- stail: sort_length_list - a tool for sorting list of tuple
+- snode: grow_sats: exhaustically grow path from 18 up. getting too
+  when hitting 33
 2024-08-07->19.320
 - stail: start_sats now collect all sats under its ch-val.
 - snode.local_sats return path_base and nof sats. Here path_base is

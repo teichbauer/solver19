@@ -1,5 +1,21 @@
 from center import Center
 
+def sort_length_list(lst):
+    # [(...),(.......),(.)] => [(.),(...),(.......)]
+    xlst = []
+    while len(lst) > 0:
+        e = lst.pop(0)
+        indx = -1
+        for ind, ex in enumerate(xlst):
+            if len(e) < len(ex):
+                indx = ind
+                break
+        if indx > -1:
+            xlst.insert(indx, e)
+        else:
+            xlst.append(e)
+    return xlst
+
 def sat_conflict(sat1, sat2):
     intersection_bits1 = set(sat1).intersection(sat2)
     for b in intersection_bits1:

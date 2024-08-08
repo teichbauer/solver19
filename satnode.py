@@ -3,7 +3,7 @@ from bitgrid import BitGrid
 from center import Center
 # from sat2 import Sat2
 from basics import display_vkdic, ordered_dic_string, verify_sat
-from stail import sat_conflict
+from stail import sat_conflict, sort_length_list
 from collections import OrderedDict
 
 
@@ -38,17 +38,57 @@ class SatNode:
             # when there is no more vk3
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
-            dic, nos = Center.snodes[18].local_sats()
-            dic, nos = Center.snodes[21].local_sats()
-            dic, nos = Center.snodes[24].local_sats()
-            dic, nos = Center.snodes[27].local_sats()
-            # for tail in self.taildic.values():
-            #     pth_roots = tail.start_sats()
-            #     for path_thread in pth_roots:
-            #         self.parent.find_pathbase(path_thread)
+            self.grow_sats()
+            # dic18, nos18 = Center.snodes[18].local_sats()
+            # dic21, nos21 = Center.snodes[21].local_sats()
+            # dic24, nos24 = Center.snodes[24].local_sats()
+            # dic, nos = Center.snodes[27].local_sats()
             x = 1
 
+    def grow_sats(self, lpath_base=None):
+        if not lpath_base:
+            lpath_base = self.local_sats()
+        hpath_base = self.parent.local_sats()
+        # newpath = []
+        pathdic = {}
+        cflct_cnt = 0
+        sat_cnt = 0
+        while len(lpath_base) > 0:
+            lbky, lst = lpath_base.popitem()
+            hbase = hpath_base.copy()
+            while len(hbase) > 0:
+                hbky, hst = hbase.popitem()
+                for lsat, lntp in lst:
+                    for hsat, hntp in hst:
+                        if sat_conflict(lsat, hsat):
+                            cflct_cnt += 1
+                            # print(f"{lntp} and {hntp} have conflict")
+                        else:
+                            pn = f"{lntp}+{hntp}"
+                            sat_cnt += 1
+                            nsat = lsat.copy()
+                            nsat.update(hsat)
+                            bits = list(nsat.keys())
+                            bits.sort()
+                            pathdic\
+                                .setdefault(tuple(bits),[])\
+                                .append((nsat, pn))
+                    xx = 7
+                xx = 6
+            xx = 5
+        print(f"conflict-cont: {cflct_cnt}, nof-sat: {sat_cnt}")
+        tkys = list(pathdic.keys())
+        kys = sort_length_list(tkys)
+        path_base = OrderedDict()
+        for k in kys:
+            path_base[k] = pathdic[k]
+        if self.parent.nov < 60:
+            self.parent.grow_sats(path_base)
+        return 
+
+
     def local_sats(self):
+        '''
         # returns a path_base, that is an OrderedDict:
         #  {<bkey>:[ele1,ele2,..], <bkey>:[e1,e2]}, where
         # ele: ({sat},(nov,chv)).
@@ -57,7 +97,8 @@ class SatNode:
         # ------------------------------------------------------
         # a b-key is a bit-tuple; sat-bits sorted into a tuple
         # ------------------------------------------------------
-        bkeys = [] # ordered b-keys: longer one behind
+        '''
+        bkeys = [] # dic-keys: all tuples
         dic = {}   # un-sorted dict
         path_base = OrderedDict()
         nosats = 0
@@ -68,21 +109,15 @@ class SatNode:
                 bits = list(tail_sat.keys())
                 bits.sort()
                 bitstp = tuple(bits)
-                if bitstp not in bkeys:
-                    indx = -1
-                    for ind, bk in enumerate(bkeys):
-                        if len(bk) > len(bits):
-                            indx = ind
-                    if indx > -1:
-                        bkeys.insert(indx, bitstp)
-                    else:
-                        bkeys.append(bitstp)
+                bkeys.append(bitstp)
                 # put into un-sorted dic
-                dic.setdefault(bitstp,[]).append((tail_sat, (self.nov, chv)))
-        for bk in bkeys:
+                dic.setdefault(bitstp,[])\
+                   .append((tail_sat, f"{self.nov}.{chv}"))
+        bks = sort_length_list(bkeys) # sort -> [(.),(..),(...),...]
+        for bk in bks:
             path_base[bk] = dic[bk]
-        return path_base, nosats
-
+        print(f"{self.nov} has {nosats} sats")
+        return path_base
 
 
     def find_pathbase(self, sat2add):

@@ -39,22 +39,30 @@ class STail:
         self.root_sats = snode.bgrid.grid_sat(chval)
         self.satdic = {}  # {<bit>: <val>}
 
-    def sat_filter(self):
-
+    def start_sats(self):
+        sats = []
         sat = self.root_sats.copy()
+        sat.update(self.satdic)
+        sats.append(sat)
         vk2s = self.vk2s.copy()
-        if len(vk2s):
-            vk2_sats = get_vk2sats(vk2s.popitem()[1])
-            for s in vk2_sats:
-                ss = sat.copy()
-                ss.update(s)
-                self.snode.parent.find_paths(ss)
-        else:
-            pass
-            # self.snode.find_path(sat)
+        if len(vk2s) == 0:
+            return sats
+        while len(vk2s):
+            res_sats = []
+            _, vk2 = vk2s.popitem()
+            vk2_sats = get_vk2sats(vk2)
+            for rs in sats:
+                for s in vk2_sats:
+                    ss = rs.copy()
+                    ss.update(s)
+                    res_sats.append(ss)
+            sats = res_sats
+        return res_sats
 
-    def tail_bits(self):
+    def tail_bits(self, include_root=False):
         bits = set(self.bdic)
+        if include_root:
+            bits.update(self.root_sats)
         bits.update(self.satdic)
         return bits
 

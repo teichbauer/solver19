@@ -1,8 +1,10 @@
 from vklause import VKlause
 from bitgrid import BitGrid
 from center import Center
-from sat2 import Sat2
+# from sat2 import Sat2
 from basics import display_vkdic, ordered_dic_string, verify_sat
+from stail import sat_conflict
+from collections import OrderedDict
 
 
 class SatNode:
@@ -35,46 +37,129 @@ class SatNode:
         else:
             # when there is no more vk3
             Center.last_nov = self.nov
-            Center.sat_paths = [] # list of sat-path(dics)
-            for tail in self.taildic.values():
-                tail.sat_filter()
-            # while snode:
-            #     snode.all_hitbits()
-            #     snode = snode.parent
+            Center.sat_pool = [] # list of sat-path(dics)
+            dic, nos = Center.snodes[18].local_sats()
+            dic, nos = Center.snodes[21].local_sats()
+            dic, nos = Center.snodes[24].local_sats()
+            dic, nos = Center.snodes[27].local_sats()
+            # for tail in self.taildic.values():
+            #     pth_roots = tail.start_sats()
+            #     for path_thread in pth_roots:
+            #         self.parent.find_pathbase(path_thread)
             x = 1
-    def find_paths(self, sat, path):
-        for tail in self.taildic.values():
-            tail.find_path(sat,path)
 
-    def add_sat(self, bit, val, cv,satdic=None):
+    def local_sats(self):
+        # returns a path_base, that is an OrderedDict:
+        #  {<bkey>:[ele1,ele2,..], <bkey>:[e1,e2]}, where
+        # ele: ({sat},(nov,chv)).
+        # in this ordered-dict, bkeys are ordered: longer one behind,
+        # so that, path_base.popitem() will pop out the longest (bkey,ele)
+        # ------------------------------------------------------
+        # a b-key is a bit-tuple; sat-bits sorted into a tuple
+        # ------------------------------------------------------
+        bkeys = [] # ordered b-keys: longer one behind
+        dic = {}   # un-sorted dict
+        path_base = OrderedDict()
+        nosats = 0
+        for chv, tail in self.taildic.items():
+            tail_sats = tail.start_sats()
+            nosats += len(tail_sats)
+            for tail_sat in tail_sats:
+                bits = list(tail_sat.keys())
+                bits.sort()
+                bitstp = tuple(bits)
+                if bitstp not in bkeys:
+                    indx = -1
+                    for ind, bk in enumerate(bkeys):
+                        if len(bk) > len(bits):
+                            indx = ind
+                    if indx > -1:
+                        bkeys.insert(indx, bitstp)
+                    else:
+                        bkeys.append(bitstp)
+                # put into un-sorted dic
+                dic.setdefault(bitstp,[]).append((tail_sat, (self.nov, chv)))
+        for bk in bkeys:
+            path_base[bk] = dic[bk]
+        return path_base, nosats
+
+
+
+    def find_pathbase(self, sat2add):
+        pathbase = {} # {chv: [new_sats],...}
+        bitsdic = {} # {(bit-tuple):[tail-sat,...]}
+        for chv, tail in self.taildic.items():
+            satlst = tail.start_sats()
+            for sindex, sat in enumerate(satlst):
+                if not sat_conflict(sat2add, sat):
+                    ss = sat2add.copy()
+                    ss.update(sat)
+                    bits = list(ss.keys())
+                    bits.sort()
+                    bitsdic.setdefault(tuple(bits),[]).append((chv, sindex))
+                    pathbase.setdefault(chv,[]).append(ss)
+        # msg = self.show_path_sats(new_paths)        # print(msg)
+        bkeys = []
+        for k in bitsdic.keys():
+            index = -1
+            for ind, x in enumerate(bkeys):
+                if len(k) > len(x):
+                    index = ind
+                    break
+            if index > -1:
+                bkeys.insert(index, k)
+            else:
+                bkeys.append(k)
+        self.parent.grow_path(bkeys, bitsdic, pathbase,)
+
+    def grow_path(self, bitkeys, bitsdic, pathbase):
+        new_path = {}
+        # bkeys = bitkeys.copy()
+        # bkey = bkeys.pop(0)
+        lchv, lsats = pathbase.popitem()
+        for chv, tail in self.taildic.items():
+            chvsats = new_path.setdefault(chv, [])
+            satlst = tail.start_sats()
+            for mysat in satlst:
+                for lsat in lsats:
+                    if not sat_conflict(lsat, mysat):
+                        xsat = mysat.copy()
+                        xsat.update(lsat)
+                        chvsats.append(xsat)
+        if self.parent:
+            total = sum(len(lst) for lst in new_path.values())
+            if  total > 0:
+                self.parent.grow_path(None, None, new_path)
+            else:
+                return False
+        else:
+            xx = 9
+            return True
+
+    def tail_bits(self, incl_root=False):
+        print(f'my nov: {self.nov}')
+        bits = set(self.bdic)
+        bits.update(self.satdic)
+        if incl_root:
+            bits.update(self.bgrid.bits)
+        return bits
+
+    def show_path_sats(self, psats):
+        m = ''
+        for chv, sats in psats.items():
+            m += str(chv) + ': \n'
+            for sat in sats:
+                lst = list(sat.keys())
+                lst.sort(reverse=True)
+                m += '    ' + ordered_dic_string(sat)[0] + '\t' + str(lst) + '\n'
+            m += '\n'
+        return m
+
+    def add_sat(self, bit, val, cv, satdic=None):
         if not satdic:
             satdic = self.satdic
         sat_info = satdic.setdefault(bit, {})
         cvs = sat_info.setdefault(val, [])
         if cv not in cvs:
             cvs.append(cv)
-
-    def find_hits(self, snode):
-        # based on the bits in root-sats and satdic
-        # looking upwards for hits
-        bits = self.bgrid.bitset.copy()  # root-bits
-        bits.update(self.satdic.keys())
-        tail_and_sat_bits = set(snode.satdic).union(snode.bdic)
-        hit_bits = bits.intersection(tail_and_sat_bits)
-        # ------------------------
-        my_tailbits = set(self.bdic)
-        parent_tailbits = set(snode.bdic)
-        tail_overlap_its = my_tailbits.intersection(parent_tailbits)
-        return hit_bits, tail_overlap_its
-
-    def all_hitbits(self):
-        print(f'my nov: {self.nov}')
-        snode = self.parent
-        while snode:
-            hbits, obits = self.find_hits(snode)
-            print(f'hit-bits with {snode.nov}: {hbits}')
-            print(f'oberlap-bits with {snode.nov}: {obits}')
-            snode = snode.parent
-
-
 

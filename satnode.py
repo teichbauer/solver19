@@ -39,9 +39,21 @@ class SatNode:
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
             self.grow_sats()
-            # dic18, nos18 = Center.snodes[18].local_sats()
-            # dic21, nos21 = Center.snodes[21].local_sats()
-            # dic24, nos24 = Center.snodes[24].local_sats()
+            # dic18 = Center.snodes[18].local_sats()
+            # dic21 = Center.snodes[21].local_sats()
+            # dic24 = Center.snodes[24].local_sats()
+            # dic27 = Center.snodes[27].local_sats()
+            # dic30 = Center.snodes[30].local_sats()
+            # dic33 = Center.snodes[33].local_sats()
+            # dic36 = Center.snodes[36].local_sats()
+            # dic39 = Center.snodes[39].local_sats()
+            # dic42 = Center.snodes[42].local_sats()
+            # dic45 = Center.snodes[45].local_sats()
+            # dic48 = Center.snodes[48].local_sats()
+            # dic51 = Center.snodes[51].local_sats()
+            # dic54 = Center.snodes[54].local_sats()
+            # dic57 = Center.snodes[57].local_sats()
+            # dic60 = Center.snodes[60].local_sats()
             # dic, nos = Center.snodes[27].local_sats()
             x = 1
 
@@ -68,6 +80,7 @@ class SatNode:
                             sat_cnt += 1
                             nsat = lsat.copy()
                             nsat.update(hsat)
+                            Center.all_conflict((nsat, pn), self.parent.nov + 3)
                             bits = list(nsat.keys())
                             bits.sort()
                             pathdic\
@@ -119,57 +132,24 @@ class SatNode:
         print(f"{self.nov} has {nosats} sats")
         return path_base
 
-
-    def find_pathbase(self, sat2add):
-        pathbase = {} # {chv: [new_sats],...}
-        bitsdic = {} # {(bit-tuple):[tail-sat,...]}
-        for chv, tail in self.taildic.items():
-            satlst = tail.start_sats()
-            for sindex, sat in enumerate(satlst):
-                if not sat_conflict(sat2add, sat):
-                    ss = sat2add.copy()
-                    ss.update(sat)
-                    bits = list(ss.keys())
-                    bits.sort()
-                    bitsdic.setdefault(tuple(bits),[]).append((chv, sindex))
-                    pathbase.setdefault(chv,[]).append(ss)
-        # msg = self.show_path_sats(new_paths)        # print(msg)
-        bkeys = []
-        for k in bitsdic.keys():
-            index = -1
-            for ind, x in enumerate(bkeys):
-                if len(k) > len(x):
-                    index = ind
-                    break
-            if index > -1:
-                bkeys.insert(index, k)
-            else:
-                bkeys.append(k)
-        self.parent.grow_path(bkeys, bitsdic, pathbase,)
-
-    def grow_path(self, bitkeys, bitsdic, pathbase):
-        new_path = {}
-        # bkeys = bitkeys.copy()
-        # bkey = bkeys.pop(0)
-        lchv, lsats = pathbase.popitem()
-        for chv, tail in self.taildic.items():
-            chvsats = new_path.setdefault(chv, [])
-            satlst = tail.start_sats()
-            for mysat in satlst:
-                for lsat in lsats:
-                    if not sat_conflict(lsat, mysat):
-                        xsat = mysat.copy()
-                        xsat.update(lsat)
-                        chvsats.append(xsat)
-        if self.parent:
-            total = sum(len(lst) for lst in new_path.values())
-            if  total > 0:
-                self.parent.grow_path(None, None, new_path)
-            else:
-                return False
-        else:
-            xx = 9
-            return True
+    def filter_conflict(self, sat_name_pair):
+        sname = sat_name_pair[1]
+        print(f"search {sname} on {self.nov}")
+        valid_sats = []
+        local_sats = self.local_sats()
+        while len(local_sats) > 0:
+            lbks, sats = local_sats.popitem()
+            # bs = sat_bits.intersection(lbks)
+            for s in sats:
+                if not sat_conflict(s[0], sat_name_pair[0]):
+                    pn = f"{sname}+{s[1]}"
+                    ss = s[0].copy()
+                    ss.update(sat_name_pair[0])
+                    valid_sats.append((ss, pn))
+                else:
+                    print(f"{sname}+{s[1]} in conflict")
+            x = 9
+        return valid_sats
 
     def tail_bits(self, incl_root=False):
         print(f'my nov: {self.nov}')

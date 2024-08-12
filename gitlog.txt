@@ -1,3 +1,7 @@
+2024-08-11->19.322
+- calling snodes[42].local_sats() took long time, and on 45, takes >10 min
+  so I should not call this on all nov, especially not on nov > 33.
+- some progress
 2024-08-08->19.321
 - stail: sort_length_list - a tool for sorting list of tuple
 - snode: grow_sats: exhaustically grow path from 18 up. getting too

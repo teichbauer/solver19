@@ -26,6 +26,16 @@ class Center:
         # sn = cls.snodes[nov]
 
     @classmethod
+    def all_conflict(cls, sat_name_pair, nov):
+        while nov < 61:
+            new_sats = Center.snodes[nov].filter_conflict(sat_name_pair)
+            nov += 3
+            for sat_pair in new_sats:
+                new_news = cls.all_conflict(sat_pair, nov)
+        return True
+
+
+    @classmethod
     def solve(cls):
         # sat2 = Sat2(None, None, cls.sumvk12dic)
         # sat2.split2()

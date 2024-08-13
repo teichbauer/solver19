@@ -100,7 +100,7 @@ class SatNode:
         return 
 
 
-    def local_sats(self):
+    def local_sats(self, csatdic={}):
         '''
         # returns a path_base, that is an OrderedDict:
         #  {<bkey>:[ele1,ele2,..], <bkey>:[e1,e2]}, where
@@ -116,7 +116,7 @@ class SatNode:
         path_base = OrderedDict()
         nosats = 0
         for chv, tail in self.taildic.items():
-            tail_sats = tail.start_sats()
+            tail_sats = tail.start_sats(csatdic)
             nosats += len(tail_sats)
             for tail_sat in tail_sats:
                 bits = list(tail_sat.keys())
@@ -133,23 +133,27 @@ class SatNode:
         return path_base
 
     def filter_conflict(self, sat_name_pair):
-        sname = sat_name_pair[1]
+        lsat, sname = sat_name_pair
+        # lsatbits = set(lsat)
+        # overlbits = lsatbits.intersection(self.tail_bits())
         print(f"search {sname} on {self.nov}")
-        valid_sats = []
-        local_sats = self.local_sats()
-        while len(local_sats) > 0:
-            lbks, sats = local_sats.popitem()
-            # bs = sat_bits.intersection(lbks)
-            for s in sats:
-                if not sat_conflict(s[0], sat_name_pair[0]):
-                    pn = f"{sname}+{s[1]}"
-                    ss = s[0].copy()
-                    ss.update(sat_name_pair[0])
-                    valid_sats.append((ss, pn))
-                else:
-                    print(f"{sname}+{s[1]} in conflict")
-            x = 9
-        return valid_sats
+        # valid_sats = []
+        local_sats = self.local_sats(lsat)
+        # local_sats = self.local_sats()
+        # while len(local_sats) > 0:
+        #     lbks, sats = local_sats.popitem()
+        #     # bs = sat_bits.intersection(lbks)
+        #     for s in sats:
+        #         if not sat_conflict(s[0], lsat):
+        #             pn = f"{sname}+{s[1]}"
+        #             ss = s[0].copy()
+        #             ss.update(sat_name_pair[0])
+        #             valid_sats.append((ss, pn))
+        #         else:
+        #             print(f"{sname}+{s[1]} in conflict")
+        #     x = 9
+        # return valid_sats
+        return local_sats
 
     def tail_bits(self, incl_root=False):
         print(f'my nov: {self.nov}')

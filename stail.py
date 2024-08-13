@@ -23,13 +23,23 @@ def sat_conflict(sat1, sat2):
             return True
     return False
 
-def get_vk2sats(vk2):
+def get_vk2sats(vk2, csatdic={}):
     d = vk2.dic
     sats = []
-    k1, k2 = list(vk2.dic.keys())
-    sats.append({k1: d[k1], k2: int(not d[k2])})
-    sats.append({k1: int(not(d[k1])), k2: d[k2]})
-    sats.append({k1: int(not(d[k1])), k2: int(not d[k2])})
+    b1, b2 = list(d.keys())
+    v1, v2 = d.values()
+    s1 = {b1: v1, b2: int(not v2)}
+    if not sat_conflict(s1, csatdic):
+        sats.append(s1)
+    s2 = {b1: int(not(v1)), b2: v2}
+    if not sat_conflict(s2, csatdic):
+        sats.append(s2)
+    s3 = {b1: int(not(v1)), b2: int(not v2)}
+    if not sat_conflict(s3, csatdic):
+        sats.append(s3)
+    # sats.append({b1: v1, b2: int(not v2)})
+    # sats.append({b1: int(not(v1)), b2: v2})
+    # sats.append({b1: int(not(v1)), b2: int(not v2)})
     return sats
 
 def multi_vk2_sats(vk2s):
@@ -55,9 +65,12 @@ class STail:
         self.root_sats = snode.bgrid.grid_sat(chval)
         self.satdic = {}  # {<bit>: <val>}
 
-    def start_sats(self):
+    def start_sats(self,csatdic={}):
+        # csatdic cannot have conflict with root_sats
         sats = []
         sat = self.root_sats.copy()
+        if sat_conflict(self.satdic, csatdic):
+            return None
         sat.update(self.satdic)
         sats.append(sat)
         vk2s = self.vk2s.copy()
@@ -66,7 +79,7 @@ class STail:
         while len(vk2s):
             res_sats = []
             _, vk2 = vk2s.popitem()
-            vk2_sats = get_vk2sats(vk2)
+            vk2_sats = get_vk2sats(vk2, csatdic)
             for rs in sats:
                 for s in vk2_sats:
                     ss = rs.copy()

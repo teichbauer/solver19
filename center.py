@@ -27,11 +27,14 @@ class Center:
 
     @classmethod
     def all_conflict(cls, sat_name_pair, nov):
+        print(f"{sat_name_pair} on {nov}")
         while nov < 61:
             new_sats = Center.snodes[nov].filter_conflict(sat_name_pair)
             nov += 3
-            for sat_pair in new_sats:
-                new_news = cls.all_conflict(sat_pair, nov)
+            for bkys, sat_pairs in new_sats.items():
+                for pair in sat_pairs:
+                    new_pairs = cls.all_conflict(pair, nov)
+                    xx = 0
         return True
 
 

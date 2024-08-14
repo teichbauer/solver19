@@ -38,24 +38,30 @@ class SatNode:
             # when there is no more vk3
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
-            self.grow_sats()
-            # dic18 = Center.snodes[18].local_sats()
-            # dic21 = Center.snodes[21].local_sats()
-            # dic24 = Center.snodes[24].local_sats()
-            # dic27 = Center.snodes[27].local_sats()
-            # dic30 = Center.snodes[30].local_sats()
+            # self.grow_sats()
+            self.grow_path()
+
             # dic33 = Center.snodes[33].local_sats()
             # dic36 = Center.snodes[36].local_sats()
-            # dic39 = Center.snodes[39].local_sats()
-            # dic42 = Center.snodes[42].local_sats()
-            # dic45 = Center.snodes[45].local_sats()
-            # dic48 = Center.snodes[48].local_sats()
-            # dic51 = Center.snodes[51].local_sats()
-            # dic54 = Center.snodes[54].local_sats()
-            # dic57 = Center.snodes[57].local_sats()
-            # dic60 = Center.snodes[60].local_sats()
-            # dic, nos = Center.snodes[27].local_sats()
             x = 1
+    def grow_path(self, final_path=[], base_path=None):
+        if not base_path:
+            base_path = self.local_sats()
+        while len(base_path) > 0:
+            base_kys, bsat_pairs = base_path.popitem()
+            for satpair in bsat_pairs:
+                sats, sname = satpair
+                hpath = self.parent.local_sats(sats, sname)
+                if not hpath:
+                    continue
+                # fkys, fsat_pairs = hpath.popitem()
+                if self.parent.nov == 60:
+                    xx = 9
+                    # for fsat in fsat_pairs:
+                    #     final_path.append(fsat)
+                else:
+                    self.parent.grow_path(final_path, hpath)
+                    xx = 9
 
     def grow_sats(self, lpath_base=None):
         if not lpath_base:
@@ -100,7 +106,7 @@ class SatNode:
         return 
 
 
-    def local_sats(self, csatdic={}):
+    def local_sats(self, csatdic={}, pname=""):
         '''
         # returns a path_base, that is an OrderedDict:
         #  {<bkey>:[ele1,ele2,..], <bkey>:[e1,e2]}, where
@@ -117,20 +123,27 @@ class SatNode:
         nosats = 0
         for chv, tail in self.taildic.items():
             tail_sats = tail.start_sats(csatdic)
-            nosats += len(tail_sats)
+            # nosats += len(tail_sats)
+            if not tail_sats:
+                print(f"{pname} has not path up")
+                return None
             for tail_sat in tail_sats:
+                nosats += 1
                 bits = list(tail_sat.keys())
                 bits.sort()
                 bitstp = tuple(bits)
                 bkeys.append(bitstp)
-                # put into un-sorted dic
-                dic.setdefault(bitstp,[])\
-                   .append((tail_sat, f"{self.nov}.{chv}"))
+                if not pname:
+                    pn = f"{self.nov}.{chv}"
+                else:
+                    pn = pname + f"+{self.nov}.{chv}"
+                dic.setdefault(bitstp,[]).append((tail_sat, pn))
         bks = sort_length_list(bkeys) # sort -> [(.),(..),(...),...]
         for bk in bks:
             path_base[bk] = dic[bk]
         print(f"{self.nov} has {nosats} sats")
         return path_base
+    # end of def local_sats(self):
 
     def filter_conflict(self, sat_name_pair):
         lsat, sname = sat_name_pair
@@ -138,7 +151,7 @@ class SatNode:
         # overlbits = lsatbits.intersection(self.tail_bits())
         print(f"search {sname} on {self.nov}")
         # valid_sats = []
-        local_sats = self.local_sats(lsat)
+        local_sats = self.local_sats(lsat,sname)
         # local_sats = self.local_sats()
         # while len(local_sats) > 0:
         #     lbks, sats = local_sats.popitem()

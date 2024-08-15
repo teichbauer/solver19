@@ -72,6 +72,7 @@ class STail:
         if sat_conflict(self.satdic, csatdic):
             return None
         sat.update(self.satdic)
+        sat.update(csatdic)
         sats.append(sat)
         vk2s = self.vk2s.copy()
         if len(vk2s) == 0:

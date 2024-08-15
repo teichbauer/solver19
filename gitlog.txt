@@ -1,3 +1,5 @@
+2024-08-15->19.325
+- fixes in tail.py and snode
 2024-08-13->19.324
 - some progress
 2024-08-13->19.323

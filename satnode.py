@@ -125,8 +125,8 @@ class SatNode:
             tail_sats = tail.start_sats(csatdic)
             # nosats += len(tail_sats)
             if not tail_sats:
-                print(f"{pname} has not path up")
-                return None
+                # print(f"{pname} has not path up")
+                continue
             for tail_sat in tail_sats:
                 nosats += 1
                 bits = list(tail_sat.keys())

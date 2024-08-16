@@ -1,6 +1,6 @@
-from basics import print_json
 from vk3picker import Vk3Picker
-from stail import STail
+from stail import STail, sort_length_list
+from collections import OrderedDict
 
 class VKManager:
     def __init__(self, vkdic, initial=False):
@@ -68,16 +68,10 @@ class VKManager:
                     bdic[b] = set([])  # bdic.setdefault(b,set([]))
                 bdic[b].add(kn)
         return bdic
-    
-    # end of def make_choice(self):
 
     def make_taildic(self, snode):
         taildic = {v: STail(snode, v) for v in snode.choice[0] }
-        # t2s will lead to sats for their cvs. 
-        # buils into taildic
         for kn in snode.choice[2]: # touch-2 vk3s
-            # will resulting into cval specific sat: 
-            # put into tail[i].satdic
             if kn in snode.vkm.vkdic:
                 vk = snode.vkm.pop_vk(kn)
                 vk1 = snode.bgrid.reduce_vk(vk)
@@ -97,12 +91,30 @@ class VKManager:
                     snode.bdic.setdefault(b, []).append(vk2.kname)
                 for cv in vk2.cvs:
                     taildic[cv].add_vk2(vk2)
-
+        # satdic may have bit(s) overlapping with vk2, resulting into
+        # more satdic entries. Handle that here
         for tail in taildic.values():
             if len(tail.satdic) > 0:
                 tail.grow_sat(tail.satdic.copy())
 
-        return taildic
+        # make snode.bkys-dic
+        dic = {}
+        bkys = []
+        for chv, tail in taildic.items():
+            lst = list(tail.bdic.keys())
+            for b in tail.satdic:
+                lst.append(b)
+            lst.sort()
+            tpl = tuple(lst)
+            dic.setdefault(tpl, []).append(chv)
+            if tpl not in bkys:
+                bkys.append(tpl)
+        bks = sort_length_list(bkys)
+        bkdic = OrderedDict()
+        for bk in bks:
+            bkdic[bk] = dic[bk]
+        snode.bkdic = bkdic
+        snode.taildic = taildic
     
     # internal usage for unit test
     def _invkdic(self, kns):

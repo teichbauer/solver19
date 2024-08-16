@@ -1,3 +1,7 @@
+2024-08-15->19.326
+- vkm.make_taildic makes and set to snode: taildic, bkdic
+  here bkdic is orderedDict{<bit-keys-tuple>:[child-values]}
+- snode: get rid of grow_sats
 2024-08-15->19.325
 - fixes in tail.py and snode
 2024-08-13->19.324

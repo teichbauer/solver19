@@ -24,7 +24,7 @@ class SatNode:
         self.bdic = {}      # bit-dic for all vk2s in vk2dic
         self.satdic = {} # {<bit>:[<val>,[cv1,cv2,..]]}
         self.bgrid = BitGrid(self)
-        self.taildic = vkm.make_taildic(self)  # 
+        vkm.make_taildic(self)  # make self.taildic, self.bkdic
         Center.snodes[self.nov] = self
         self.next = None
         self.next_sh = self.sh.reduce(self.bgrid.bits)
@@ -38,12 +38,8 @@ class SatNode:
             # when there is no more vk3
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
-            # self.grow_sats()
             self.grow_path()
 
-            # dic33 = Center.snodes[33].local_sats()
-            # dic36 = Center.snodes[36].local_sats()
-            x = 1
     def grow_path(self, final_path=[], base_path=None):
         if not base_path:
             base_path = self.local_sats()
@@ -62,49 +58,6 @@ class SatNode:
                 else:
                     self.parent.grow_path(final_path, hpath)
                     xx = 9
-
-    def grow_sats(self, lpath_base=None):
-        if not lpath_base:
-            lpath_base = self.local_sats()
-        hpath_base = self.parent.local_sats()
-        # newpath = []
-        pathdic = {}
-        cflct_cnt = 0
-        sat_cnt = 0
-        while len(lpath_base) > 0:
-            lbky, lst = lpath_base.popitem()
-            hbase = hpath_base.copy()
-            while len(hbase) > 0:
-                hbky, hst = hbase.popitem()
-                for lsat, lntp in lst:
-                    for hsat, hntp in hst:
-                        if sat_conflict(lsat, hsat):
-                            cflct_cnt += 1
-                            # print(f"{lntp} and {hntp} have conflict")
-                        else:
-                            pn = f"{lntp}+{hntp}"
-                            sat_cnt += 1
-                            nsat = lsat.copy()
-                            nsat.update(hsat)
-                            Center.all_conflict((nsat, pn), self.parent.nov + 3)
-                            bits = list(nsat.keys())
-                            bits.sort()
-                            pathdic\
-                                .setdefault(tuple(bits),[])\
-                                .append((nsat, pn))
-                    xx = 7
-                xx = 6
-            xx = 5
-        print(f"conflict-cont: {cflct_cnt}, nof-sat: {sat_cnt}")
-        tkys = list(pathdic.keys())
-        kys = sort_length_list(tkys)
-        path_base = OrderedDict()
-        for k in kys:
-            path_base[k] = pathdic[k]
-        if self.parent.nov < 60:
-            self.parent.grow_sats(path_base)
-        return 
-
 
     def local_sats(self, csatdic={}, pname=""):
         '''

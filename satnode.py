@@ -38,6 +38,7 @@ class SatNode:
             # when there is no more vk3
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
+            print(f"NOV:{self.nov}")
             self.grow_path()
 
     def grow_path(self, final_path=[], base_path=None):
@@ -45,19 +46,29 @@ class SatNode:
             base_path = self.local_sats()
         while len(base_path) > 0:
             base_kys, bsat_pairs = base_path.popitem()
+            leng = len(bsat_pairs)
+            print(f"{self.nov}-bkey: {base_kys} with {leng} pairs")
+            n = 0
             for satpair in bsat_pairs:
+                n += 1
                 sats, sname = satpair
+                print(f"{self.parent.nov} trial on {sname}-{n}/{leng}")
                 hpath = self.parent.local_sats(sats, sname)
-                if not hpath:
+                leng1 = len(hpath)
+                if leng1 == 0:
+                    print(f"no path up here")
                     continue
-                # fkys, fsat_pairs = hpath.popitem()
+                print(f"{sname}-{n}/{leng}-{self.parent.nov} has {leng1} bkys")
                 if self.parent.nov == 60:
                     xx = 9
-                    # for fsat in fsat_pairs:
-                    #     final_path.append(fsat)
-                else:
+                elif len(hpath) > 0:
+                    if self.parent.nov == 33:
+                        res = self.parent.filter_conflict(sats)
+                        yy = 0
+                    print(f"NOV:{self.parent.nov}")
                     self.parent.grow_path(final_path, hpath)
-                    xx = 9
+                else:
+                    print(f"{sname} stops here")
 
     def local_sats(self, csatdic={}, pname=""):
         '''
@@ -98,28 +109,19 @@ class SatNode:
         return path_base
     # end of def local_sats(self):
 
-    def filter_conflict(self, sat_name_pair):
-        lsat, sname = sat_name_pair
-        # lsatbits = set(lsat)
-        # overlbits = lsatbits.intersection(self.tail_bits())
-        print(f"search {sname} on {self.nov}")
-        # valid_sats = []
-        local_sats = self.local_sats(lsat,sname)
-        # local_sats = self.local_sats()
-        # while len(local_sats) > 0:
-        #     lbks, sats = local_sats.popitem()
-        #     # bs = sat_bits.intersection(lbks)
-        #     for s in sats:
-        #         if not sat_conflict(s[0], lsat):
-        #             pn = f"{sname}+{s[1]}"
-        #             ss = s[0].copy()
-        #             ss.update(sat_name_pair[0])
-        #             valid_sats.append((ss, pn))
-        #         else:
-        #             print(f"{sname}+{s[1]} in conflict")
-        #     x = 9
-        # return valid_sats
-        return local_sats
+    def filter_conflict(self, satdic):
+        excl_chvs = set([])
+        for bit, vdic in self.satdic.items():
+            if bit in satdic:
+                for v, cvs in vdic.items():
+                    if v != satdic[bit]:
+                        excl_chvs.update(cvs)
+        for vk in self.vk2dic.values():
+            if vk.hit(satdic):
+                print(f"vk {vk.kname} hit with {vk.cvs}")
+                excl_chvs.update(vk.cvs)
+        return excl_chvs
+
 
     def tail_bits(self, incl_root=False):
         print(f'my nov: {self.nov}')

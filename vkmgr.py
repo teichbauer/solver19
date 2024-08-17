@@ -102,6 +102,7 @@ class VKManager:
         bkys = []
         for chv, tail in taildic.items():
             lst = list(tail.bdic.keys())
+            lst += snode.bgrid.bits
             for b in tail.satdic:
                 lst.append(b)
             lst.sort()

@@ -1,14 +1,9 @@
-from vklause import VKlause
 from bitgrid import BitGrid
 from center import Center
-# from sat2 import Sat2
-from basics import display_vkdic, ordered_dic_string, verify_sat
-from stail import sat_conflict, sort_length_list
+from tools import sort_length_list
 from collections import OrderedDict
 
-
 class SatNode:
-
     def __init__(self, parent, sh, vkm):
         self.parent = parent
         self.sh = sh
@@ -30,12 +25,10 @@ class SatNode:
         self.next_sh = self.sh.reduce(self.bgrid.bits)
 
     def spawn(self):
-        if len(self.vkm.vkdic) > 0:
-            # as long as there exist vk3 in vkm.vkdic, make next
+        if len(self.vkm.vkdic) > 0:  # there exist vk3 in vkm.vkdic, make next
             self.next = SatNode(self, self.next_sh.clone(), self.vkm)
             return self.next.spawn()
-        else:
-            # when there is no more vk3
+        else:  # when there is no more vk3
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
             print(f"NOV:{self.nov}")
@@ -122,7 +115,6 @@ class SatNode:
                 excl_chvs.update(vk.cvs)
         return excl_chvs
 
-
     def tail_bits(self, incl_root=False):
         print(f'my nov: {self.nov}')
         bits = set(self.bdic)
@@ -130,17 +122,6 @@ class SatNode:
         if incl_root:
             bits.update(self.bgrid.bits)
         return bits
-
-    def show_path_sats(self, psats):
-        m = ''
-        for chv, sats in psats.items():
-            m += str(chv) + ': \n'
-            for sat in sats:
-                lst = list(sat.keys())
-                lst.sort(reverse=True)
-                m += '    ' + ordered_dic_string(sat)[0] + '\t' + str(lst) + '\n'
-            m += '\n'
-        return m
 
     def add_sat(self, bit, val, cv, satdic=None):
         if not satdic:

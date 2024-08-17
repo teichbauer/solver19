@@ -1,3 +1,5 @@
+2024-08-17->19.328
+- cleaning up a bit
 2024-08-16->19.327
 - snode.filter_conflict: given a satdic, check inside this snode, which chvs
   have no conflict: these chv are left over, others should be out of concern.

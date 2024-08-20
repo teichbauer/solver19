@@ -1,5 +1,6 @@
 from vk3picker import Vk3Picker
-from stail import STail, sort_length_list
+from stail import STail
+from tools import sort_length_list
 from collections import OrderedDict
 
 class VKManager:
@@ -96,7 +97,6 @@ class VKManager:
         for tail in taildic.values():
             if len(tail.satdic) > 0:
                 tail.grow_sat(tail.satdic.copy())
-
         # make snode.bkys-dic
         dic = {}
         bkys = []

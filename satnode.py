@@ -1,6 +1,6 @@
 from bitgrid import BitGrid
 from center import Center
-from tools import sort_length_list
+from tools import *
 from collections import OrderedDict
 
 class SatNode:
@@ -39,29 +39,29 @@ class SatNode:
             base_path = self.local_sats()
         while len(base_path) > 0:
             base_kys, bsat_pairs = base_path.popitem()
-            leng = len(bsat_pairs)
-            print(f"{self.nov}-bkey: {base_kys} with {leng} pairs")
-            n = 0
             for satpair in bsat_pairs:
-                n += 1
                 sats, sname = satpair
-                print(f"{self.parent.nov} trial on {sname}-{n}/{leng}")
                 hpath = self.parent.local_sats(sats, sname)
                 leng1 = len(hpath)
                 if leng1 == 0:
                     print(f"no path up here")
                     continue
-                print(f"{sname}-{n}/{leng}-{self.parent.nov} has {leng1} bkys")
                 if self.parent.nov == 60:
                     xx = 9
                 elif len(hpath) > 0:
-                    if self.parent.nov == 33:
-                        res = self.parent.filter_conflict(sats)
+                    if self.parent.nov >= 27:
+                        test_water(sats, Center.snodes, self.nov+3)
                         yy = 0
                     print(f"NOV:{self.parent.nov}")
                     self.parent.grow_path(final_path, hpath)
                 else:
                     print(f"{sname} stops here")
+
+    def bk_index(self, chval):
+        for bk_ind, bkval in enumerate(self.bkdic.values()):
+            if chval in bkval:
+                return bk_ind
+        return -1
 
     def local_sats(self, csatdic={}, pname=""):
         '''
@@ -84,16 +84,19 @@ class SatNode:
             if not tail_sats:
                 # print(f"{pname} has not path up")
                 continue
-            for tail_sat in tail_sats:
+            tslng = len(tail_sats)
+            for sind, tail_sat in enumerate(tail_sats):
                 nosats += 1
                 bits = list(tail_sat.keys())
                 bits.sort()
                 bitstp = tuple(bits)
                 bkeys.append(bitstp)
+                kindx = self.bk_index(chv)
+                pnx = f"{self.nov}.{chv}.k{kindx}-{tslng}:{sind+1}"
                 if not pname:
-                    pn = f"{self.nov}.{chv}"
+                    pn = pnx
                 else:
-                    pn = pname + f"+{self.nov}.{chv}"
+                    pn = f"{pname}+{pnx}"
                 dic.setdefault(bitstp,[]).append((tail_sat, pn))
         bks = sort_length_list(bkeys) # sort -> [(.),(..),(...),...]
         for bk in bks:
@@ -101,19 +104,6 @@ class SatNode:
         print(f"{self.nov} has {nosats} sats")
         return path_base
     # end of def local_sats(self):
-
-    def filter_conflict(self, satdic):
-        excl_chvs = set([])
-        for bit, vdic in self.satdic.items():
-            if bit in satdic:
-                for v, cvs in vdic.items():
-                    if v != satdic[bit]:
-                        excl_chvs.update(cvs)
-        for vk in self.vk2dic.values():
-            if vk.hit(satdic):
-                print(f"vk {vk.kname} hit with {vk.cvs}")
-                excl_chvs.update(vk.cvs)
-        return excl_chvs
 
     def tail_bits(self, incl_root=False):
         print(f'my nov: {self.nov}')

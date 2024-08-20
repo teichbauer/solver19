@@ -14,6 +14,12 @@ def sort_length_list(lst):
             xlst.append(e)
     return xlst
 
+def orderedDictIndex(od, key):
+    lst = [k for k in od]
+    if key not in lst:
+        return -1
+    return lst.index(key)
+
 def sat_conflict(sat1, sat2):
     intersection_bits1 = set(sat1).intersection(sat2)
     for b in intersection_bits1:
@@ -51,3 +57,24 @@ def multi_vk2_sats(vk2s):
                         all_sats.append(ss)
     return all_sats
 
+def filter_conflict(snode, satdic):
+    excl_chvs = set([])
+    for bit, vdic in snode.satdic.items():
+        if bit in satdic:
+            for v, cvs in vdic.items():
+                if v != satdic[bit]:
+                    excl_chvs.update(cvs)
+    for vk in snode.vk2dic.values():
+        if vk.hit(satdic):
+            print(f"vk {vk.kname} hit with {vk.cvs}")
+            excl_chvs.update(vk.cvs)
+    return excl_chvs
+
+def test_water(satdic, snodes, start_nov):
+    # example: start_nov=33
+    # snds = [s33, s36, s39, s42, s45, s48, s51, s54, s57, s60]
+    # ------------------------------------------------------------
+    snds = [snodes[n] for n in range(start_nov, 61, 3)]  # inclusive of 60
+    for snode in snds:
+        res = filter_conflict(snode, satdic)
+        print(f"{snode.nov} excluds: {res}")

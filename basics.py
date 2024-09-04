@@ -54,16 +54,13 @@ def get_sdic(filename):
 
 
 def ordered_dic_string(d):
-    v2cnt = 0
     m = "{ "
     ks = sorted(d.keys(), reverse=True)
     for k in ks:
-        if d[k] == 2:
-            v2cnt += 1
         m += str(k) + ": " + str(d[k]) + ", "
     m = m.strip(", ")
     m += " }"
-    return m, v2cnt
+    return m
 
 
 def print_json(nov, vkdic, fname):

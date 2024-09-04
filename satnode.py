@@ -2,6 +2,7 @@ from bitgrid import BitGrid
 from center import Center
 from tools import *
 from collections import OrderedDict
+from sat_path import SatPath
 
 class SatNode:
     def __init__(self, parent, sh, vkm):
@@ -50,8 +51,14 @@ class SatNode:
                     xx = 9
                 elif len(hpath) > 0:
                     if self.parent.nov >= 27:
-                        test_water(sats, Center.snodes, self.nov+3)
-                        yy = 0
+                        sat_path = SatPath(sname, sats, self.nov+3)
+                        if sat_path.check():
+                            sat_path.grow()
+                        else:
+                            print(f"jumping over {sname}")
+                            continue
+                        # res = \
+                        # test_water(sname, sats, Center.snodes, self.nov+3)
                     print(f"NOV:{self.parent.nov}")
                     self.parent.grow_path(final_path, hpath)
                 else:

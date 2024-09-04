@@ -1,3 +1,5 @@
+from basics import *
+
 def sort_length_list(lst):
     # [(...),(.......),(.)] => [(.),(...),(.......)]
     xlst = []
@@ -70,11 +72,18 @@ def filter_conflict(snode, satdic):
             excl_chvs.update(vk.cvs)
     return excl_chvs
 
-def test_water(satdic, snodes, start_nov):
+def test_water(sname, satdic, snodes, start_nov):
     # example: start_nov=33
     # snds = [s33, s36, s39, s42, s45, s48, s51, s54, s57, s60]
     # ------------------------------------------------------------
+    m = ordered_dic_string(satdic)
+    print(f"{sname}: {m}")
     snds = [snodes[n] for n in range(start_nov, 61, 3)]  # inclusive of 60
     for snode in snds:
         res = filter_conflict(snode, satdic)
+        rvs = set(snode.bgrid.chvals).difference(res)
         print(f"{snode.nov} excluds: {res}")
+        if len(rvs) == 0:
+            print(f"{snode.nov} blocked")
+            return False
+    return True

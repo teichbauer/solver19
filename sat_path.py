@@ -2,12 +2,13 @@ from center import Center
 from tools import filter_conflict
 
 class SatPath:
-    def __init__(self, name, sat, nov):
+    def __init__(self, name, sat, nov,logfile=None):
         self.snds = [Center.snodes[n] for n in range(nov, 61, 3)]
         self.name = name
         self.sat = sat
         self.nov = nov
         self.schvs = {}
+        self.logfile = logfile
 
     def check(self):
         for snode in self.snds:
@@ -15,7 +16,9 @@ class SatPath:
             rvs = set(snode.bgrid.chvals).difference(res)
             # print(f"{snode.nov} excluds: {res}")
             if len(rvs) == 0:
-                print(f"{snode.nov} blocked")
+                # print(f"{snode.nov} blocked")
+                msg = f"{snode.nov} blocked\n"
+                self.logfile.write(msg)
                 return False
             else:
                 self.schvs[snode.nov] = rvs

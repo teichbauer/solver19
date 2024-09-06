@@ -24,6 +24,7 @@ class SatNode:
         Center.snodes[self.nov] = self
         self.next = None
         self.next_sh = self.sh.reduce(self.bgrid.bits)
+        self.logfile = open("logfile.txt",'a')
 
     def spawn(self):
         if len(self.vkm.vkdic) > 0:  # there exist vk3 in vkm.vkdic, make next
@@ -55,14 +56,17 @@ class SatNode:
                     while len(pairs) > 0:
                         ppair = pairs.pop()
                         psat, psname = ppair
-                        sat_path = SatPath(psname, psat, base_nov+3)
+                        sat_path = SatPath(psname, psat, base_nov+3, self.logfile)
                         if sat_path.grow(final_path):
+                            self.logfile.close()
                             y = 9
                         else:
-                            print(f"jumping over {psname}")
+                            # print(f"jumping over {psname}")
+                            msg = f"jumping over {psname}\n"
+                            self.logfile.write(msg)
                             continue
                 else:
-                    print(f"NOV:{self.parent.nov}")
+                    # print(f"NOV:{self.parent.nov}")
                     self.parent.grow_path(base_nov, final_path, hpath)
 
     def local_sats(self, csatdic={}, pname=""):
@@ -111,10 +115,10 @@ class SatNode:
         sats = []
         for spairs in path_base.values():
             for pair in spairs:
-                sats.append(pair)
+                pn = f"{nosats}-"+str(len(sats)+1)
+                name = f"{pair[1]}[{pn}]"
+                sats.append((pair[0],name))
         result.append(sats)
-        # result.append(tuple(path_base.values()))
-        # return path_base
         return result
     # end of def local_sats(self):
 

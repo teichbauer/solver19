@@ -33,42 +33,37 @@ class SatNode:
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
             print(f"NOV:{self.nov}")
-            self.grow_path()
+            self.grow_path(27)
 
-    def grow_path(self, final_path=[], base_path=None):
+    def grow_path(self, base_nov, final_path=[], base_path=None):
+        if self.parent.nov == 60:
+            xx = 9
         if not base_path:
             base_path = self.local_sats()
-        while len(base_path) > 0:
-            base_kys, bsat_pairs = base_path.popitem()
-            for satpair in bsat_pairs:
-                sats, sname = satpair
-                hpath = self.parent.local_sats(sats, sname)
-                leng1 = len(hpath)
-                if leng1 == 0:
-                    print(f"no path up here")
-                    continue
-                if self.parent.nov == 60:
-                    xx = 9
-                elif len(hpath) > 0:
-                    if self.parent.nov >= 27:
-                        sat_path = SatPath(sname, sats, self.nov+3)
-                        if sat_path.check():
-                            sat_path.grow()
+        base_kys, bsat_pairs = base_path
+        while len(bsat_pairs) > 0:
+            satpair = bsat_pairs.pop() # get the last, which is the longest
+            sats, sname = satpair
+            hpath = self.parent.local_sats(sats, sname)
+            leng1 = len(hpath[1]) # number of sats
+            if leng1 == 0:
+                print(f"no path up here")
+                continue
+            else:
+                if self.parent.nov >= base_nov:
+                    bky, pairs = hpath
+                    while len(pairs) > 0:
+                        ppair = pairs.pop()
+                        psat, psname = ppair
+                        sat_path = SatPath(psname, psat, base_nov+3)
+                        if sat_path.grow(final_path):
+                            y = 9
                         else:
-                            print(f"jumping over {sname}")
+                            print(f"jumping over {psname}")
                             continue
-                        # res = \
-                        # test_water(sname, sats, Center.snodes, self.nov+3)
-                    print(f"NOV:{self.parent.nov}")
-                    self.parent.grow_path(final_path, hpath)
                 else:
-                    print(f"{sname} stops here")
-
-    def bk_index(self, chval):
-        for bk_ind, bkval in enumerate(self.bkdic.values()):
-            if chval in bkval:
-                return bk_ind
-        return -1
+                    print(f"NOV:{self.parent.nov}")
+                    self.parent.grow_path(base_nov, final_path, hpath)
 
     def local_sats(self, csatdic={}, pname=""):
         '''
@@ -84,6 +79,9 @@ class SatNode:
         bkeys = [] # dic-keys: all tuples
         dic = {}   # un-sorted dict
         path_base = OrderedDict()
+        # [{k0, k1), [(),(),(<pair>),..]}], where 
+        # <pair>: ({<sat>}, "<name")
+        result = [] 
         nosats = 0
         for chv, tail in self.taildic.items():
             tail_sats = tail.start_sats(csatdic)
@@ -108,9 +106,23 @@ class SatNode:
         bks = sort_length_list(bkeys) # sort -> [(.),(..),(...),...]
         for bk in bks:
             path_base[bk] = dic[bk]
-        print(f"{self.nov} has {nosats} sats")
-        return path_base
+        print(f"{pn}-{self.nov} has {nosats} sats")
+        result.append(tuple(path_base.keys()))
+        sats = []
+        for spairs in path_base.values():
+            for pair in spairs:
+                sats.append(pair)
+        result.append(sats)
+        # result.append(tuple(path_base.values()))
+        # return path_base
+        return result
     # end of def local_sats(self):
+
+    def bk_index(self, chval):
+        for bk_ind, bkval in enumerate(self.bkdic.values()):
+            if chval in bkval:
+                return bk_ind
+        return -1
 
     def tail_bits(self, incl_root=False):
         print(f'my nov: {self.nov}')

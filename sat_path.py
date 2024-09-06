@@ -13,7 +13,7 @@ class SatPath:
         for snode in self.snds:
             res = filter_conflict(snode, self.sat)
             rvs = set(snode.bgrid.chvals).difference(res)
-            print(f"{snode.nov} excluds: {res}")
+            # print(f"{snode.nov} excluds: {res}")
             if len(rvs) == 0:
                 print(f"{snode.nov} blocked")
                 return False
@@ -21,7 +21,12 @@ class SatPath:
                 self.schvs[snode.nov] = rvs
         return True
     
-    def grow(self):
-        new_path = SatPath("name", self.sat, self.nov+3)
-        pass
+    def grow(self, sats):
+        if self.check():
+            snode = Center.snodes[self.nov]
+            new_path = snode.local_sats(self.sat, self.name)
+            return True
+        # new_path = SatPath("name", self.sat, self.nov+3)
+        else:
+            return False
 

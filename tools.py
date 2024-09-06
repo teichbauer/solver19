@@ -68,7 +68,7 @@ def filter_conflict(snode, satdic):
                     excl_chvs.update(cvs)
     for vk in snode.vk2dic.values():
         if vk.hit(satdic):
-            print(f"vk {vk.kname} hit with {vk.cvs}")
+            # print(f"vk {vk.kname} hit with {vk.cvs}")
             excl_chvs.update(vk.cvs)
     return excl_chvs
 
@@ -82,7 +82,7 @@ def test_water(sname, satdic, snodes, start_nov):
     for snode in snds:
         res = filter_conflict(snode, satdic)
         rvs = set(snode.bgrid.chvals).difference(res)
-        print(f"{snode.nov} excluds: {res}")
+        # print(f"{snode.nov} excluds: {res}")
         if len(rvs) == 0:
             print(f"{snode.nov} blocked")
             return False

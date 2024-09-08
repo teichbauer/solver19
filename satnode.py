@@ -21,10 +21,13 @@ class SatNode:
         self.satdic = {} # {<bit>:[<val>,[cv1,cv2,..]]}
         self.bgrid = BitGrid(self)
         vkm.make_taildic(self)  # make self.taildic, self.bkdic
-        Center.snodes[self.nov] = self
+        Center.slice(self)
         self.next = None
         self.next_sh = self.sh.reduce(self.bgrid.bits)
-        self.logfile = open("logfile.txt",'a')
+        if Center.logging:
+            self.logfile = open("logfile.txt",'a')
+        else:
+            self.logfile = None
 
     def spawn(self):
         if len(self.vkm.vkdic) > 0:  # there exist vk3 in vkm.vkdic, make next
@@ -62,14 +65,15 @@ class SatNode:
                             y = 9
                         else:
                             # print(f"jumping over {psname}")
-                            msg = f"jumping over {psname}\n"
-                            self.logfile.write(msg)
+                            if Center.logging:
+                                msg = f"jumping over {psname}\n"
+                                self.logfile.write(msg)
                             continue
                 else:
                     # print(f"NOV:{self.parent.nov}")
                     self.parent.grow_path(base_nov, final_path, hpath)
 
-    def local_sats(self, csatdic={}, pname=""):
+    def local_sats(self, csatdic={}, pname="",chv_filter=None):
         '''
         # returns a path_base, that is an OrderedDict:
         #  {<bkey>:[ele1,ele2,..], <bkey>:[e1,e2]}, where
@@ -88,6 +92,8 @@ class SatNode:
         result = [] 
         nosats = 0
         for chv, tail in self.taildic.items():
+            if chv_filter and chv not in chv_filter:
+                continue
             tail_sats = tail.start_sats(csatdic)
             # nosats += len(tail_sats)
             if not tail_sats:
@@ -110,7 +116,7 @@ class SatNode:
         bks = sort_length_list(bkeys) # sort -> [(.),(..),(...),...]
         for bk in bks:
             path_base[bk] = dic[bk]
-        print(f"{pn}-{self.nov} has {nosats} sats")
+        print(f"{pn} has {nosats} sats")
         result.append(tuple(path_base.keys()))
         sats = []
         for spairs in path_base.values():

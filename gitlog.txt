@@ -1,3 +1,10 @@
+2024-09-07->19.333
+- Center: 
+  - set_init: make cls.orig_vkdic - a clone of all vks
+  - slice: put all vk's name belonging to a cls.vknames[nov].append
+    remove_kn: vk.nov, and vk.type = 'root'|'2bit' | '1bit'
+  - verify_sat(sat, [nov]):
+    if sat is hit on nov, or at-all
 2024-09-06->19.332
 - path naming now like: 
   18.7.k1-3:3[15-15]+21.7.k6-18:18[58-58]+24.2.k1-1:1[2-1]+27.7.k2-2:2[8-8]

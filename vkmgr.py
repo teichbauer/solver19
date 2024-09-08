@@ -16,6 +16,9 @@ class VKManager:
         t2s.sort()
         t1s.sort()
         return chvals, vk3s, t2s, t1s
+    
+    def clone_vkdic(self):
+        return {kn: vk.clone() for kn, vk in self.vkdic.items()}
 
     def clone(self):
         vkdic = {kn: vk.clone() for kn, vk in self.vkdic.items()}

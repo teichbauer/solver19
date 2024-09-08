@@ -11,8 +11,9 @@ class Center:
     snodes = {}
     vk12kndic = {}  # {nov: [kns]}
     sumbdic = {}
-    sumvk12dic = {}
-    orig_vkm = None
+    vknames = {}
+    orig_vkdic = None
+    logging = False
 
     @classmethod
     def set_maxnov(cls, nov):
@@ -20,21 +21,48 @@ class Center:
         cls.bits = set(range(nov))
 
     @classmethod
-    def set_blinks(cls):
-        nov = cls.maxnov
-        x = 1
-        # sn = cls.snodes[nov]
+    def set_init(cls, vkm):
+        cls.orig_vkdic = vkm.clone_vkdic() # vkm.clone()
+        cls.rest_kns = list(Center.orig_vkdic.keys())
 
     @classmethod
-    def solve(cls):
-        # sat2 = Sat2(None, None, cls.sumvk12dic)
-        # sat2.split2()
-        # if sat2.children[1]:
-        #     # sat2.children[1].verify(cls.vk12kndic, cls.maxnov, cls.last_nov)
-        #     sat2.children[1].verify(cls.maxnov, cls.last_nov)
-        # if sat2.children[0]:
-        #     sat2.children[0].verify(cls.maxnov, cls.last_nov)
-        x = 1
+    def slice(cls, snode):
+        cls.vknames[snode.nov] = []
+        for vk in snode.choice[1]: # vk3s
+            myvk = cls.orig_vkdic[vk.kname]
+            cls.remove_kn(snode.nov, vk.kname, 'root')
+        for kn in snode.choice[2]: # vk1(2bits touch)-knames
+            cls.remove_kn(snode.nov, kn, '2bit')
+        for kn in snode.choice[3]: # vk2(1bit-touch)-knames)
+            cls.remove_kn(snode.nov, kn, '1bit')
+        # sn = cls.snodes[nov]
+    
+    @classmethod
+    def remove_kn(cls, nov, kn, typename):
+        if kn in cls.rest_kns:
+            cls.rest_kns.remove(kn)
+            cls.orig_vkdic[kn].type = typename
+            cls.orig_vkdic[kn].nov = nov
+            cls.vknames[nov].append(f"{kn}-{typename}")
+        else:
+            print('weord-0')
+
+    @classmethod
+    def verify_sat(cls, sat, nov=-1):
+        if nov == -1:
+            for vk in cls.orig_vkdic.values():
+                if vk.hit(sat):
+                    print(f"hit-vk: {vk.kname} on {vk.nov}")
+                    return True
+        else:
+            kns = cls.vknames[nov]
+            for kn in kns:
+                vk = cls.orig_vkdic[kn]
+                if vk.hit(sat):
+                    print(f"hit-vk: {vk.kname} on {vk.nov}")
+                    return True
+        return False
+
 
     @classmethod
     def set_satbits(cls):

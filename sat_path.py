@@ -17,18 +17,35 @@ class SatPath:
             # print(f"{snode.nov} excluds: {res}")
             if len(rvs) == 0:
                 # print(f"{snode.nov} blocked")
-                msg = f"{snode.nov} blocked\n"
-                self.logfile.write(msg)
+                if Center.logging:
+                    msg = f"{snode.nov} blocked\n"
+                    self.logfile.write(msg)
                 return False
             else:
                 self.schvs[snode.nov] = rvs
         return True
     
-    def grow(self, sats):
+    def grow(self, final_sats):
         if self.check():
             snode = Center.snodes[self.nov]
-            new_path = snode.local_sats(self.sat, self.name)
-            return True
+            new_path = snode.local_sats(
+                self.sat, 
+                self.name, 
+                self.schvs[snode.nov])
+            if len(new_path[1]) == 0:
+                return False
+            else:
+                _, pairs = new_path
+                while len(pairs) > 0:
+                    sat, sname = pairs.pop()
+                    n_path = SatPath(sname, sat, self.nov + 3, self.logfile)
+                    if n_path.grow(final_sats):
+                        y = 8
+                    else:
+                        continue
+                else:
+                    return False
+                return True
         # new_path = SatPath("name", self.sat, self.nov+3)
         else:
             return False

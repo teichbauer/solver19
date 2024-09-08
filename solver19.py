@@ -18,7 +18,7 @@ def make_vkdic(kdic):
 def make_vkm(cnf_fname):
     vkdic = get_vkdic_from_cfg(cnf_fname)
     vkm = VKManager(vkdic, True) # initial: True
-    Center.orig_vkm = vkm.clone()
+    Center.set_init(vkm)
     return vkm
 
 

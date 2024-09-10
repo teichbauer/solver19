@@ -1,3 +1,5 @@
+2024-09-09->19.334
+- known_sats in center.py, sat_failed has verified all these 7 sats are right.
 2024-09-07->19.333
 - Center: 
   - set_init: make cls.orig_vkdic - a clone of all vks

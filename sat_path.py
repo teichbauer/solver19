@@ -12,6 +12,8 @@ class SatPath:
 
     def check(self):
         for snode in self.snds:
+            if snode.nov == 39:
+                x = 0
             res = filter_conflict(snode, self.sat)
             rvs = set(snode.bgrid.chvals).difference(res)
             # print(f"{snode.nov} excluds: {res}")
@@ -20,6 +22,7 @@ class SatPath:
                 if Center.logging:
                     msg = f"{snode.nov} blocked\n"
                     self.logfile.write(msg)
+                ver = Center.sat_failed(self.sat, snode.nov)
                 return False
             else:
                 self.schvs[snode.nov] = rvs

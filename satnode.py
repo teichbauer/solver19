@@ -21,6 +21,7 @@ class SatNode:
         self.satdic = {} # {<bit>:[<val>,[cv1,cv2,..]]}
         self.bgrid = BitGrid(self)
         vkm.make_taildic(self)  # make self.taildic, self.bkdic
+        Center.snodes[self.nov] = self
         Center.slice(self)
         self.next = None
         self.next_sh = self.sh.reduce(self.bgrid.bits)

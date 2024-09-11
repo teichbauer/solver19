@@ -1,5 +1,4 @@
 from basics import verify_sat
-# from sat2 import Sat2
 known_sats = [
     # sat 0
   { 59: 1, 58: 1, 57: 1, 56: 0, 55: 0, 54: 1, 53: 0, 52: 1, 51: 1, 50: 0, # all
@@ -71,6 +70,7 @@ class Center:
     maxnov = 0
     satbitdic = {}  # every snode has 3x <sat-bit>:<snode> in here
     bits = set([])
+    bdic = {}
     sats = []
     limit = 10
     snodes = {}
@@ -88,6 +88,10 @@ class Center:
     @classmethod
     def set_init(cls, vkm):
         cls.orig_vkdic = vkm.clone_vkdic() # vkm.clone()
+        for kn, vk in cls.orig_vkdic.items():
+            for b in vk.bits:
+                cls.bdic.setdefault(b, set([])).add(kn)
+        cls.bdic
         cls.rest_kns = list(Center.orig_vkdic.keys())
 
     @classmethod

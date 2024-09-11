@@ -1,3 +1,12 @@
+2024-09-10->19.335
+- moved make_taildic from vkmgr.py to tools.py
+- moved sat_conflict, get_vk2sats from tools.py to basics.py
+- deleted: sat2.py and snodevkm.py
+- put 8 sats from solver16, into center.py. Tested with 
+  Center.sat_failed.
+- plan to do: get rid of snode.satdic, vk1 will be put into vkdic the same way
+  as vk2, I may rename C0212 ->S0212, and put into bdic too. Will do the work
+  by next 19.336
 2024-09-09->19.334
 - known_sats in center.py, sat_failed has verified all these 7 sats are right.
 2024-09-07->19.333

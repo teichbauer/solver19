@@ -1,4 +1,6 @@
 from basics import *
+from stail import STail
+from collections import OrderedDict
 
 def sort_length_list(lst):
     # [(...),(.......),(.)] => [(.),(...),(.......)]
@@ -21,29 +23,6 @@ def orderedDictIndex(od, key):
     if key not in lst:
         return -1
     return lst.index(key)
-
-def sat_conflict(sat1, sat2):
-    intersection_bits1 = set(sat1).intersection(sat2)
-    for b in intersection_bits1:
-        if sat1[b] != sat2[b]:
-            return True
-    return False
-
-def get_vk2sats(vk2, csatdic={}):
-    d = vk2.dic
-    sats = []
-    b1, b2 = list(d.keys())
-    v1, v2 = d.values()
-    s1 = {b1: v1, b2: int(not v2)}
-    if not sat_conflict(s1, csatdic):
-        sats.append(s1)
-    s2 = {b1: int(not(v1)), b2: v2}
-    if not sat_conflict(s2, csatdic):
-        sats.append(s2)
-    s3 = {b1: int(not(v1)), b2: int(not v2)}
-    if not sat_conflict(s3, csatdic):
-        sats.append(s3)
-    return sats
 
 def multi_vk2_sats(vk2s):
     all_sats = []
@@ -71,6 +50,53 @@ def filter_conflict(snode, satdic):
             # print(f"vk {vk.kname} hit with {vk.cvs}")
             excl_chvs.update(vk.cvs)
     return excl_chvs
+
+def make_taildic(snode):
+    taildic = {v: STail(snode, v) for v in snode.choice[0] }
+    for kn in snode.choice[2]: # touch-2 vk3s
+        if kn in snode.vkm.vkdic:
+            vk = snode.vkm.pop_vk(kn)
+            vk1 = snode.bgrid.reduce_vk(vk)
+            b, v = vk1.dic.popitem()
+            for cv in vk1.cvs:
+                satval = int(not v)
+                taildic[cv].satdic[b] = satval
+                snode.add_sat(b, satval, cv)
+
+    for kn in snode.choice[3]: # all vk(kn) touching 1 bit o f snode's root
+        # will result into vk2s
+        if kn in snode.vkm.vkdic:
+            vk = snode.vkm.pop_vk(kn)
+            vk2 = snode.bgrid.reduce_vk(vk)
+            snode.vk2dic[vk2.kname] = vk2
+            for b in vk2.bits:
+                snode.bdic.setdefault(b, []).append(vk2.kname)
+            for cv in vk2.cvs:
+                taildic[cv].add_vk2(vk2)
+    # satdic may have bit(s) overlapping with vk2, resulting into
+    # more satdic entries. Handle that here
+    for tail in taildic.values():
+        if len(tail.satdic) > 0:
+            tail.grow_sat(tail.satdic.copy())
+    # make snode.bkys-dic
+    dic = {}
+    bkys = []
+    for chv, tail in taildic.items():
+        lst = list(tail.bdic.keys())
+        lst += snode.bgrid.bits
+        for b in tail.satdic:
+            lst.append(b)
+        lst.sort()
+        tpl = tuple(lst)
+        dic.setdefault(tpl, []).append(chv)
+        if tpl not in bkys:
+            bkys.append(tpl)
+    bks = sort_length_list(bkys)
+    bkdic = OrderedDict()
+    for bk in bks:
+        bkdic[bk] = dic[bk]
+    snode.bkdic = bkdic
+    snode.taildic = taildic
 
 def test_water(sname, satdic, snodes, start_nov):
     # example: start_nov=33

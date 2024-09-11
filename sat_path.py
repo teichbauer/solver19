@@ -22,7 +22,7 @@ class SatPath:
                 if Center.logging:
                     msg = f"{snode.nov} blocked\n"
                     self.logfile.write(msg)
-                ver = Center.sat_failed(self.sat, snode.nov)
+                # ver = Center.sat_failed(self.sat, snode.nov)
                 return False
             else:
                 self.schvs[snode.nov] = rvs
@@ -37,6 +37,14 @@ class SatPath:
                 self.schvs[snode.nov])
             if len(new_path[1]) == 0:
                 return False
+            elif self.nov == 60:
+                _, pairs = new_path
+                leng = len(pairs)
+                print(f"found {leng} sats!")
+                for ind, pair in enumerate(pairs):
+                    final_sats.append(pair)
+                    print(f"{ind}-th sat: {pair}")
+                return True
             else:
                 _, pairs = new_path
                 while len(pairs) > 0:
@@ -48,7 +56,6 @@ class SatPath:
                         continue
                 else:
                     return False
-                return True
         # new_path = SatPath("name", self.sat, self.nov+3)
         else:
             return False

@@ -1,4 +1,5 @@
 from bitgrid import BitGrid
+from basics import ordered_dic_string
 from center import Center
 from tools import *
 from collections import OrderedDict
@@ -20,7 +21,7 @@ class SatNode:
         self.bdic = {}      # bit-dic for all vk2s in vk2dic
         self.satdic = {} # {<bit>:[<val>,[cv1,cv2,..]]}
         self.bgrid = BitGrid(self)
-        vkm.make_taildic(self)  # make self.taildic, self.bkdic
+        make_taildic(self)  # make self.taildic, self.bkdic
         Center.snodes[self.nov] = self
         Center.slice(self)
         self.next = None
@@ -117,7 +118,7 @@ class SatNode:
         bks = sort_length_list(bkeys) # sort -> [(.),(..),(...),...]
         for bk in bks:
             path_base[bk] = dic[bk]
-        print(f"{pn} has {nosats} sats")
+        # print(f"{pn} has {nosats} sats")
         result.append(tuple(path_base.keys()))
         sats = []
         for spairs in path_base.values():

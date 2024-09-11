@@ -1,6 +1,30 @@
 from datetime import datetime
 
 
+def sat_conflict(sat1, sat2):
+    intersection_bits1 = set(sat1).intersection(sat2)
+    for b in intersection_bits1:
+        if sat1[b] != sat2[b]:
+            return True
+    return False
+
+def get_vk2sats(vk2, csatdic={}):
+    d = vk2.dic
+    sats = []
+    b1, b2 = list(d.keys())
+    v1, v2 = d.values()
+    s1 = {b1: v1, b2: int(not v2)}
+    if not sat_conflict(s1, csatdic):
+        sats.append(s1)
+    s2 = {b1: int(not(v1)), b2: v2}
+    if not sat_conflict(s2, csatdic):
+        sats.append(s2)
+    s3 = {b1: int(not(v1)), b2: int(not v2)}
+    if not sat_conflict(s3, csatdic):
+        sats.append(s3)
+    return sats
+
+
 def verify_sat(vkdic, sat, collect=False):
     lst = set([])
     for vk in vkdic.values():

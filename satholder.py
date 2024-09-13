@@ -32,14 +32,6 @@ class SatHolder:
     def clone(self):
         return SatHolder(self.varray[:])
 
-    def get_sats(self, val):
-        assert val < (2 ** self.ln)
-        satdic = {}
-        for ind, vn in enumerate(self.varray):
-            v = get_bit(val, ind)
-            satdic[vn] = v
-        return satdic
-
     def full_sats(self):
         sats = {v: 2 for v in self.varray}
         return sats

@@ -1,4 +1,5 @@
 from basics import *
+from vklause import VKlause
 from stail import STail
 from collections import OrderedDict
 
@@ -52,40 +53,29 @@ def filter_conflict(snode, satdic):
     return excl_chvs
 
 def make_taildic(snode):
-    taildic = {v: STail(snode, v) for v in snode.choice[0] }
-    for kn in snode.choice[2]: # touch-2 vk3s
-        if kn in snode.vkm.vkdic:
-            vk = snode.vkm.pop_vk(kn)
-            vk1 = snode.bgrid.reduce_vk(vk)
-            b, v = vk1.dic.popitem()
-            for cv in vk1.cvs:
-                satval = int(not v)
-                taildic[cv].satdic[b] = satval
-                snode.add_sat(b, satval, cv)
-
-    for kn in snode.choice[3]: # all vk(kn) touching 1 bit o f snode's root
+    # choice[0]: chvals, [1]: vk3s, [2]: touchd 2 bits, [3]: touched 1 bit
+    snode.taildic = {v: STail(snode, v) for v in snode.choice[0] }
+    # all vk(kn) touching 1, or 2 bit o f snode's root
+    for kn in snode.choice[2] + snode.choice[3]: 
         # will result into vk2s
         if kn in snode.vkm.vkdic:
             vk = snode.vkm.pop_vk(kn)
-            vk2 = snode.bgrid.reduce_vk(vk)
-            snode.vk2dic[vk2.kname] = vk2
-            for b in vk2.bits:
-                snode.bdic.setdefault(b, []).append(vk2.kname)
-            for cv in vk2.cvs:
-                taildic[cv].add_vk2(vk2)
-    # satdic may have bit(s) overlapping with vk2, resulting into
-    # more satdic entries. Handle that here
-    for tail in taildic.values():
-        if len(tail.satdic) > 0:
-            tail.grow_sat(tail.satdic.copy())
+            vk12 = snode.bgrid.reduce_vk(vk)
+            if vk12.nob == 1:  # touched 2 bits, vk12 is vk1: C0212->S0212
+                vk12.kname = vk.kname.replace('C','S')
+            snode.add_vk(vk12)  # vk1.kname into snode.k1ns set
+            for cv in vk12.cvs:
+                snode.taildic[cv].add_vk(vk12)
+    # vk1(s) may have bit(s) overlapping with vk2, resulting into
+    # more vk1(s). Handle that here
+    if len(snode.k1ns) > 0:
+        grow_vk1(snode)
     # make snode.bkys-dic
     dic = {}
     bkys = []
-    for chv, tail in taildic.items():
+    for chv, tail in snode.taildic.items():
         lst = list(tail.bdic.keys())
         lst += snode.bgrid.bits
-        for b in tail.satdic:
-            lst.append(b)
         lst.sort()
         tpl = tuple(lst)
         dic.setdefault(tpl, []).append(chv)
@@ -96,7 +86,41 @@ def make_taildic(snode):
     for bk in bks:
         bkdic[bk] = dic[bk]
     snode.bkdic = bkdic
-    snode.taildic = taildic
+
+def grow_vk1(snode):
+    kns = snode.k1ns.copy()
+    while len(kns) > 0: #
+        vk1 = snode.vk2dic[kns.pop()]
+        b, v = tuple(vk1.dic.items())[0] # vk1.dic.(key, val)
+        ckns = [xkn for xkn in snode.bdic.get(b,[]) if xkn.startswith('C')]
+        for ckn in ckns:
+            vk = snode.vk2dic[ckn]
+            # if vk1 is hit by v: snode is hit, if not, then vk is
+            if vk.dic[b] == v: # for sure not hit, and can be voided
+                for cv in vk1.cvs:
+                    if cv in vk.cvs:
+                        vk.cvs.remove(cv)
+                        # if vk has no cvs, remove it from snode
+                        if len(vk.cvs) == 0 and vk.kname in snode.bdic[b]:
+                            snode.remove_vk(vk)
+                        # remove vk from taildic[cv]
+                        snode.taildic[cv].remove_vk(vk.kname)
+            else: # vk.dic[b] != v,
+                # when vk1 not hit: {b: not v}, vk.dic[b] is hit, vk -> xvk1
+                dic = vk.dic.copy()
+                dic.pop(b)
+                xvk1 = VKlause(
+                        vk.kname.replace('C','S'), dic, 
+                        vk.nov, vk.cvs.intersection(vk1.cvs)
+                )
+                vk.cvs = vk.cvs - vk1.cvs
+                if len(vk.cvs) == 0:
+                    snode.remove_vk(vk)
+                for cv in xvk1.cvs:
+                    snode.taildic[cv].remove_vk(vk.kname)
+                    snode.taildic[cv].add_vk2(xvk1)
+    # end of grow-vk1
+
 
 def test_water(sname, satdic, snodes, start_nov):
     # example: start_nov=33

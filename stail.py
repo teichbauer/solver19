@@ -4,18 +4,18 @@ class STail:
     def __init__(self, snode, chval): #vkm, anc_bits, check_val):
         self.snode = snode
         self.cval = chval      # check_vals
-        self.bdic = {}
+        self.bdic = {}  # {<bit>: [<kname>,..]}
         self.vk2s = {}
         self.root_sats = snode.bgrid.grid_sat(chval)
-        self.satdic = {}  # {<bit>: <val>}
+        self.k1ns = set([])
 
     def start_sats(self,csatdic={}):
         # csatdic cannot have conflict with root_sats
         sats = []
         sat = self.root_sats.copy()
-        if sat_conflict(self.satdic, csatdic):
-            return None
-        sat.update(self.satdic)
+        # if sat_conflict(self.satdic, csatdic):
+        #     return None
+        # sat.update(self.satdic)
         sat.update(csatdic)
         sats.append(sat)
         vk2s = self.vk2s.copy()
@@ -33,10 +33,22 @@ class STail:
             sats = res_sats
         return res_sats
 
-    def add_vk2(self, vk2):
-        self.vk2s[vk2.kname] = vk2
-        for b in vk2.bits:
-            self.bdic.setdefault(b, []).append(vk2.kname)
+    def add_vk(self, vk):
+        self.vk2s[vk.kname] = vk
+        if vk.nob == 1:
+            self.k1ns.add(vk.kname)
+        for b in vk.bits:
+            self.bdic.setdefault(b, []).append(vk.kname)
+
+    def remove_vk(self, kn):
+        vk = self.vk2s.pop(kn)
+        if vk.kname.startswith('S') and vk.kname in self.k1ns:
+            self.k1ns.remove(vk.kname)
+        for b in vk.bits:
+            self.bdic[b].remove(kn)
+            if len(self.bdic[b]) == 0:
+                del self.bdic[b]
+
 
     def grow_sat(self, sdic):
         new_sdic = {}
@@ -76,3 +88,4 @@ class STail:
         if len(new_sdic) > 0:
             self.satdic.update(new_sdic)
             self.grow_sat(new_sdic)
+

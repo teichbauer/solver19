@@ -17,9 +17,9 @@ class SatNode:
         else:
             self.nov = parent.nov - 3
         self.choice = vkm.make_choice() # (vals, bits, t2s, t1s)
-        self.vk2dic = {}    # vk2s in all tails
+        self.vk2dic = {}    # vk1s + vk2s in all tails
+        self.k1ns = set([]) # knames of all vk1s in all taildic
         self.bdic = {}      # bit-dic for all vk2s in vk2dic
-        self.satdic = {} # {<bit>:[<val>,[cv1,cv2,..]]}
         self.bgrid = BitGrid(self)
         make_taildic(self)  # make self.taildic, self.bkdic
         Center.snodes[self.nov] = self
@@ -139,16 +139,22 @@ class SatNode:
     def tail_bits(self, incl_root=False):
         print(f'my nov: {self.nov}')
         bits = set(self.bdic)
-        bits.update(self.satdic)
         if incl_root:
             bits.update(self.bgrid.bits)
         return bits
 
-    def add_sat(self, bit, val, cv, satdic=None):
-        if not satdic:
-            satdic = self.satdic
-        sat_info = satdic.setdefault(bit, {})
-        cvs = sat_info.setdefault(val, [])
-        if cv not in cvs:
-            cvs.append(cv)
+    def add_vk(self, vk):
+        self.vk2dic[vk.kname] = vk
+        if vk.nob == 1:
+            self.k1ns.add(vk.kname)
+        for b in vk.bits:
+            self.bdic.setdefault(b, []).append(vk.kname)
 
+    def remove_vk(self, vk):
+        self.vk2dic.pop(vk.kname)
+        if vk.kname.startswith('S') and vk.kname in self.k1ns:
+            self.k1ns.remove(vk.kname)
+        for b in vk.bits:
+            self.bdic[b].remove(vk.kname)
+            if len(self.bdic[b]):
+                del self.bdic[b]

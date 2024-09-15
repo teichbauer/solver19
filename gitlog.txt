@@ -1,3 +1,8 @@
+2024-09-14->19.337
+- tools.py: grow_vk1 tested s60,...S21
+2024-09-13->19.336
+-getting rid of satdic in stail and snode
+ (in files: satnode.py, stail.py, tools.py, saved the originals: stail1.py,..)
 2024-09-10->19.335
 - moved make_taildic from vkmgr.py to tools.py
 - moved sat_conflict, get_vk2sats from tools.py to basics.py

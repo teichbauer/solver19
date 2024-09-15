@@ -69,7 +69,7 @@ def make_taildic(snode):
     # vk1(s) may have bit(s) overlapping with vk2, resulting into
     # more vk1(s). Handle that here
     if len(snode.k1ns) > 0:
-        grow_vk1(snode)
+        grow_vk1(snode, snode.k1ns.copy())
     # make snode.bkys-dic
     dic = {}
     bkys = []
@@ -87,38 +87,40 @@ def make_taildic(snode):
         bkdic[bk] = dic[bk]
     snode.bkdic = bkdic
 
-def grow_vk1(snode):
-    kns = snode.k1ns.copy()
+def grow_vk1(snode, kns):
+    new_kns = set([])
     while len(kns) > 0: #
         vk1 = snode.vk2dic[kns.pop()]
         b, v = tuple(vk1.dic.items())[0] # vk1.dic.(key, val)
         ckns = [xkn for xkn in snode.bdic.get(b,[]) if xkn.startswith('C')]
         for ckn in ckns:
             vk = snode.vk2dic[ckn]
-            # if vk1 is hit by v: snode is hit, if not, then vk is
-            if vk.dic[b] == v: # for sure not hit, and can be voided
-                for cv in vk1.cvs:
-                    if cv in vk.cvs:
-                        vk.cvs.remove(cv)
-                        # if vk has no cvs, remove it from snode
-                        if len(vk.cvs) == 0 and vk.kname in snode.bdic[b]:
-                            snode.remove_vk(vk)
-                        # remove vk from taildic[cv]
-                        snode.taildic[cv].remove_vk(vk.kname)
+            s_cvs = vk.cvs.intersection(vk1.cvs)
+            if len(s_cvs) == 0:
+                continue
+            # if vk1 is hit by v: snode is hit, this snode is over for vk1.cvs
+            if vk.dic[b] == v: # if vk1[b] is not hit, vk can be voided
+                for cv in s_cvs:
+                    snode.taildic[cv].remove_vk(vk.kname)
+                    vk.cvs.remove(cv) 
+                    # if vk.cvs becomes empty, remove from snode
+                    if len(vk.cvs) == 0 and vk.kname in snode.bdic[b]:
+                        snode.remove_vk(vk)
             else: # vk.dic[b] != v,
                 # when vk1 not hit: {b: not v}, vk.dic[b] is hit, vk -> xvk1
                 dic = vk.dic.copy()
                 dic.pop(b)
-                xvk1 = VKlause(
-                        vk.kname.replace('C','S'), dic, 
-                        vk.nov, vk.cvs.intersection(vk1.cvs)
-                )
-                vk.cvs = vk.cvs - vk1.cvs
+                xvk1 = VKlause(vk.kname.replace('C','S'), dic, vk.nov, s_cvs)
+                new_kns.add(xvk1.kname)
+                for cv in s_cvs:
+                    snode.taildic[cv].remove_vk(vk.kname)
+                    snode.taildic[cv].add_vk(xvk1)
+                snode.add_vk(xvk1)
+                vk.cvs = vk.cvs - s_cvs
                 if len(vk.cvs) == 0:
                     snode.remove_vk(vk)
-                for cv in xvk1.cvs:
-                    snode.taildic[cv].remove_vk(vk.kname)
-                    snode.taildic[cv].add_vk2(xvk1)
+    if len(new_kns) > 0:
+        grow_vk1(snode, new_kns)
     # end of grow-vk1
 
 

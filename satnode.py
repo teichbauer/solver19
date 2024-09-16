@@ -16,7 +16,7 @@ class SatNode:
             Center.root_snode = self
         else:
             self.nov = parent.nov - 3
-        self.choice = vkm.make_choice() # (vals, bits, t2s, t1s)
+        self.choice = vkm.make_choice(self.nov) # (vals, bits, t2s, t1s)
         self.vk2dic = {}    # vk1s + vk2s in all tails
         self.k1ns = set([]) # knames of all vk1s in all taildic
         self.bdic = {}      # bit-dic for all vk2s in vk2dic

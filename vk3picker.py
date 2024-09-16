@@ -1,7 +1,8 @@
 class Vk3Picker:
-    def __init__(self, vkm):
+    def __init__(self, vkm, Center):
         # vkm mus have its bdic mfinished
         self.vkm = vkm
+        self.Center = Center
         self.tdic, self.chdic = self.make_tdic_chdic(vkm)
         # self.chdic = self.make_chdic(self.tdic)
         xx = 0
@@ -39,11 +40,12 @@ class Vk3Picker:
             self.chdic.pop(nobits)
         return max_vk
 
-    def pickt3(self, vals):
+    def pickt3(self, vals, nov):
         # self.chdic has touch-3 choice. Take one
         # original chck_vals: [0..7], after choice, at least one removed
         lst = self.chdic[3]
         vk3 = lst.pop(0)
+        vk3.nov = nov
         vk3s = [vk3]
         v = vk3.cmprssd_value()
         if v in vals:
@@ -53,6 +55,7 @@ class Vk3Picker:
         while ind3 < len(lst):
             if lst[ind3].bits == vk3.bits:
                 vk3x = lst.pop(ind3)
+                vk3x.nov = nov
                 vk3s.append(vk3x)
                 v = vk3x.cmprssd_value()
                 if v in vals:
@@ -62,14 +65,17 @@ class Vk3Picker:
                 ind3 += 1
         if len(lst) == 0:
             self.chdic.pop(3)
+        self.Center.rootvks[nov] = vk3s
         return (vals, 
                 vk3s, 
                 list(self.tdic[vk3.kname].get(2,[])),
                 list(self.tdic[vk3.kname].get(1,[])))
 
-    def pickt2(self, vals):
+    def pickt2(self, vals, nov):
         # self.chdic has no touch-3, but touch-2 choice. Take one
         vk3 = self.biggest_choice(2)
+        self.Center.rootvks[nov] = [vk3]
+        vk3.nov = nov
         v = vk3.cmprssd_value()
         if v in vals:
             vals.remove(v)
@@ -79,9 +85,11 @@ class Vk3Picker:
                 list(self.tdic[vk3.kname].get(2,[])),
                 list(self.tdic[vk3.kname].get(1,[])))
 
-    def pickt1(self, vals):
+    def pickt1(self, vals, nov):
         # self.chdic has no touch-3/-2 choice. Take one touch-1
         vk3 = self.biggest_choice(1)
+        vk3.nov = nov
+        self.Center.rootvks[nov] = [vk3]
         v = vk3.cmprssd_value()
         if v in vals:
             vals.remove(v)
@@ -91,16 +99,16 @@ class Vk3Picker:
                 list(self.tdic[vk3.kname].get(2,[])),
                 list(self.tdic[vk3.kname].get(1,[])))
 
-    def pick(self, check_values):
+    def pick(self, check_values, nov):
         # if chdic has 3-list, pick from that, else
         # if chdic has 2-list, pick from that, else, 
         # pick from 1-list
         if 3 in self.chdic:
-            return self.pickt3(check_values)
+            return self.pickt3(check_values, nov)
         if 2 in self.chdic:
-            return self.pickt2(check_values)
+            return self.pickt2(check_values, nov)
         if 1 in self.chdic:
-            return self.pickt1(check_values)
+            return self.pickt1(check_values, nov)
 
     def drop_choice(self, vk):
         vks = self.chdic.get(2,[])

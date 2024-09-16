@@ -1,17 +1,16 @@
 from vk3picker import Vk3Picker
-from stail import STail
-from tools import sort_length_list
+from center import Center
 
 class VKManager:
     def __init__(self, vkdic, initial=False):
         self.vkdic = vkdic
         if initial:
             self.bdic = self.make_bdic()
-            self.picker = Vk3Picker(self)
+            self.picker = Vk3Picker(self, Center)
     
-    def make_choice(self):
+    def make_choice(self, nov):
         vals = [0,1,2,3,4,5,6,7]
-        chvals, vk3s, t2s, t1s = self.picker.pick(vals)
+        chvals, vk3s, t2s, t1s = self.picker.pick(vals, nov)
         t2s.sort()
         t1s.sort()
         return chvals, vk3s, t2s, t1s

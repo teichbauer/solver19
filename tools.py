@@ -60,6 +60,7 @@ def make_taildic(snode):
         # will result into vk2s
         if kn in snode.vkm.vkdic:
             vk = snode.vkm.pop_vk(kn)
+            vk.nov = snode.nov
             vk12 = snode.bgrid.reduce_vk(vk)
             if vk12.nob == 1:  # touched 2 bits, vk12 is vk1: C0212->S0212
                 vk12.kname = vk.kname.replace('C','S')

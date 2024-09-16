@@ -74,6 +74,7 @@ class Center:
     sats = []
     limit = 10
     snodes = {}
+    rootvks = {}
     vk12kndic = {}  # {nov: [kns]}
     sumbdic = {}
     vknames = {}
@@ -104,7 +105,7 @@ class Center:
             cls.remove_kn(snode.nov, kn, '2bit')
         for kn in snode.choice[3]: # vk2(1bit-touch)-knames)
             cls.remove_kn(snode.nov, kn, '1bit')
-        # sn = cls.snodes[nov]
+        x = 0
     
     @classmethod
     def remove_kn(cls, nov, kn, typename):
@@ -170,41 +171,3 @@ class Center:
                 x = 0
             nov -= 3
 
-    @classmethod
-    def bit_overlaps(cls, nov):
-        print(f"Showing overlappings for {nov}")
-        print("="*80)
-        bdic0 = cls.sumbdic[nov]
-        bdic = bdic0
-        gcount = {}
-        for b in bdic0:
-            bcount = gcount.setdefault(f"nov-{nov}.{b}", {})
-            bcount[nov] = (len(bdic0[b][0]), len(bdic0[b][1]))
-            print("-"*20 + f" {nov}:{b} - {bdic0[b][0]},{bdic0[b][1]}")
-            nv = nov - 3
-            while True:
-                bdic = cls.sumbdic[nv]
-                cnt = gcount.setdefault(nv, {})
-                print(f"{nv}:")
-                for bit in bdic:
-                    if bit == b:
-                        c0 = len(bdic[b][0])
-                        c1 = len(bdic[b][1])
-                        m = f"  -> {nv}:{bit} - [{bdic[bit][0]},{bdic[bit][1]}]"
-                        cnt[bit] = (c0, c1)
-                        print(m)
-                        print('---')
-                print(f"-"*80)
-                nv -= 3
-                if nv == cls.last_nov:
-                    break
-        print(str(gcount))
-
-    @classmethod
-    def show_sumvk12m(cls, nov):
-        dic = cls.sumvk12m[nov]
-        ks = sorted(dic.keys())
-        print(f"{nov} has {len(ks)} vks:")
-        for k in ks:
-            m = f"{k}:{str(dic[k][0].dic)}, {str(dic[k][1])}"
-            print(m)

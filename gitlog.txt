@@ -1,3 +1,7 @@
+2024-09-15->19.338
+- Center.rootvks{}, every vk.nov assigned in vkm.vkdic
+- vk3picker.py: add Center, add nov to vk3 as rootvks
+- vkmgr.py: add nov to make_choice, add Center to vk3picker
 2024-09-14->19.337
 - tools.py: grow_vk1 tested s60,...S21
 2024-09-13->19.336

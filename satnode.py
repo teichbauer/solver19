@@ -10,7 +10,7 @@ class SatNode:
         self.parent = parent
         self.sh = sh
         self.vkm = vkm  # all 3vks in here
-        self.repo = Center
+        self.Center = Center
         if parent == None:
             self.nov = Center.maxnov
             Center.root_snode = self
@@ -39,6 +39,7 @@ class SatNode:
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
             print(f"NOV:{self.nov}")
+            self.Center.set_xkeys()
             self.grow_path(27)
 
     def grow_path(self, base_nov, final_path=[], base_path=None):

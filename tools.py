@@ -1,7 +1,7 @@
 from basics import *
 from vklause import VKlause
 from stail import STail
-from collections import OrderedDict
+from vechost import VectorHost
 
 def sort_length_list(lst):
     # [(...),(.......),(.)] => [(.),(...),(.......)]
@@ -72,21 +72,11 @@ def make_taildic(snode):
     if len(snode.k1ns) > 0:
         grow_vk1(snode, snode.k1ns.copy())
     # make snode.bkys-dic
-    dic = {}
-    bkys = []
+    keydic = {}
     for chv, tail in snode.taildic.items():
-        lst = list(tail.bdic.keys())
-        lst += snode.bgrid.bits
-        lst.sort()
-        tpl = tuple(lst)
-        dic.setdefault(tpl, []).append(chv)
-        if tpl not in bkys:
-            bkys.append(tpl)
-    bks = sort_length_list(bkys)
-    bkdic = OrderedDict()
-    for bk in bks:
-        bkdic[bk] = dic[bk]
-    snode.bkdic = bkdic
+        keydic[chv] = set(tail.bdic.keys())
+    snode.vecmgr = VectorHost(snode, keydic)
+    x = 0
 
 def grow_vk1(snode, kns):
     new_kns = set([])

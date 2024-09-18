@@ -1,3 +1,10 @@
+2024-09-18->19.339
+- Center.set_xkeys
+- tools: get rid of OrderedDict way of keeping tailkeys. A bkey may be 
+  repeated across chv but that is not often the case. 
+  So just make key for each chv is ok
+- vechost.py: VectorHost with down_intersec_vecdic/up_intersec_vecdic
+  both of these two methods are not exponetial speed: good
 2024-09-15->19.338
 - Center.rootvks{}, every vk.nov assigned in vkm.vkdic
 - vk3picker.py: add Center, add nov to vk3 as rootvks

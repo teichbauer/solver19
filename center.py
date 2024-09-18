@@ -143,7 +143,14 @@ class Center:
             return len(vals) == 0
         return False
 
+    @classmethod
+    def set_xkeys(cls): # build bit-crossing dic
+        for nov, snode in cls.snodes.items():
+            snode.vecmgr.down_intersec_vecdic(nov)
+            snode.vecmgr.up_intersec_vecdic(nov)
+        x = 0
 
+        
     @classmethod
     def set_satbits(cls):
         """ called only after snode(last_nov) is done.

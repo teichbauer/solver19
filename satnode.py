@@ -146,8 +146,10 @@ class SatNode:
 
     def add_vk(self, vk):
         self.vk2dic[vk.kname] = vk
+        self.Center.vkdic[vk.kname] = vk
         if vk.nob == 1:
             self.k1ns.add(vk.kname)
+            self.Center.add_vk1(vk)
         for b in vk.bits:
             self.bdic.setdefault(b, []).append(vk.kname)
 

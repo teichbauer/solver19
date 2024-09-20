@@ -107,6 +107,7 @@ def grow_vk1(snode, kns):
                     snode.taildic[cv].remove_vk(vk.kname)
                     snode.taildic[cv].add_vk(xvk1)
                 snode.add_vk(xvk1)
+                snode.Center.add_vk1(xvk1)
                 vk.cvs = vk.cvs - s_cvs
                 if len(vk.cvs) == 0:
                     snode.remove_vk(vk)

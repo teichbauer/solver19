@@ -1,3 +1,6 @@
+2024-09-20->19.340
+- Center.vk1dic: {<kname>:{<nov>:<cvs[], <nov>:<cvs]}}, and vk1bdic
+- snode/tools call Center.add_vk1 inputing to them
 2024-09-18->19.339
 - Center.set_xkeys
 - tools: get rid of OrderedDict way of keeping tailkeys. A bkey may be 

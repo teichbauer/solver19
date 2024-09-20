@@ -9,7 +9,7 @@ class Vk3Picker:
 
 
     def make_tdic_chdic(self, vkm):
-        tdic = {}
+        tdic = {}   # touch-dic: 3 touch-lst, 2-touch-lst, 1-touch-lst
         chdic = {}
         for kn, vk in vkm.vkdic.items():
             tdic[kn] = {'all': set([])} 

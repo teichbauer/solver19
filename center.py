@@ -75,8 +75,10 @@ class Center:
     limit = 10
     snodes = {}
     rootvks = {}
-    vk12kndic = {}  # {nov: [kns]}
-    sumbdic = {}
+    vk1dic = {}
+    vk2dic = {}
+    vkdic = {}   # all vks: vk3(in rootvks), vk2(in vk2dic), and vk1(in vk1dic)
+    vk1bdic = {} # all vk1-touched bits
     vknames = {}
     orig_vkdic = None
     logging = False
@@ -107,6 +109,13 @@ class Center:
             cls.remove_kn(snode.nov, kn, '1bit')
         x = 0
     
+    @classmethod
+    def add_vk1(cls, vk1, extra=None): # extra: {<nov>:<cvs>}
+        cls.vk1bdic.setdefault(vk1.bits[0], []).append(vk1.kname)
+        cls.vk1dic[vk1.kname] = {vk1.nov: vk1.cvs}
+        if extra:
+            cls.vk1dic[vk1.kname].update(extra)
+
     @classmethod
     def remove_kn(cls, nov, kn, typename):
         if kn in cls.rest_kns:

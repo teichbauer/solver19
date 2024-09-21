@@ -111,6 +111,7 @@ class Center:
     
     @classmethod
     def add_vk1(cls, vk1, extra=None): # extra: {<nov>:<cvs>}
+        cls.vkdic[vk1.kname] = vk1    # add to vkdic, mixed with vk2s
         cls.vk1bdic.setdefault(vk1.bits[0], []).append(vk1.kname)
         cls.vk1dic[vk1.kname] = {vk1.nov: vk1.cvs}
         if extra:

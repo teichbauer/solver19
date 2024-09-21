@@ -26,6 +26,38 @@ class BitGrid:
         self.nov = snode.nov
         self.chvals = snode.choice[0] # [1,2,3,4,6,7]
 
+    def cvs_subset(self, b, v):
+        # example snode57: bits: [49, 36, 28] (root-val: 5)
+        # cv   49  36  28
+        # --------------------
+        # 0:   0   0   0
+        # 1:   0   0   1
+        # 2:   0   1   0
+        # 3:   0   1   1
+        # 4:   1   0   0
+        # 5:   1   0   1     <root-val: 5(anc-vk: [49-1, 36-0, 28-1])
+        # 6:   1   1   0
+        # 7:   1   1   1
+        # ---------------
+        # b: 36, v: 1 should have cvs-subset: (2,3,6,7)
+        # b: 28, v: 0 should have cvs-subset: ((0,2,4,6))
+        #---------------------------------------------------------------
+        assert b in self.bits
+        assert v in (0, 1)
+        bindex = self.bits.index(b)
+        val = 1 << bindex
+        res = []
+        for cv in self.chvals:
+            if v == 1:
+                if cv & val == val:
+                    res.append(cv)
+            else:
+                if cv & val != val:
+                    res.append(cv)
+        return res
+
+
+
     def grid_sat(self, val):
         return {self.bits[b]: v for b, v in self.BDICS[val].items()}
     

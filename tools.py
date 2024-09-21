@@ -81,7 +81,7 @@ def make_taildic(snode):
 def grow_vk1(snode, kns):
     new_kns = set([])
     while len(kns) > 0: #
-        vk1 = snode.vk2dic[kns.pop()]
+        vk1 = snode.Center.vkdic[kns.pop()]
         b, v = tuple(vk1.dic.items())[0] # vk1.dic.(key, val)
         ckns = [xkn for xkn in snode.bdic.get(b,[]) if xkn.startswith('C')]
         for ckn in ckns:

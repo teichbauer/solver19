@@ -1,8 +1,11 @@
+from vklause import VKlause
+
 class VectorHost:
     def __init__(self, 
                  snode,     # root-bitgrid of the snode
                  tailkeys): # {<chval>: <ch-bkey>, ...}
         self.snode = snode
+        self.Center = snode.Center
         self.tailkeys = tailkeys
 
     def total_key(self, chv):
@@ -38,3 +41,20 @@ class VectorHost:
                     if len(xset) > 0:
                         cdic[cv] = xset
         self.uiv_dic = uiv_dic
+
+    def find_tvk1s(self):
+        nov = self.snode.nov
+        while nov > 18:
+            xsn = self.Center.snodes[nov - 3]
+            for mycv in self.tailkeys:
+                cmm_rbits = self.tailkeys[mycv].intersection(xsn.bgrid.bits)
+                for rb in cmm_rbits:
+                    for kn in self.snode.bdic[rb]:
+                        vk2 = self.snode.vk2dic[kn]
+                        if set(vk2.bits).issubset(xsn.bgrid.bits):
+                            pass
+                        else:
+                            x_cvs_subset = xsn.bgrid.cvs_subset(rb, vk2.dic[rb])
+                            vk1 = vk2.clone('T',[rb])
+                            self.Center.add_vk1(vk1, {xsn.nov: x_cvs_subset})
+            nov - 3

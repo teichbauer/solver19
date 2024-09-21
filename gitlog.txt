@@ -1,3 +1,10 @@
+2024-09-20->19.341
+- bgrid:  def cvs_subset(self, b, v):
+- Center.vkdic has vk2s and vk1s, but cls.bdic not contain vk1's bits,
+  vk1 bits are in cls.vk1bdic.
+  vk1dic: {<kn>:{<nov>:<cvs, <nov>:cvs}}
+- VectorHost.find_tvk1s: not yet finished: yet on-going.
+- vklause modified clone method
 2024-09-20->19.340
 - Center.vk1dic: {<kname>:{<nov>:<cvs[], <nov>:<cvs]}}, and vk1bdic
 - snode/tools call Center.add_vk1 inputing to them

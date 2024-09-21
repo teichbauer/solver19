@@ -40,6 +40,7 @@ class SatNode:
             Center.sat_pool = [] # list of sat-path(dics)
             print(f"NOV:{self.nov}")
             self.Center.set_xkeys()
+            Center.snodes[60].vecmgr.find_tvk1s()
             self.grow_path(27)
 
     def grow_path(self, base_nov, final_path=[], base_path=None):
@@ -145,13 +146,14 @@ class SatNode:
         return bits
 
     def add_vk(self, vk):
-        self.vk2dic[vk.kname] = vk
-        self.Center.vkdic[vk.kname] = vk
         if vk.nob == 1:
             self.k1ns.add(vk.kname)
             self.Center.add_vk1(vk)
-        for b in vk.bits:
-            self.bdic.setdefault(b, []).append(vk.kname)
+        else:
+            self.vk2dic[vk.kname] = vk
+            self.Center.vkdic[vk.kname] = vk
+            for b in vk.bits:
+                self.bdic.setdefault(b, []).append(vk.kname)
 
     def remove_vk(self, vk):
         self.vk2dic.pop(vk.kname)

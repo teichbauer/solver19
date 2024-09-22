@@ -81,7 +81,10 @@ def ordered_dic_string(d):
     m = "{ "
     ks = sorted(d.keys(), reverse=True)
     for k in ks:
-        m += str(k) + ": " + str(d[k]) + ", "
+        # x = 10
+        # msg = "even" if x % 2 == 0 else "odd"  -> output: even
+        kstr = str(k) if k > 9 else f" {str(k)}"
+        m += f"{kstr}: {str(d[k])}, "
     m = m.strip(", ")
     m += " }"
     return m

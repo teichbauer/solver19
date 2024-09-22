@@ -1,3 +1,10 @@
+2024-09-21->19.342
+- Center.vk2dic has all vk2s but no vk1 or vk3, vk1dic has all vk1s
+  Center.vk1info: {<kn>: vk1, ...}, 
+- vk1.kname: Snnn: 2-touch vk1, Tnnnn: derived vk1: split from Cnnnn
+  Unnnn: conditional vk1s
+- snode.print_vk2dic uses the new vklause.print_msg
+- vectHost.find_tvk1s: no more tailkeys specific, but on snode/xsn
 2024-09-20->19.341
 - bgrid:  def cvs_subset(self, b, v):
 - Center.vkdic has vk2s and vk1s, but cls.bdic not contain vk1's bits,

@@ -151,7 +151,7 @@ class SatNode:
             self.Center.add_vk1(vk)
         else:
             self.vk2dic[vk.kname] = vk
-            self.Center.vkdic[vk.kname] = vk
+            self.Center.vk2dic[vk.kname] = vk
             for b in vk.bits:
                 self.bdic.setdefault(b, []).append(vk.kname)
 
@@ -163,3 +163,7 @@ class SatNode:
             self.bdic[b].remove(vk.kname)
             if len(self.bdic[b]):
                 del self.bdic[b]
+
+    def print_vk2dic(self):
+        for vk in self.vk2dic.values():
+            print(vk.print_msg())

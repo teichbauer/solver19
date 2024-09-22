@@ -1,4 +1,4 @@
-from basics import get_bit, set_bit, set_bits
+from basics import get_bit, set_bit, ordered_dic_string
 
 
 class VKlause:
@@ -173,3 +173,7 @@ class VKlause:
     def add_cvs(self, cvs):
         for cv in cvs:
             self.cvs.add(cv)
+
+    def print_msg(self):
+        dmsg = ordered_dic_string(self.dic)
+        return f"{self.nov}:{self.kname}: {dmsg} ({self.cvs})"

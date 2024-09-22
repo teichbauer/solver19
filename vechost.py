@@ -46,15 +46,18 @@ class VectorHost:
         nov = self.snode.nov
         while nov > 18:
             xsn = self.Center.snodes[nov - 3]
-            for mycv in self.tailkeys:
-                cmm_rbits = self.tailkeys[mycv].intersection(xsn.bgrid.bits)
-                for rb in cmm_rbits:
-                    for kn in self.snode.bdic[rb]:
-                        vk2 = self.snode.vk2dic[kn]
-                        if set(vk2.bits).issubset(xsn.bgrid.bits):
-                            pass
-                        else:
-                            x_cvs_subset = xsn.bgrid.cvs_subset(rb, vk2.dic[rb])
-                            vk1 = vk2.clone('T',[rb])
-                            self.Center.add_vk1(vk1, {xsn.nov: x_cvs_subset})
-            nov - 3
+            cmm_rbits = set(self.snode.bdic).intersection(xsn.bgrid.bits)
+            for rb in cmm_rbits:
+                for kn in self.snode.bdic[rb]:
+                    vk2 = self.snode.vk2dic[kn]
+                    if set(vk2.bits).issubset(xsn.bgrid.bits):
+                        pass
+                    else:
+                        x_cvs_subset = xsn.bgrid.cvs_subset(rb, vk2.dic[rb])
+                        vk1 = vk2.clone(
+                            'U',    # prefix is U
+                            [rb],   # dropped bits
+                            {self.snode.nov: vk1.cvs, xsn.nov: x_cvs_subset}
+                        )
+                        self.Center.add_vk1(vk1)
+            nov -= 3

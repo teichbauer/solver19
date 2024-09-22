@@ -81,7 +81,7 @@ def make_taildic(snode):
 def grow_vk1(snode, kns):
     new_kns = set([])
     while len(kns) > 0: #
-        vk1 = snode.Center.vkdic[kns.pop()]
+        vk1 = snode.Center.vk1dic[kns.pop()]
         b, v = tuple(vk1.dic.items())[0] # vk1.dic.(key, val)
         ckns = [xkn for xkn in snode.bdic.get(b,[]) if xkn.startswith('C')]
         for ckn in ckns:
@@ -101,13 +101,17 @@ def grow_vk1(snode, kns):
                 # when vk1 not hit: {b: not v}, vk.dic[b] is hit, vk -> xvk1
                 dic = vk.dic.copy()
                 dic.pop(b)
-                xvk1 = VKlause(vk.kname.replace('C','S'), dic, vk.nov, s_cvs)
+                # vk1 with kname:Snnnn is a vk1 resulted from 2-touches
+                # vk1.kname = Tnnnn is derived vk1 that is splitted from 
+                # Cnnnn, the cvs is a subset of Cnnnn
+                xvk1 = VKlause( vk.kname.replace('C','T'), 
+                                dic, vk.nov, s_cvs)
                 new_kns.add(xvk1.kname)
                 for cv in s_cvs:
                     snode.taildic[cv].remove_vk(vk.kname)
                     snode.taildic[cv].add_vk(xvk1)
                 snode.add_vk(xvk1)
-                snode.Center.add_vk1(xvk1)
+                # snode.Center.add_vk1(xvk1)
                 vk.cvs = vk.cvs - s_cvs
                 if len(vk.cvs) == 0:
                     snode.remove_vk(vk)

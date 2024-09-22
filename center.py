@@ -76,8 +76,8 @@ class Center:
     snodes = {}
     rootvks = {}
     vk1dic = {}
+    vk1info = {}
     vk2dic = {}
-    vkdic = {}   # all vks: vk3(in rootvks), vk2(in vk2dic), and vk1(in vk1dic)
     vk1bdic = {} # all vk1-touched bits
     vknames = {}
     orig_vkdic = None
@@ -110,12 +110,11 @@ class Center:
         x = 0
     
     @classmethod
-    def add_vk1(cls, vk1, extra=None): # extra: {<nov>:<cvs>}
-        cls.vkdic[vk1.kname] = vk1    # add to vkdic, mixed with vk2s
+    def add_vk1(cls, vk1):
+        cls.vk1dic[vk1.kname] = vk1    # add to vk1dic: {<kn>:<vk1>,...}
         cls.vk1bdic.setdefault(vk1.bits[0], []).append(vk1.kname)
-        cls.vk1dic[vk1.kname] = {vk1.nov: vk1.cvs}
-        if extra:
-            cls.vk1dic[vk1.kname].update(extra)
+        # vk1inf: {<nov>:[kn, kn, ...]}
+        cls.vk1info.setdefault(vk1.nov, []).append(vk1.kname)
 
     @classmethod
     def remove_kn(cls, nov, kn, typename):

@@ -1,3 +1,8 @@
+2024-09-23->19.343
+- basics offering add_vk1/remove_vk1, add_vk2/remove_vk2
+- snode now has its own bdic1 containing bdic only for its vk1s, and 
+  k1ns is now list, not a set. add_vk/remove_vk are using basics' calls
+- center.add_vk1 now using basics/add_vk1
 2024-09-21->19.342
 - Center.vk2dic has all vk2s but no vk1 or vk3, vk1dic has all vk1s
   Center.vk1info: {<kn>: vk1, ...}, 

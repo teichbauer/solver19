@@ -1,4 +1,4 @@
-from basics import verify_sat
+from basics import verify_sat, add_vk1
 known_sats = [
     # sat 0
   { 59: 1, 58: 1, 57: 1, 56: 0, 55: 0, 54: 1, 53: 0, 52: 1, 51: 1, 50: 0, # all
@@ -111,10 +111,8 @@ class Center:
     
     @classmethod
     def add_vk1(cls, vk1):
-        cls.vk1dic[vk1.kname] = vk1    # add to vk1dic: {<kn>:<vk1>,...}
-        cls.vk1bdic.setdefault(vk1.bits[0], []).append(vk1.kname)
-        # vk1inf: {<nov>:[kn, kn, ...]}
-        cls.vk1info.setdefault(vk1.nov, []).append(vk1.kname)
+        kns = cls.vk1info.setdefault(vk1.nov, [])
+        add_vk1(vk1, cls.vk1dic, cls.vk1bdic, kns)
 
     @classmethod
     def remove_kn(cls, nov, kn, typename):

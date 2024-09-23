@@ -1,5 +1,5 @@
 from bitgrid import BitGrid
-from basics import ordered_dic_string
+from basics import ordered_dic_string, remove_vk1, remove_vk2, add_vk1, add_vk2
 from center import Center
 from tools import *
 from collections import OrderedDict
@@ -18,8 +18,9 @@ class SatNode:
             self.nov = parent.nov - 3
         self.choice = vkm.make_choice(self.nov) # (vals, bits, t2s, t1s)
         self.vk2dic = {}    # vk1s + vk2s in all tails
-        self.k1ns = set([]) # knames of all vk1s in all taildic
+        self.k1ns = []      # knames of all vk1s in all taildic
         self.bdic = {}      # bit-dic for all vk2s in vk2dic
+        self.bdic1 = {}
         self.bgrid = BitGrid(self)
         make_taildic(self)  # make self.taildic, self.bkdic
         Center.snodes[self.nov] = self
@@ -147,22 +148,42 @@ class SatNode:
 
     def add_vk(self, vk):
         if vk.nob == 1:
-            self.k1ns.add(vk.kname)
+            # snode local
+            add_vk1(vk, 
+                    None,       # there is no snode.vk1dic
+                    self.bdic1,
+                    self.k1ns)
+            # Center
             self.Center.add_vk1(vk)
         else:
-            self.vk2dic[vk.kname] = vk
-            self.Center.vk2dic[vk.kname] = vk
-            for b in vk.bits:
-                self.bdic.setdefault(b, []).append(vk.kname)
+            # snode local
+            add_vk2(vk, 
+                    self.vk2dic, 
+                    self.bdic, 
+                    None)       # there is no snode.kn2s
+            add_vk2(vk,
+                    self.Center.vk2dic,
+                    self.Center.bdic,
+                    None)       # there is no Center.kn1s
 
     def remove_vk(self, vk):
-        self.vk2dic.pop(vk.kname)
-        if vk.kname.startswith('S') and vk.kname in self.k1ns:
-            self.k1ns.remove(vk.kname)
-        for b in vk.bits:
-            self.bdic[b].remove(vk.kname)
-            if len(self.bdic[b]):
-                del self.bdic[b]
+        if vk.nob == 1:
+            # delete snode local
+            remove_vk1(vk, 
+                       None,        # there is no snode.vk1dic
+                       self.bdic1,  # snode.bdic1
+                       self.k1ns)
+            # delete from Center
+            remove_vk1(vk,
+                       self.Center.vk1dic,
+                       self.Center.bdic1,
+                       self.Center.vk1info[self.nov])
+        else:
+            # delete snode local
+            remove_vk2(vk, self.vk2dic, self.bdic, 
+                       None)  # there is no self.vk2kns
+            remove_vk2(vk, self.Center.vkdic, self.Center.bdic,
+                       None)  # there is no Center.vk2ns
 
     def print_vk2dic(self):
         for vk in self.vk2dic.values():

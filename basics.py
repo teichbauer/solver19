@@ -24,6 +24,64 @@ def get_vk2sats(vk2, csatdic={}):
         sats.append(s3)
     return sats
 
+def add_vk1(vk1,   # single-bit vk, with nov  and cvs on snode of nov
+            vkdic, # {<kn>: <vk1>,...}
+            bdic,  # {<bit>: [kn, kn,..]}
+            kns):  # [kn, ..]
+    name = vk1.kname
+    lst = bdic.setdefault(vk1.bits[0], [])
+    if name not in lst:
+        lst.append(name)
+    if name not in kns:
+        kns.append(name)
+    if vkdic != None:
+        vkdic[name] = vk1
+
+
+def remove_vk1(vk1, vkdic, bdic, kns):
+    if type(vk1) == str:
+        name = vk1
+        vk1 = vkdic[vk1]
+    else:
+        name = vk1.kname
+        bit = vk1.bits[0]
+        if name in bdic[bit]:
+            del bdic[bit][name]
+            if len(bdic[bit]) == 0:
+                del bdic[bit]
+        if name in kns:
+            kns.remove(name)
+        return vkdic.pop(name)
+    
+def add_vk2(vk2, vkdic, bdic, kns):
+    name = vk2.kname
+    for bit in vk2.bits:
+        lst = bdic.setdefault(bit, [])
+        if name not in lst:
+            lst.append(name)
+    if kns != None and name not in kns:
+        kns.append(name)
+    if vkdic != None:
+        vkdic[name] = vk2
+
+def remove_vk2(vk2, vkdic, bdic, kns):
+    if type(vk2) == str:
+        name = vk2
+        vk = vkdic[vk2]
+    else:
+        name = vk2.kname
+    if kns != None and name in kns:
+        kns.remove(name)
+    for bit in vk2.bits:
+        if name not in bdic[bit]:
+            bdic[bit].remove(name)
+            if len(bdic[bit]) == 0:
+                del bdic[bit]
+    if vkdic != None and name in vkdic:
+        vkdic.pop(name)
+
+
+
 
 def verify_sat(vkdic, sat, collect=False):
     lst = set([])

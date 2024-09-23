@@ -57,7 +57,7 @@ class VectorHost:
                         vk1 = vk2.clone(
                             'U',    # prefix is U
                             [rb],   # dropped bits
-                            {self.snode.nov: vk1.cvs, xsn.nov: x_cvs_subset}
+                            {self.snode.nov: vk2.cvs, xsn.nov: x_cvs_subset}
                         )
                         self.Center.add_vk1(vk1)
             nov -= 3

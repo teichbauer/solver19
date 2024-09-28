@@ -54,7 +54,7 @@ class BitGrid:
             else:
                 if cv & val != val:
                     res.append(cv)
-        return res
+        return set(res)
 
 
 

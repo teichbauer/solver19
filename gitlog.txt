@@ -1,3 +1,7 @@
+2024-09-27-》19.344
+- progress in vechost.py
+- bitgrid/cvs_subset now returns a set in stead of a list.
+- doc: 2024-09-27.txt
 2024-09-23->19.343
 - basics offering add_vk1/remove_vk1, add_vk2/remove_vk2
 - snode now has its own bdic1 containing bdic only for its vk1s, and 

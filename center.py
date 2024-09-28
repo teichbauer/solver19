@@ -76,9 +76,9 @@ class Center:
     snodes = {}
     rootvks = {}
     vk1dic = {}
-    vk1info = {}
-    vk2dic = {}
-    vk1bdic = {} # all vk1-touched bits
+    vk1info = {}  # {<nov>: [k1n, k1n, ..], <nov>:[...]}
+    vk2dic = {}   # {<kb>:<vk2>, ..}
+    vk1bdic = {}  # all vk1-touched bits
     vknames = {}
     orig_vkdic = None
     logging = False

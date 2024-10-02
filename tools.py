@@ -1,7 +1,6 @@
 from basics import *
 from vklause import VKlause
 from stail import STail
-from vechost import VectorHost
 
 def sort_length_list(lst):
     # [(...),(.......),(.)] => [(.),(...),(.......)]
@@ -75,7 +74,6 @@ def make_taildic(snode):
     keydic = {}
     for chv, tail in snode.taildic.items():
         keydic[chv] = set(tail.bdic.keys())
-    snode.vecmgr = VectorHost(snode, keydic)
     x = 0
 
 def grow_vk1(snode, kns):
@@ -83,7 +81,7 @@ def grow_vk1(snode, kns):
     while len(kns) > 0: #
         vk1 = snode.Center.vk1dic[kns.pop()]
         b, v = tuple(vk1.dic.items())[0] # vk1.dic.(key, val)
-        ckns = [xkn for xkn in snode.bdic.get(b,[]) if xkn.startswith('C')]
+        ckns = [xkn for xkn in snode.bdic2.get(b,[]) if xkn.startswith('C')]
         for ckn in ckns:
             vk = snode.vk2dic[ckn]
             s_cvs = vk.cvs.intersection(vk1.cvs)
@@ -95,7 +93,7 @@ def grow_vk1(snode, kns):
                     snode.taildic[cv].remove_vk(vk.kname)
                     vk.cvs.remove(cv) 
                     # if vk.cvs becomes empty, remove from snode
-                    if len(vk.cvs) == 0 and vk.kname in snode.bdic[b]:
+                    if len(vk.cvs) == 0 and vk.kname in snode.bdic2[b]:
                         snode.remove_vk(vk)
             else: # vk.dic[b] != v,
                 # when vk1 not hit: {b: not v}, vk.dic[b] is hit, vk -> xvk1

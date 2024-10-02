@@ -1,9 +1,10 @@
 from bitgrid import BitGrid
-from basics import ordered_dic_string, remove_vk1, remove_vk2, add_vk1, add_vk2
+from basics import remove_vk1, remove_vk2, add_vk1, add_vk2
 from center import Center
 from tools import *
 from collections import OrderedDict
 from sat_path import SatPath
+from vechost import VectorHost
 
 class SatNode:
     def __init__(self, parent, sh, vkm):
@@ -19,7 +20,7 @@ class SatNode:
         self.choice = vkm.make_choice(self.nov) # (vals, bits, t2s, t1s)
         self.vk2dic = {}    # vk1s + vk2s in all tails
         self.k1ns = []      # knames of all vk1s in all taildic
-        self.bdic = {}      # bit-dic for all vk2s in vk2dic
+        self.bdic2 = {}      # bit-dic for all vk2s in vk2dic
         self.bdic1 = {}
         self.bgrid = BitGrid(self)
         make_taildic(self)  # make self.taildic, self.bkdic
@@ -40,9 +41,9 @@ class SatNode:
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
             print(f"NOV:{self.nov}")
-            self.Center.set_xkeys()
-            Center.snodes[60].vecmgr.find_tvk1s()
-            self.grow_path(27)
+            vector_host = VectorHost(Center.snodes[60])
+            vector_host.merge_down(Center.snode[57])
+            # self.grow_path(27)
 
     def grow_path(self, base_nov, final_path=[], base_path=None):
         if self.parent.nov == 60:
@@ -141,7 +142,7 @@ class SatNode:
 
     def tail_bits(self, incl_root=False):
         print(f'my nov: {self.nov}')
-        bits = set(self.bdic)
+        bits = set(self.bdic2)
         if incl_root:
             bits.update(self.bgrid.bits)
         return bits
@@ -159,11 +160,11 @@ class SatNode:
             # snode local
             add_vk2(vk, 
                     self.vk2dic, 
-                    self.bdic, 
+                    self.bdic2, 
                     None)       # there is no snode.kn2s
             add_vk2(vk,
                     self.Center.vk2dic,
-                    self.Center.bdic,
+                    self.Center.vk2bdic,
                     None)       # there is no Center.kn1s
 
     def remove_vk(self, vk):
@@ -180,9 +181,9 @@ class SatNode:
                        self.Center.vk1info[self.nov])
         else:
             # delete snode local
-            remove_vk2(vk, self.vk2dic, self.bdic, 
+            remove_vk2(vk, self.vk2dic, self.bdic2, 
                        None)  # there is no self.vk2kns
-            remove_vk2(vk, self.Center.vkdic, self.Center.bdic,
+            remove_vk2(vk, self.Center.vkdic, self.Center.vk2bdic,
                        None)  # there is no Center.vk2ns
 
     def print_vk2dic(self):

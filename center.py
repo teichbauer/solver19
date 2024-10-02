@@ -70,16 +70,16 @@ class Center:
     maxnov = 0
     satbitdic = {}  # every snode has 3x <sat-bit>:<snode> in here
     bits = set([])
-    bdic = {}
     sats = []
-    limit = 10
     snodes = {}
     rootvks = {}
     vk1dic = {}
     vk1info = {}  # {<nov>: [k1n, k1n, ..], <nov>:[...]}
     vk2dic = {}   # {<kb>:<vk2>, ..}
+    vk2bdic = {}  # bits of all vk2s
     vk1bdic = {}  # all vk1-touched bits
     vknames = {}
+    orig_bdic = {} # bit-kn map for orig_vkdic
     orig_vkdic = None
     logging = False
 
@@ -93,8 +93,7 @@ class Center:
         cls.orig_vkdic = vkm.clone_vkdic() # vkm.clone()
         for kn, vk in cls.orig_vkdic.items():
             for b in vk.bits:
-                cls.bdic.setdefault(b, set([])).add(kn)
-        cls.bdic
+                cls.orig_bdic.setdefault(b, set([])).add(kn)
         cls.rest_kns = list(Center.orig_vkdic.keys())
 
     @classmethod
@@ -150,12 +149,12 @@ class Center:
             return len(vals) == 0
         return False
 
-    @classmethod
-    def set_xkeys(cls): # build bit-crossing dic
-        for nov, snode in cls.snodes.items():
-            snode.vecmgr.down_intersec_vecdic(nov)
-            snode.vecmgr.up_intersec_vecdic(nov)
-        x = 0
+    # @classmethod
+    # def set_xkeys(cls): # build bit-crossing dic
+    #     for nov, snode in cls.snodes.items():
+    #         snode.vecmgr.down_intersec_vecdic(nov)
+    #         snode.vecmgr.up_intersec_vecdic(nov)
+    #     x = 0
 
         
     @classmethod

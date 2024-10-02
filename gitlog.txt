@@ -1,4 +1,8 @@
-2024-09-27-》19.344
+2024-10-01->19.345
+- vector-host no more attached to each snode. But as a singleton inst.
+- sorted/cleaned up naming a bit in snode/Center
+- progress in vechost.py
+2024-09-27->19.344
 - progress in vechost.py
 - bitgrid/cvs_subset now returns a set in stead of a list.
 - doc: 2024-09-27.txt

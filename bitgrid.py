@@ -56,6 +56,15 @@ class BitGrid:
                     res.append(cv)
         return set(res)
 
+    def vk2_hits(self, vk2):
+        # when both bits of a vk2 are in self.bits, 
+        # vk2 will hit 1 or 2 cvs. Find them here
+        hits = {}
+        for cv in self.chvals:
+            grdsat = self.grid_sat(cv)
+            if vk2.hit(grdsat):
+                hits.add(cv)
+        return hits
 
 
     def grid_sat(self, val):

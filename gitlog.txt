@@ -1,3 +1,7 @@
+2024-10-02->19.346
+- merged grow_vk1 as VectorHost method. Added .excl_dic/.block too
+  progress in vector-host.block_test
+- new bitgrid.vk2_hits covers the case where vk2 cntained by snode's root-bits
 2024-10-01->19.345
 - vector-host no more attached to each snode. But as a singleton inst.
 - sorted/cleaned up naming a bit in snode/Center

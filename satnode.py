@@ -42,7 +42,7 @@ class SatNode:
             Center.sat_pool = [] # list of sat-path(dics)
             print(f"NOV:{self.nov}")
             vector_host = VectorHost(Center.snodes[60])
-            vector_host.merge_down(Center.snode[57])
+            vector_host.merge_down(Center.snodes[57])
             # self.grow_path(27)
 
     def grow_path(self, base_nov, final_path=[], base_path=None):

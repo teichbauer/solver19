@@ -1,5 +1,6 @@
 # from vechost.py/ VectorHost
 import copy
+from center import Center
 
 def merge(hsnode, lsnode):
     bdic2 = copy.deepcopy(hsnode.bdic2)
@@ -23,6 +24,52 @@ def merge(hsnode, lsnode):
                 lst.append(kn)
     k1ns = hsnode.k1ns + lsnode.k1ns
     return bdic2, bdic1, vk2dic, k1ns
+
+def grow_vk1(in_bdic2, in_bdic1, in_k1ns):
+    new_bdic1 = {}
+    xbits = set(in_bdic1).intersection(in_bdic2)
+    while True:
+        while len(xbits) > 0:
+            b = xbits.pop()
+            k1ns = in_bdic1[b]
+            for k1n in k1ns:
+                vk1 = Center.vk1dic[k1n]
+                k2ns = in_bdic2[b]
+                for k2n in k2ns:
+                    new_vk1 = None
+                    if k2n[1:] == k1n[1:]: continue
+                    vk2 = Center.vk2dic[k2n]
+                    if k1n[0] in ('U','R'): # in case of Rnnn / Unnn
+                        # vk1.cvs is a compound: dict{nov1:, nov2:}
+                        new_cvs = vk1.cvs.copy()
+                        cmm_cvs = vk2.cvs.intersection(new_cvs[vk2.nov])
+                        if len(cmm_cvs) == 0:
+                            continue
+                        if vk2.dic[b] != vk1.dic[b]:
+                            new_cvs.update({vk2.nov:cmm_cvs})
+                            new_vk1 = vk2.clone('U', [b], new_cvs)
+                        else: # vk2.dic[b] == vk1.dic[b]
+                            x = 0 # vk2 exclusion?
+                    else: # vk1 is not a compound: no cmm cvs btwn vk1 & vk2
+                        if vk2.nov == vk1.nov:
+                            if k2n[0] == 'C':
+                                continue 
+                            else:
+                                x = 0 # can this happen?
+                        else:
+                            if k2n[0] == 'C': 
+                                new_cvs = {vk1.nov:vk1.cvs, vk2.nov:vk2.cvs}
+                                new_vk1 = vk2.clone('U', [b], new_cvs)
+                            else:
+                                x = 0 # can this happen?
+                    if new_vk1:
+                        add_vk1(new_vk1, None, in_bdic1, in_k1ns)
+                        Center.add_vk1(new_vk1)
+                        new_bdic1.setdefault(new_vk1.bits[0], [])\
+                                 .append(new_vk1.kname)
+        xbits = set(new_bdic1).intersection(in_bdic2)
+        if len(xbits) == 0: return
+        else: new_bdic1 = {}
 
 
 class VectoreHost:

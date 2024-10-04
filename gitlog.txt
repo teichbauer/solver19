@@ -1,3 +1,5 @@
+2024-10-03->19.347
+- progress in vecto-host
 2024-10-02->19.346
 - merged grow_vk1 as VectorHost method. Added .excl_dic/.block too
   progress in vector-host.block_test

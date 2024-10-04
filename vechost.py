@@ -38,48 +38,41 @@ class VectorHost:
         self.grow()
 
     def grow(self):
-        new_bdic1 = {}
         xbits = set(self.bdic1).intersection(self.bdic2)
         while len(xbits) > 0:
-            b = xbits.pop()
-            k1ns = self.bdic1[b]
-            for k1n in k1ns:
-                vk1 = Center.vk1dic[k1n]
-                k2ns = self.bdic2[b]
-                for k2n in k2ns:
-                    nvk1 = None
-                    if k2n[1:] == k1n[1:]: continue
-                    vk2 = Center.vk2dic[k2n]
-                    if k1n[0] in ('U','R'): # in case of Rnnn / Unnn
-                        # vk1.cvs is a compound: dict{nov1:, nov2:}
-                        node = vk1.cvs.copy()
-                        cmm_cvs = vk2.cvs.intersection(node[vk2.nov])
-                        if len(cmm_cvs) == 0:
-                            continue
-                        if vk2.dic[b] != vk1.dic[b]:
+            nbdic1 = {}
+            for b in xbits:
+                k1ns = self.bdic1[b]
+                for k1n in k1ns:
+                    vk1 = Center.vk1dic[k1n]
+                    k2ns = self.bdic2[b]
+                    for k2n in k2ns:
+                        nvk1 = None
+                        if k2n[1:] == k1n[1:]: continue
+                        vk2 = Center.vk2dic[k2n]
+                        if k1n[0] in ('U','R'): #vk1.cvs dict{nov1:,nov2:}
+                            node = vk1.cvs.copy()
+                            cmm_cvs = vk2.cvs.intersection(node[vk2.nov])
+                            if len(cmm_cvs) == 0: continue
                             node.update({vk2.nov:cmm_cvs})
-                            nvk1 = vk2.clone('U', [b], node)
-                        else: # vk2.dic[b] == vk1.dic[b]
-                            x = 0 # vk2 exclusion?
-                    else: # vk1 is not a compound: no cmm cvs btwn vk1 & vk2
-                        if vk2.nov == vk1.nov:
-                            if k2n[0] == 'C':
-                                continue 
-                            else:
-                                x = 0 # can this happen?
-                        else:
-                            if k2n[0] == 'C': 
-                                node = {vk1.nov:vk1.cvs, vk2.nov:vk2.cvs}
+                            self.excl_k2n(k2n, node) # ??
+                            if vk2.dic[b] != vk1.dic[b]:
                                 nvk1 = vk2.clone('U', [b], node)
-                            else:
-                                x = 0 # can this happen?
-                    if nvk1:
-                        self.add_vk1(nvk1)
-                        self.excl_k2n(k2n, node)
-                        self.block_test(nvk1)
-                        new_bdic1.setdefault(nvk1.bits[0], [])\
-                                 .append(nvk1.kname)
-            xbits = set(new_bdic1).intersection(self.bdic2)
+                        else: # vk1 is a S/T, not a compound:
+                            if vk2.nov == vk1.nov:
+                                if k2n[0] == 'C': continue 
+                                else: x = 0 # can this happen?
+                            elif k2n[0] == 'C': 
+                                node = {vk1.nov:vk1.cvs, vk2.nov:vk2.cvs}
+                                if vk2.dic[b] != vk1.dic[b]:
+                                    nvk1 = vk2.clone('U', [b], node)
+                                self.excl_k2n(k2n, node) # ??
+                            else: x = 0 # can this happen?
+                        if nvk1:
+                            self.add_vk1(nvk1)
+                            self.block_test(nvk1)
+                            nbdic1.setdefault(nvk1.bits[0],[]).append(nvk1.kname)
+            xbits = set(nbdic1).intersection(self.bdic2)
 
     def find_Rvk1(self, xsn):
         cmm_rbits = set(self.bdic2).intersection(xsn.bgrid.bits)
@@ -125,12 +118,13 @@ class VectorHost:
 
         def node2node(n1, n2):
             xnode = n1.copy()
-            for nv1, s1 in n1.items():
-                xs1 = n2[nv1].intersection(s1)
-                xnode.update({nv1: xs1})
-            if len(xnode[n1.nov]) > 0 and len(xnode[n2.nov] > 0):
-                return xnode
-            return None
+            for nv, st in n2.items():
+                if nv in xnode:
+                    xs = st.intersection(xnode[nv])
+                    if len(xs) == 0:
+                        return None
+                    xnode.update({nv: xs})
+            return xnode
 
         # see if vk1 is causing block-node(s)
         bit = vk1.bits[0]
@@ -138,21 +132,20 @@ class VectorHost:
         for k1n in k1ns:
             if vk1.kname == k1n: continue
             xvk1 = Center.vk1dic[k1n]
+            res = None
             if xvk1.dic[bit] != vk1.dic[bit]:
                 if type(vk1.cvs) == dict:
                     if type(xvk1.cvs) == dict:
                         res = node2node(vk1.cvs, xvk1.cvs)
-                        if res:
-                            self.blocks.append(res)
                     else:   # xvk1.cvs is a set
                         res = set2node(xvk1.cvs, xvk1.nov, vk1.cvs)
                 else:  # vk1.cvs is a set
                     if type(xvk1.cvs) == dict:
                         res = set2node(vk1.cvs, vk1.nov, xvk1.cvs)
                     else: # both are sets
-                        res = None
-                if res:
-                    self.blocks.append(res)
+                        print("what to do?")
+            if res:
+                self.blocks.append(res)
 
     def excl_k2n(self, k2n, node):
         self.excl_dic.setdefault(k2n, []).append(node)

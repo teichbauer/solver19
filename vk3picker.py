@@ -113,7 +113,7 @@ class Vk3Picker:
     def drop_choice(self, vk):
         vks = self.chdic.get(2,[])
         if vk in vks:
-            print(f'dropping {vk.kname} from choice[2]')
+            # print(f'dropping {vk.kname} from choice[2]')
             self.chdic[2].remove(vk)
             if len(self.chdic[2]) == 0:
                 self.choice.pop(2)
@@ -121,7 +121,7 @@ class Vk3Picker:
         vks = self.chdic.get(1,[])
         # if vk in self.chdic[1]:
         if vk in vks:
-            print(f'dropping {vk.kname} from choice[1]')
+            # print(f'dropping {vk.kname} from choice[1]')
             self.chdic[1].remove(vk)
             if len(self.chdic[1]) == 0:
                 self.choice.pop(1)

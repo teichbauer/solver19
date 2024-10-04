@@ -1,3 +1,19 @@
+2024-10-04->19.348
+- a new case: 60:C0257[47-0 46-0](123) be turned to vk1 twice:
+  1. 60:C0243[44-0 28-0](123) sits on s57 root bit [49-1 36-0 28-1], this
+     results: R0243[44-0]{60:(123) 57:(0246)}, and then
+     57:C0179[46-1 44-1](014) + U0243 -> U0179[46-1]{60:(123) 57:(04)}, now
+     60:C0257[47-0 46-0](123) + U0179 -> U0257[47-0]{60:(123) 57:(04)}
+  2. 60:C0250[54-0 36-0](2367) sits on s57 root bit [49-1 36-0 28-1], this
+     results: R0250[54-0]{60:(2367) 57:(014)}, then
+     57:C0266[54-1 47-1](0123) + R0250 -> U0266[47-1]{60:(2367) 57:(01)}, now
+     60:C0257[47-0 46-0](123) + U0266 ->U0257[46-0]{60:(23) 57:(01)}
+  Here, C0257 turned to 
+     U0257[47-0]{60:(123) 57:(04)}, and again to
+     U0257[46-0]{60:(23) 57:(01)}   one U0257 will over-write the other U0257
+  solution: when VectorHost.add_vk1(vk1), ask if vk1.kname already existed in
+  self.k1ns with 'U' prefix. If yes, vk1.kname = f"V{vk1.kname[1:]}". And
+  also make 'V' a compound vk1 name-possible prefix
 2024-10-03->19.347
 - progress in vecto-host
 2024-10-02->19.346

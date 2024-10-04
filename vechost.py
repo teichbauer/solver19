@@ -50,7 +50,7 @@ class VectorHost:
                         nvk1 = None
                         if k2n[1:] == k1n[1:]: continue
                         vk2 = Center.vk2dic[k2n]
-                        if k1n[0] in ('U','R'): #vk1.cvs dict{nov1:,nov2:}
+                        if k1n[0] in ('U','V','R'): #vk1.cvs dict{nov1:,nov2:}
                             node = vk1.cvs.copy()
                             cmm_cvs = vk2.cvs.intersection(node[vk2.nov])
                             if len(cmm_cvs) == 0: continue
@@ -98,6 +98,11 @@ class VectorHost:
                     self.block_test(vk1)
 
     def add_vk1(self, vk1):
+        name = vk1.kname
+        # a vk2 may have both of its bits turned to vk1. So the prefix
+        # 'U' may have been used. In that case, use 'V' as vk1 name prefix
+        if name[0] == 'U' and name in self.k1ns:
+            vk1.kname = f'V{name[1:]}'
         add_vk1(vk1, None,  # vk1dic is only held in Center.vk1dic
                 self.bdic1, 
                 self.k1ns)
@@ -144,7 +149,7 @@ class VectorHost:
                         res = set2node(vk1.cvs, vk1.nov, xvk1.cvs)
                     else: # both are sets
                         print("what to do?")
-            if res:
+            if res and (res not in self.blocks):
                 self.blocks.append(res)
 
     def excl_k2n(self, k2n, node):

@@ -38,9 +38,10 @@ class VectorHost:
         self.grow()
 
     def grow(self):
-        xbits = set(self.bdic1).intersection(self.bdic2)
+        xbits = list(set(self.bdic1).intersection(self.bdic2))
         while len(xbits) > 0:
             nbdic1 = {}
+            xbits.sort()
             for b in xbits:
                 k1ns = self.bdic1[b]
                 for k1n in k1ns:
@@ -69,10 +70,10 @@ class VectorHost:
                                 self.excl_k2n(k2n, node) # ??
                             else: x = 0 # can this happen?
                         if nvk1:
-                            self.add_vk1(nvk1)
+                            if not self.add_vk1(nvk1): continue # not added
                             self.block_test(nvk1)
                             nbdic1.setdefault(nvk1.bits[0],[]).append(nvk1.kname)
-            xbits = set(nbdic1).intersection(self.bdic2)
+            xbits = list(set(nbdic1).intersection(self.bdic2))
 
     def find_Rvk1(self, xsn):
         cmm_rbits = set(self.bdic2).intersection(xsn.bgrid.bits)
@@ -101,12 +102,22 @@ class VectorHost:
         name = vk1.kname
         # a vk2 may have both of its bits turned to vk1. So the prefix
         # 'U' may have been used. In that case, use 'V' as vk1 name prefix
-        if name[0] == 'U' and name in self.k1ns:
-            vk1.kname = f'V{name[1:]}'
+        if name in self.k1ns:
+            if vk1.equal(Center.vk1dic[name]):
+                return False
+            else:
+                name = f"V{name[1:]}"
+                if name in self.k1ns:
+                    if vk1.equal(Center.vk1dic[name]):
+                        return False
+                    else:
+                        print("special case occurs here")
+                vk1.kname = name
         add_vk1(vk1, None,  # vk1dic is only held in Center.vk1dic
                 self.bdic1, 
                 self.k1ns)
         Center.add_vk1(vk1)
+        return True
 
     def block_test(self, vk1):
         def set2node(s, set_nov, node):
@@ -153,5 +164,12 @@ class VectorHost:
                 self.blocks.append(res)
 
     def excl_k2n(self, k2n, node):
-        self.excl_dic.setdefault(k2n, []).append(node)
+        lst = self.excl_dic.setdefault(k2n, [])
+        if node in lst: return
+        for d in lst:
+            for nv, cvs in node.items():
+                contained = nv in d and cvs.issubset(d[nv])
+                if not contained: break
+            if contained: return
+        lst.append(node)
 

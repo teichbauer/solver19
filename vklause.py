@@ -20,6 +20,9 @@ class VKlause:
 
     def hbit_value(self):
         return self.bits[0], self.dic[self.bits[0]]
+    
+    def equal(self, vk):
+        return self.dic == vk.dic and self.cvs == vk.cvs
 
     def lbit_value(self):
         return self.dic[self.bits[-1]]

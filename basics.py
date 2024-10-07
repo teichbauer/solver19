@@ -190,6 +190,19 @@ def vkdic_remove(vkdic, kns):
             kd[kn] = vk
     return kd
 
+def merge_cvs(cvs0, cvs1): 
+    xcvs = cvs0.copy()
+    nvs0 = set(cvs0.keys())
+    nvs1 = set(cvs1.keys())
+    if nvs0 != nvs1: return None
+    nvs = list(nvs0)
+    if cvs0[nvs[0]] == cvs1[nvs[0]]:
+        xcvs[nvs[1]] = xcvs[nvs[1]].union(cvs1[nvs[1]])
+        return xcvs
+    elif cvs0[nvs[1]] == cvs1[nvs[1]]:
+        xcvs[nvs[0]] = xcvs[nvs[0]].union(cvs1[nvs[0]])
+        return xcvs
+    return None
 
 def display_vkdic(vkd, title=None, outfile=None):
     kns = list(vkd.keys())

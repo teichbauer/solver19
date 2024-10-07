@@ -1,3 +1,11 @@
+2024-10-07->19.350
+- basics/merge_cvs
+- in docs/2024-09-27.txt/2024-10-02.txt, denoted some info about 
+  what S0212[24-1](13) and what R0243 mean. and what excl-C0243 means.
+  and info of understanding in 2024-10-02.txt too.
+- progress in vector-host: finished merging s60->s57
+2024-10-05->19.349
+- progress on vectorhost
 2024-10-04->19.348
 - a new case: 60:C0257[47-0 46-0](123) be turned to vk1 twice:
   1. 60:C0243[44-0 28-0](123) sits on s57 root bit [49-1 36-0 28-1], this

@@ -1,6 +1,6 @@
 from center import Center
 import copy
-from basics import add_vk1, add_vk2
+from basics import add_vk1, merge_cvs
 
 
 class VectorHost:
@@ -99,20 +99,36 @@ class VectorHost:
                     self.block_test(vk1)
 
     def add_vk1(self, vk1):
+        def mergeable(vkx, vky):
+            bitx = vkx.bits[0]
+            bity = vky.bits[0]
+            if bitx != bity or vkx.dic[bitx] != vky.dic[bitx]:
+                return None
+            if type(vkx.cvs) == dict and type(vky.cvs) == dict:
+                merged_cvs = merge_cvs(vkx.cvs, vky.cvs)
+                if merged_cvs:
+                    vkx.cvs = merged_cvs
+                    return vkx
+            return None
+                   
         name = vk1.kname
         # a vk2 may have both of its bits turned to vk1. So the prefix
         # 'U' may have been used. In that case, use 'V' as vk1 name prefix
         if name in self.k1ns:
-            if vk1.equal(Center.vk1dic[name]):
-                return False
+            xvk1 = Center.vk1dic[name]
+            if xvk1.equal(vk1): return False
+            if mergeable(xvk1, vk1): # merge into xvk1
+                return False  
             else:
                 name = f"V{name[1:]}"
                 if name in self.k1ns:
-                    if vk1.equal(Center.vk1dic[name]):
+                    xvk1 = Center.vk1dic[name]
+                    if xvk1.equal(vk1): return False
+                    if mergeable(xvk1, vk1): # merge into xvk1
                         return False
-                    else:
-                        print("special case occurs here")
-                vk1.kname = name
+                    print("special case occurs here")
+                else:
+                    vk1.kname = name
         add_vk1(vk1, None,  # vk1dic is only held in Center.vk1dic
                 self.bdic1, 
                 self.k1ns)

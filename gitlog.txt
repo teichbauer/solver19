@@ -1,3 +1,8 @@
+2024-10-07->19.351
+- vector-host.find_Rvk1 renamed to find_root_vk1, and in it, handle
+  bdic1_rbits: TBD
+- refactored vector-host.merge_down
+- satnode: trying now dow-wards merge to s54
 2024-10-07->19.350
 - basics/merge_cvs
 - in docs/2024-09-27.txt/2024-10-02.txt, denoted some info about 

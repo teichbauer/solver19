@@ -1,6 +1,6 @@
 from center import Center
 import copy
-from basics import add_vk1, merge_cvs
+from basics import add_vk1, add_vk2, merge_cvs
 
 
 class VectorHost:
@@ -17,24 +17,14 @@ class VectorHost:
         self.k1ns = snode.k1ns.copy()
 
     def merge_down(self, lsnode):
-        for bit, kns in lsnode.bdic2.items():
-            lst = self.bdic2.setdefault(bit, [])
-            for kn in kns:
-                if kn in lst:
-                    print("weird")
-                else:
-                    lst.append(kn)
-        for kn, vk2 in lsnode.vk2dic.items():
-            self.vk2dic[kn] = vk2
-        for bit, kns in lsnode.bdic1.items():
-            lst = self.bdic1.setdefault(bit, [])
-            for kn in kns:
-                if kn in lst:
-                    print("weird-2")
-                else:
-                    lst.append(kn)
-        self.k1ns += lsnode.k1ns
-        self.find_Rvk1(lsnode)
+        for kn in lsnode.k1ns:  
+            # add vk1s from lsnode to self. Center already has them
+            add_vk1(Center.vk1dic[kn],
+                    None,   # no vk1dic, since Center.vk1dic already has it
+                    self.bdic1, self.k1ns)  # add to self.k1ns
+        for vk2 in lsnode.vk2dic.values():
+            add_vk2(vk2, self.vk2dic, self.bdic2, None) # no self.k2ns
+        self.find_root_vk1(lsnode)
         self.grow()
 
     def grow(self):
@@ -75,7 +65,14 @@ class VectorHost:
                             nbdic1.setdefault(nvk1.bits[0],[]).append(nvk1.kname)
             xbits = list(set(nbdic1).intersection(self.bdic2))
 
-    def find_Rvk1(self, xsn):
+    def find_root_vk1(self, xsn):
+        bdic1_rbits = set(self.bdic1).intersection(xsn.bgrid.bits)
+        for rb1 in bdic1_rbits:
+            for k1n in self.bdic1[rb1]:
+                vk1 = Center.vk1dic[k1n]
+                cvs = xsn.bgrid.cvs_subset(vk1.bits[0], vk1.dic[vk1.bits[0]])
+                # these cvs are hits under vk1.cvs node
+                x = 9
         cmm_rbits = set(self.bdic2).intersection(xsn.bgrid.bits)
         for rb in cmm_rbits:
             for k2n in self.bdic2[rb]:

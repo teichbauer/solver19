@@ -43,6 +43,7 @@ class SatNode:
             print(f"NOV:{self.nov}")
             vector_host = VectorHost(Center.snodes[60])
             vector_host.merge_down(Center.snodes[57])
+            vector_host.merge_down(Center.snodes[54])
             x = 9
 
     def grow_path(self, base_nov, final_path=[], base_path=None):

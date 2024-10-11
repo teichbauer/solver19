@@ -4,7 +4,7 @@ from center import Center
 from tools import *
 from collections import OrderedDict
 from sat_path import SatPath
-from vechost import VectorHost
+from nodegrphost import NodeGroupHost
 
 class SatNode:
     def __init__(self, parent, sh, vkm):
@@ -41,9 +41,9 @@ class SatNode:
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
             print(f"NOV:{self.nov}")
-            vector_host = VectorHost(Center.snodes[60])
-            vector_host.merge_down(Center.snodes[57])
-            vector_host.merge_down(Center.snodes[54])
+            nodehost = NodeGroupHost(Center.snodes[60])
+            nodehost.merge_snode(Center.snodes[57])
+            # nodehost.merge_down(Center.snodes[57]
             x = 9
 
     def grow_path(self, base_nov, final_path=[], base_path=None):

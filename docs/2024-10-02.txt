@@ -206,7 +206,7 @@ new bdic1: [9, 13, 20, 28, 46, 47, 57]
       1. When both are on the same bit with the same val (here 46/1)
       2 they have the same cvs in one of the 2 novs - here 57:(04) vs. 57:(04)
         then it is right to merge them, into {60:(12346) 57:(04)}
-      code in VectorHost.add_vk1/mergeable
+      code in NodeGroupHost.add_vk1/mergeable
     ------------------------------------------------
     
         57:V0179[44-1]{60:(23) 57:(01)}
@@ -283,10 +283,24 @@ new bdic1: [9, 13, 20, 28, 46, 47, 57]
     60:C0207[28-0 21-0](2367)   ->excl-C0207{60:(23) 57:(0)}
 --------------------no more new xbits! ------------------------
 blocks:
-    {60:(467) 57:(4)}
-    {60:(23)  57:(0)
+    {60:(467) 57:(4)}           bit-53: 60:R0120 & 57:S0067
+    {60:(23)  57:(0)            bit-47: 60:U0257 & 57:U0266
   -----------
-========================================== snode 54 ================
+  explanation what block{60:(456) 57:(4)} is about:
+    from 60:R0120[53-0]{60:(467) 57:(0246)} which comes from
+                60:C0120: { 53: 0 28: 0 }(4 6 7) and 
+                  snode-57(0246) - on S57(0246) bit 28 is 0, making C0120's 28:0 hit
+                  and so it has only 53:0 and this comes a VK1 
+                  60:R0120[53-0]{60:(467) 57:(0246)}
+    from 57:S0067[53-1](4), it demands, when on s57(4), bit 53 must not be 1, 
+    or it hits/or it fires.
+    every SAT must have all bits with values, including bit 53. And 
+    if bit-53 has val==0, R0120 will be hit, if bit(53) has val==1, S0067 hits.
+    so the node {60:(467) 57:(4)}, or the 3 combinations cannot be used in any SAT:
+    60.4 + 57.4
+    60.6 + 57.4
+    60.7 + 57.4
+======= snode 54 [29 19  7](4) ================
 vk1s
 
 54:C0001: { 30: 0, 14: 0 } ({1, 3, 5, 7})

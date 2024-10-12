@@ -167,6 +167,16 @@ class SatNode:
                     self.Center.vk2dic,
                     self.Center.vk2bdic,
                     None)       # there is no Center.kn1s
+            # if vk2 with the same bits exits?
+            b1, b2 = vk.bits
+            kns1 = self.bdic2[b1]
+            kns2 = self.bdic2[b2]
+            xkns = set(kns1).intersection(kns2)
+            xkns.remove(vk.kname)
+            while len(xkns) > 0:
+                vk1 = handle_vk2pair(vk, self.vk2dic[xkns.pop()])
+                if vk1:
+                    self.add_vk(vk1)
 
     def remove_vk(self, vk):
         if vk.nob == 1:

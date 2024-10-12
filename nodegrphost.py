@@ -1,5 +1,6 @@
 from center import Center
 import copy
+from tools import handle_vk2pair
 from basics import add_vk1, add_vk2, merge_cvs
 
 def cvs_intersect(tp1, tp2): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
@@ -22,7 +23,7 @@ def cvs_intersect(tp1, tp2): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
             if tp1[0] != tp2[0]: 
                 return {tp1[0]: tp1[1], tp2[0]: tp2[1]}
             cmm = tp1[1].intersection(tp2[1])
-            if len(cmm): return None
+            if len(cmm)==0: return None
             return {tp1[0]: cmm}
         else: # both t1 and t2 are dicts
             l1 = len(t1)
@@ -90,49 +91,57 @@ class NodeGroupHost:
         self.grow()
 
     def merge_snode(self, lsnode):
+        self.find_root_vk1(lsnode)
         for kn in lsnode.k1ns:
             self.putin_vk1(Center.vk1dic[kn])
         for kn, vk in lsnode.vk2dic.items():
             self.putin_vk2(vk)
+        x = 9
     
     def putin_block(self, blck):
         if blck:
             self.blocks.append(blck)
 
-    def _vk1andvk2(self, vk1, vk2):
+    def _vk1andvk2(self, vk1bit, vk1, vk2):
         cmm_cvs = cvs_intersect((vk1.nov,vk1.cvs),(vk2.nov,vk2.cvs))
-        if not cmm_cvs: return False
-        self.excl_k2n(vk2.kname, cmm_cvs)
-        b = vk1.bits[0]
-        if vk2.dic[b] != vk1.dic[b]:
-            xvk1 = vk2.clone('U', [b], cmm_cvs)
+        if not cmm_cvs: return
+        self.add_excl(vk2.kname, cmm_cvs)
+        if vk2.dic[vk1bit] != vk1.dic[vk1bit]:
+            xvk1 = vk2.clone('U', [vk1bit], cmm_cvs)
             self.putin_vk1(xvk1)
-            return True
-        return False
+        else:
+            x = 0
 
     def putin_vk1(self, vk1):
+        if not self.add_vk1(vk1): return
         b = vk1.bits[0]
         kns = self.bdic1.setdefault(b,[])
         for kn in kns:
+            if kn == vk1.kname: continue
             vk = Center.vk1dic[kn]
             if vk.dic[b] != vk1.dic[b]:
                 block = cvs_intersect((vk1.nov, vk1.cvs), (vk.nov, vk.cvs))
                 self.putin_block(block)
         if b in self.bdic2:
             for kn in self.bdic2[b]:
-                self._vk1andvk2(vk1, self.vk2dic[kn])
+                if kn[1:] == vk1.kname[1:]: continue
+                self._vk1andvk2(b, vk1, self.vk2dic[kn])
+        else:
+            x = 0
 
     def putin_vk2(self, vk2):
         xbits2 = set(self.bdic1).intersection(vk2.bits)
         for b in xbits2:
             for k1n in self.bdic1[b]:
-                self._vk1andvk2(Center.vk1dic[k1n], vk2)
-        for xkn, xvk2 in self.vk2dic.items():
-            if xvk2.bits == vk2.bits:
-                x = 9
-        add_vk2(vk2, self.bdic2, self.bdic2, None)
-
-
+                self._vk1andvk2(b, Center.vk1dic[k1n], vk2)
+        k2ns = list(self.vk2dic)
+        for kn in k2ns:
+            xvk = self.vk2dic[kn]
+            if xvk.bits == vk2.bits:
+                vk1x = handle_vk2pair(xvk, vk2)
+                if vk1x:
+                    self.putin_vk1(vk1x)
+            add_vk2(vk2, self.vk2dic, self.bdic2, None)
 
 
     def grow(self):
@@ -154,7 +163,7 @@ class NodeGroupHost:
                             cmm_cvs = vk2.cvs.intersection(node[vk2.nov])
                             if len(cmm_cvs) == 0: continue
                             node.update({vk2.nov:cmm_cvs})
-                            self.excl_k2n(k2n, node) # ??
+                            self.add_excl(k2n, node) # ??
                             if vk2.dic[b] != vk1.dic[b]:
                                 nvk1 = vk2.clone('U', [b], node)
                         else: # vk1 is a S/T, not a compound:
@@ -165,11 +174,11 @@ class NodeGroupHost:
                                 node = {vk1.nov:vk1.cvs, vk2.nov:vk2.cvs}
                                 if vk2.dic[b] != vk1.dic[b]:
                                     nvk1 = vk2.clone('U', [b], node)
-                                self.excl_k2n(k2n, node) # ??
+                                self.add_excl(k2n, node) # ??
                             else: x = 0 # can this happen?
                         if nvk1:
                             if not self.add_vk1(nvk1): continue # not added
-                            self.block_test(nvk1)
+                            self.add_block(nvk1)
                             nbdic1.setdefault(nvk1.bits[0],[]).append(nvk1.kname)
             xbits = list(set(nbdic1).intersection(self.bdic2))
 
@@ -179,8 +188,9 @@ class NodeGroupHost:
             for k1n in self.bdic1[rb1]:
                 vk1 = Center.vk1dic[k1n]
                 cvs = xsn.bgrid.cvs_subset(vk1.bits[0], vk1.dic[vk1.bits[0]])
-                # these cvs are hits under vk1.cvs node
-                x = 9
+                # these cvs are hits with vk1.cvs node
+                cmm_cvs = cvs_intersect((vk1.nov, vk1.cvs),(xsn.nov, cvs))
+                self.blocks.append(cmm_cvs)
         cmm_rbits = set(self.bdic2).intersection(xsn.bgrid.bits)
         for rb in cmm_rbits:
             for k2n in self.bdic2[rb]:
@@ -189,19 +199,14 @@ class NodeGroupHost:
                     hit_cvs = xsn.bgrid.vk2_hits(vk2)
                     print(f"{k2n} inside {xsn.nov}-root, blocking {hit_cvs}")
                     self.blocks.append({vk2.nov:vk2.cvs, xsn.nov: hit_cvs})
-                else:
-                    # compound Vk1s that are caused by overlapping 
+                else:# vk1.cvs is compound  caused by overlapping 
                     # with xsn.root-bits, will be named with R-prefix
                     x_cvs_subset = xsn.bgrid.cvs_subset(rb, vk2.dic[rb])
                     node = {vk2.nov: vk2.cvs, xsn.nov: x_cvs_subset}
-                    if k2n in self.excl_dic and node in self.excl_dic[k2n]:
-                        continue
-                    vk1 = vk2.clone\
-                        ('R',        # prefix for root-bit of xsn
-                        [rb], node)  # dropping xsn-root-bit, on node
-                    self.add_vk1(vk1)
-                    self.excl_k2n(k2n, node)
-                    self.block_test(vk1)
+                    if self.add_excl(k2n, node):
+                        vk1 = vk2.clone('R',[rb], node) # R prefix, drop rb
+                        if self.add_vk1(vk1):
+                            self.add_block(vk1)
 
     def add_vk1(self, vk1):
         def mergeable(vkx, vky):
@@ -240,7 +245,8 @@ class NodeGroupHost:
         Center.add_vk1(vk1)
         return True
 
-    def block_test(self, vk1):
+    def add_block(self, vk1):
+        # see if this vk1 causes a block, if yes, add the block to self.blocks
         def set2node(s, set_nov, node):
             if set_nov in node:
                 xset = s.intersection(node[set_nov])
@@ -284,13 +290,14 @@ class NodeGroupHost:
             if res and (res not in self.blocks):
                 self.blocks.append(res)
 
-    def excl_k2n(self, k2n, node):
+    def add_excl(self, k2n, node):
         lst = self.excl_dic.setdefault(k2n, [])
-        if node in lst: return
+        if node in lst: return False
         for d in lst:
             for nv, cvs in node.items():
                 contained = nv in d and cvs.issubset(d[nv])
                 if not contained: break
-            if contained: return
+            if contained: return False
         lst.append(node)
+        return True
 

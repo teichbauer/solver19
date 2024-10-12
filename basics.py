@@ -34,7 +34,7 @@ def add_vk1(vk1,   # single-bit vk, with nov  and cvs on snode of nov
         lst.append(name)
     if name not in kns:
         kns.append(name)
-    if vkdic != None:
+    if vkdic != None and name not in vkdic:
         vkdic[name] = vk1
 
 

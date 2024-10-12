@@ -133,3 +133,27 @@ def test_water(sname, satdic, snodes, start_nov):
             print(f"{snode.nov} blocked")
             return False
     return True
+
+def handle_vk2pair(vkx, vky):
+    assert type(vkx.cvs) == set, "vk2-pair with no-set cvs"
+    assert type(vky.cvs) == set, "vk2-pair with no-set cvs"
+    b1, b2 = vkx.bits
+    if vkx.nov == vky.nov:
+        cmm = vkx.intersection(vky.cvs)
+        if len(cmm) > 0:
+            if vkx.dic[b1] == vky.dic[b1]:
+                if vkx.dic[b2] != vky.dic[b2]:
+                    return vkx.clone('S', [b2], cmm)
+            elif vkx.dic[b2] == vky.dic[b2]:
+                if vkx.dic[b1] != vky.dic[b1]:
+                    return vkx.clone('S', [b1], cmm)
+    else: # vkx.nov != vky.nov
+        node = {vkx.nov: vkx.cvs, vky.nov: vky.cvs}
+        if vkx.dic[b1] == vky.dic[b1]:
+            if vkx.dic[b2] != vky.dic[b2]:
+                return vkx.clone('X', [b2], node)
+        elif vkx.dic[b2] == vky.dic[b2]:
+            if vkx.dic[b1] != vky.dic[b1]:
+                return vkx.clone('X', [b1], node)
+    return None
+

@@ -1,3 +1,9 @@
+2024-10-11->19.353
+- tools.py/handle_vk2pair(vkx, vky) for 2 vk2s sitting on the same 2 bits
+- satnode.add_vk: when adding vk2, and vk2-pair()the same bits is found
+- progress in nodegrphost
+2024-10-11->19.352
+- progres on vectorhost -> nodegroup
 2024-10-07->19.351
 - vector-host.find_Rvk1 renamed to find_root_vk1, and in it, handle
   bdic1_rbits: TBD

@@ -1,11 +1,11 @@
 from bitgrid import BitGrid
-from basics import remove_vk1, remove_vk2, add_vk1, add_vk2
 from center import Center
-from tools import *
+from tools import sort_length_list
 from collections import OrderedDict
 from sat_path import SatPath
 from nodegrphost import NodeGroupHost
 from vkrepo import VKRepoitory
+from stail import STail
 
 class SatNode:
     def __init__(self, parent, sh, vkm):
@@ -18,15 +18,13 @@ class SatNode:
             Center.root_snode = self
         else:
             self.nov = parent.nov - 3
+        Center.snodes[self.nov] = self
+        # choice[0]: chvals, [1]: vk3s, [2]: touchd 2 bits, [3]: touched 1 bit
         self.choice = vkm.make_choice(self.nov) # (vals, bits, t2s, t1s)
-        self.vk2dic = {}    # vk1s + vk2s in all tails
-        self.k1ns = []      # knames of all vk1s in all taildic
-        self.bdic2 = {}      # bit-dic for all vk2s in vk2dic
-        self.bdic1 = {}
         self.bgrid = BitGrid(self)
         self.vkrepo = VKRepoitory(self)
-        make_taildic(self)  # make self.taildic, self.bkdic
-        Center.snodes[self.nov] = self
+        self.taildic = {v: STail(self, v) for v in self.choice[0] }
+        self.make_taildic()  # make taildic
         Center.slice(self)
         self.next = None
         self.next_sh = self.sh.reduce(self.bgrid.bits)
@@ -34,6 +32,27 @@ class SatNode:
             self.logfile = open("logfile.txt",'a')
         else:
             self.logfile = None
+
+    def make_taildic(self):
+        # all vk(kn) touching 1, or 2 bit o f snode's root
+        for kn in self.choice[2] + self.choice[3]: 
+            if kn in self.vkm.vkdic:
+                vk = self.vkm.pop_vk(kn)
+                vk.nov = self.nov
+                vk12 = self.bgrid.reduce_vk(vk)
+                if vk12.nob == 1:  # touched 2 bits, vk12 is vk1: C0212->S0212
+                    vk12.kname = vk.kname.replace('C','S')
+                    self.vkrepo.add_vk1(vk12)
+                else:
+                    self.vkrepo.add_vk2(vk12)
+        for vk2 in self.vkrepo.vk2dic.values():
+            for cv in vk2.cvs:
+                self.taildic[cv].add_vk(vk2)
+        for k1n in self.vkrepo.k1ns:
+            vk1 = self.Center.vk1dic[k1n]
+            for cv in vk1.cvs:
+                self.taildic[cv].add_vk(vk1)
+        x = 0
 
     def spawn(self):
         if len(self.vkm.vkdic) > 0:  # there exist vk3 in vkm.vkdic, make next
@@ -145,61 +164,11 @@ class SatNode:
 
     def tail_bits(self, incl_root=False):
         print(f'my nov: {self.nov}')
-        bits = set(self.bdic2)
+        bits = set(self.vkrepo.bdic2)
         if incl_root:
             bits.update(self.bgrid.bits)
         return bits
 
-    def add_vk(self, vk):
-        if vk.nob == 1:
-            # snode local
-            add_vk1(vk, 
-                    None,       # there is no snode.vk1dic
-                    self.bdic1,
-                    self.k1ns)
-            # Center
-            self.Center.add_vk1(vk)
-        else:
-            # snode local
-            add_vk2(vk, 
-                    self.vk2dic, 
-                    self.bdic2, 
-                    None)       # there is no snode.kn2s
-            add_vk2(vk,
-                    self.Center.vk2dic,
-                    self.Center.vk2bdic,
-                    None)       # there is no Center.kn1s
-            # if vk2 with the same bits exits?
-            b1, b2 = vk.bits
-            kns1 = self.bdic2[b1]
-            kns2 = self.bdic2[b2]
-            xkns = set(kns1).intersection(kns2)
-            xkns.remove(vk.kname)
-            # while len(xkns) > 0:
-            #     x = 9
-                # vk1 = handle_vk2pair(vk, self.vk2dic[xkns.pop()])
-                # if vk1:
-                #     self.add_vk(vk1)
-
-    def remove_vk(self, vk):
-        if vk.nob == 1:
-            # delete snode local
-            remove_vk1(vk, 
-                       None,        # there is no snode.vk1dic
-                       self.bdic1,  # snode.bdic1
-                       self.k1ns)
-            # delete from Center
-            remove_vk1(vk,
-                       self.Center.vk1dic,
-                       self.Center.bdic1,
-                       self.Center.vk1info[self.nov])
-        else:
-            # delete snode local
-            remove_vk2(vk, self.vk2dic, self.bdic2, 
-                       None)  # there is no self.vk2kns
-            remove_vk2(vk, self.Center.vkdic, self.Center.vk2bdic,
-                       None)  # there is no Center.vk2ns
-
     def print_vk2dic(self):
-        for vk in self.vk2dic.values():
+        for vk in self.vkrepo.vk2dic.values():
             print(vk.print_msg())

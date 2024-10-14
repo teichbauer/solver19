@@ -1,3 +1,10 @@
+2024-10-14->19.355
+- restructured: condensed bdic1/bdic2/vk2dic/k1ns of snode all into
+  vkrepo. Also vkrepository's add_vk1 and add_vk2 covers the recursive
+  growth of vk1s from previous tools/grow1. move cvs_intersect and
+  handle_vk2pair to tools.
+  removed add_vk from snode. Moved maketaildic from tool to snode.
+- cleanup stail
 2024-10-14->19.354
 - vklause.py/.bit and .val for vk1 convenence
 - intro of vkrepo.py/VKRepository, to be hosted by snode and more

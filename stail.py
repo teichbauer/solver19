@@ -4,8 +4,8 @@ class STail:
     def __init__(self, snode, chval): #vkm, anc_bits, check_val):
         self.snode = snode
         self.cval = chval      # check_vals
-        self.bdic = {}  # {<bit>: [<kname>,..]}
-        self.vk2s = {}
+        self.bdic = {}  # {<bit>: [<kname>,..]} include vk1 and vk2
+        self.vkdic = {} # vk1 and vk2
         self.root_sats = snode.bgrid.grid_sat(chval)
         self.k1ns = set([])
 
@@ -34,17 +34,8 @@ class STail:
         return res_sats
 
     def add_vk(self, vk):
-        self.vk2s[vk.kname] = vk
+        self.vkdic[vk.kname] = vk
         if vk.nob == 1:
             self.k1ns.add(vk.kname)
         for b in vk.bits:
             self.bdic.setdefault(b, []).append(vk.kname)
-
-    def remove_vk(self, kn):
-        vk = self.vk2s.pop(kn)
-        if vk.kname.startswith('S') and vk.kname in self.k1ns:
-            self.k1ns.remove(vk.kname)
-        for b in vk.bits:
-            self.bdic[b].remove(kn)
-            if len(self.bdic[b]) == 0:
-                del self.bdic[b]

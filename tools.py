@@ -51,74 +51,95 @@ def filter_conflict(snode, satdic):
             excl_chvs.update(vk.cvs)
     return excl_chvs
 
-def make_taildic(snode):
-    # choice[0]: chvals, [1]: vk3s, [2]: touchd 2 bits, [3]: touched 1 bit
-    snode.taildic = {v: STail(snode, v) for v in snode.choice[0] }
-    # all vk(kn) touching 1, or 2 bit o f snode's root
-    for kn in snode.choice[2] + snode.choice[3]: 
-        # will result into vk2s
-        if kn in snode.vkm.vkdic:
-            vk = snode.vkm.pop_vk(kn)
-            vk.nov = snode.nov
-            vk12 = snode.bgrid.reduce_vk(vk)
-            if vk12.nob == 1:  # touched 2 bits, vk12 is vk1: C0212->S0212
-                vk12.kname = vk.kname.replace('C','S')
-                snode.vkrepo.add_vk1(vk12)
-            else:
-                snode.vkrepo.add_vk2(vk12)
-            snode.add_vk(vk12)  # vk1.kname into snode.k1ns set
-            for cv in vk12.cvs:
-                snode.taildic[cv].add_vk(vk12)
-    # vk1(s) may have bit(s) overlapping with vk2, resulting into
-    # more vk1(s). Handle that here
-    if len(snode.k1ns) > 0:
-        grow_vk1(snode, snode.k1ns.copy())
-    # make snode.bkys-dic
-    keydic = {}
-    for chv, tail in snode.taildic.items():
-        keydic[chv] = set(tail.bdic.keys())
-    x = 0
 
-def grow_vk1(snode, kns):
-    new_kns = set([])
-    while len(kns) > 0: #
-        vk1 = snode.Center.vk1dic[kns.pop()]
-        b, v = tuple(vk1.dic.items())[0] # vk1.dic.(key, val)
-        ckns = [xkn for xkn in snode.bdic2.get(b,[]) if xkn.startswith('C')]
-        for ckn in ckns:
-            vk = snode.vk2dic[ckn]
-            s_cvs = vk.cvs.intersection(vk1.cvs)
-            if len(s_cvs) == 0:
-                continue
-            # if vk1 is hit by v: snode is hit, this snode is over for vk1.cvs
-            if vk.dic[b] == v: # if vk1[b] is not hit, vk can be voided
-                for cv in s_cvs:
-                    snode.taildic[cv].remove_vk(vk.kname)
-                    vk.cvs.remove(cv) 
-                    # if vk.cvs becomes empty, remove from snode
-                    if len(vk.cvs) == 0 and vk.kname in snode.bdic2[b]:
-                        snode.remove_vk(vk)
-            else: # vk.dic[b] != v,
-                # when vk1 not hit: {b: not v}, vk.dic[b] is hit, vk -> xvk1
-                dic = vk.dic.copy()
-                dic.pop(b)
-                # vk1 with kname:Snnnn is a vk1 resulted from 2-touches
-                # vk1.kname = Tnnnn is derived vk1 that is splitted from 
-                # Cnnnn, the cvs is a subset of Cnnnn
-                xvk1 = VKlause( vk.kname.replace('C','T'), 
-                                dic, vk.nov, s_cvs)
-                new_kns.add(xvk1.kname)
-                for cv in s_cvs:
-                    snode.taildic[cv].remove_vk(vk.kname)
-                    snode.taildic[cv].add_vk(xvk1)
-                snode.add_vk(xvk1)
-                # snode.Center.add_vk1(xvk1)
-                vk.cvs = vk.cvs - s_cvs
-                if len(vk.cvs) == 0:
-                    snode.remove_vk(vk)
-    if len(new_kns) > 0:
-        grow_vk1(snode, new_kns)
-    # end of grow-vk1
+def cvs_intersect(tp1, tp2): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
+    '''#--- in case of set-typed cvs, nv1 or nv2 plays a role
+    # 1：(60, {1,2,3}) + (60,{2,4,6})          =>  {60:{2}}
+    # 2: (60, {1,2,3}) + (60,{0,4,6})          =>  None: no common cv
+    # 3: (60, {1,2,3}) + (57, {0, 1, 2, 3}) =>{60:{1,2,3}, 57:{0,1,2,3}}
+    #--- in case a cvs is a dict, its nv can be ignored
+    ## if both are dict, one entry with no intersection leads to None-return
+    # 4: (60, {1,2,3}) + (60, {60:(2,3}, 57:{0,4} })   => {60:{2}, 57:{0,4}}
+    # 5: (60, {1,2,3}) + (60, {60:(0,4}, 57:{0,4} })   => None
+    # 6: (60,{60:(1,2,3), 57:(0,4} }) + (57,{60:{0}, 57:{0,4} }) => None
+    # 7: (60,{60:(1,2,3), 57:(0,4} }) + (57,{60:{2}, 57:{0,4} }) 
+    #     => {60:{2}, 57:{0,4}}
+    #======================================================================='''
+    t1 = type(tp1[1])
+    t2 = type(tp2[1])
+    if t1 == t2:
+        if t1 == set:
+            if tp1[0] != tp2[0]: 
+                return {tp1[0]: tp1[1], tp2[0]: tp2[1]}
+            cmm = tp1[1].intersection(tp2[1])
+            if len(cmm)==0: return None
+            return {tp1[0]: cmm}
+        else: # both t1 and t2 are dicts
+            l1 = len(t1)
+            l2 = len(t2)
+            if l1 == l2:
+                tx = t1.copy()
+                for nv, cvs in t1.items():
+                    cmm = cvs.intersection(t2[nv])
+                    if len(cmm) == 0: return None
+                    tx[nv] = cmm
+                return tx
+            # t1 and t2 are of diff length
+            elif l1 > l2: # make sure t2 is the longer one
+                t1, t2 = t2, t1 # swap 
+            tx = t1.copy()      # tx copy from the shorter one
+            for nv, cvs in t2.items():  # look thru the longer one
+                if nv in t1:
+                    cmm = t1[nv].intersection(t2[nv])
+                    if len(cmm): return None
+                    tx[nv] = cmm
+                else:
+                    tx[nv] = 99  # nv in tx is a wild-card
+            return tx
+    elif t1 == set: # t2 is dict
+        ts = tp1[1]
+        td = tp2[1]
+        nov = tp1[0]
+    else: # t2 == set
+        ts = tp2[1]
+        td = tp1[1]
+        nov = tp2[0]
+    assert nov in td    # don't know yet what to do ???
+    # (57, {2,3}) + (60,{60:(1,2,3}, 57:{3,4,6}}) => 
+    # ts:(57, {2,3})  td: (60,{60:(1,2,3}, 57:{3,4,6}})
+    # return {60:(1,2,3), 57:{3}}
+    cmm = ts.intersection(td[nov])
+    if len(cmm) == 0: return None
+    tx = td.copy()
+    tx[nov] = cmm
+    return tx
+
+def handle_vk2pair(vkx, vky):
+    assert type(vkx.cvs) == set, "vk2-pair with no-set cvs"
+    assert type(vky.cvs) == set, "vk2-pair with no-set cvs"
+    b1, b2 = vkx.bits
+    if vkx.nov == vky.nov:
+        cmm = vkx.cvs.intersection(vky.cvs)
+        if len(cmm) > 0:
+            if vkx.dic[b1] == vky.dic[b1]:
+                if vkx.dic[b2] != vky.dic[b2]:
+                    vkx.cvs -= cmm
+                    vky.cvs -= cmm
+                    return vkx.clone('D', [b2], cmm)
+            elif vkx.dic[b2] == vky.dic[b2]:
+                if vkx.dic[b1] != vky.dic[b1]:
+                    vkx.cvs -= cmm
+                    vky.cvs -= cmm
+                    return vkx.clone('D', [b1], cmm)
+    else: # vkx.nov != vky.nov
+        node = {vkx.nov: vkx.cvs, vky.nov: vky.cvs}
+        if vkx.dic[b1] == vky.dic[b1]:
+            if vkx.dic[b2] != vky.dic[b2]:
+                return vkx.clone('X', [b2], node)
+        elif vkx.dic[b2] == vky.dic[b2]:
+            if vkx.dic[b1] != vky.dic[b1]:
+                return vkx.clone('X', [b1], node)
+    return None
 
 
 def test_water(sname, satdic, snodes, start_nov):
@@ -136,27 +157,3 @@ def test_water(sname, satdic, snodes, start_nov):
             print(f"{snode.nov} blocked")
             return False
     return True
-
-
-def handle_vk2pair(vkx, vky):
-    assert type(vkx.cvs) == set, "vk2-pair with no-set cvs"
-    assert type(vky.cvs) == set, "vk2-pair with no-set cvs"
-    b1, b2 = vkx.bits
-    if vkx.nov == vky.nov:
-        cmm = vkx.cvs.intersection(vky.cvs)
-        if len(cmm) > 0:
-            if vkx.dic[b1] == vky.dic[b1]:
-                if vkx.dic[b2] != vky.dic[b2]:
-                    return vkx.clone('S', [b2], cmm)
-            elif vkx.dic[b2] == vky.dic[b2]:
-                if vkx.dic[b1] != vky.dic[b1]:
-                    return vkx.clone('S', [b1], cmm)
-    else: # vkx.nov != vky.nov
-        node = {vkx.nov: vkx.cvs, vky.nov: vky.cvs}
-        if vkx.dic[b1] == vky.dic[b1]:
-            if vkx.dic[b2] != vky.dic[b2]:
-                return vkx.clone('X', [b2], node)
-        elif vkx.dic[b2] == vky.dic[b2]:
-            if vkx.dic[b1] != vky.dic[b1]:
-                return vkx.clone('X', [b1], node)
-    return None

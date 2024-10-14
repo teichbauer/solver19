@@ -13,6 +13,8 @@ class VKlause:
         self.dic = dic  # { 7:1, 3: 0, 0: 1}, or {3:0, 1:1} or {3:1}
         # all bits, in descending order
         self.bits = sorted(dic.keys(), reverse=True)  # [7,3,0]
+        self.bit = self.bits[0]         # for vk1 convenience
+        self.val = self.dic[self.bit]   # for vk1 convenience
         # void bits of the nov-bits
         self.nob = len(self.bits)             # 1, 2 or 3
         self.nov = nov

@@ -63,6 +63,9 @@ def make_taildic(snode):
             vk12 = snode.bgrid.reduce_vk(vk)
             if vk12.nob == 1:  # touched 2 bits, vk12 is vk1: C0212->S0212
                 vk12.kname = vk.kname.replace('C','S')
+                snode.vkrepo.add_vk1(vk12)
+            else:
+                snode.vkrepo.add_vk2(vk12)
             snode.add_vk(vk12)  # vk1.kname into snode.k1ns set
             for cv in vk12.cvs:
                 snode.taildic[cv].add_vk(vk12)
@@ -134,12 +137,13 @@ def test_water(sname, satdic, snodes, start_nov):
             return False
     return True
 
+
 def handle_vk2pair(vkx, vky):
     assert type(vkx.cvs) == set, "vk2-pair with no-set cvs"
     assert type(vky.cvs) == set, "vk2-pair with no-set cvs"
     b1, b2 = vkx.bits
     if vkx.nov == vky.nov:
-        cmm = vkx.intersection(vky.cvs)
+        cmm = vkx.cvs.intersection(vky.cvs)
         if len(cmm) > 0:
             if vkx.dic[b1] == vky.dic[b1]:
                 if vkx.dic[b2] != vky.dic[b2]:
@@ -156,4 +160,3 @@ def handle_vk2pair(vkx, vky):
             if vkx.dic[b1] != vky.dic[b1]:
                 return vkx.clone('X', [b1], node)
     return None
-

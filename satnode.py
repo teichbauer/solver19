@@ -5,6 +5,7 @@ from tools import *
 from collections import OrderedDict
 from sat_path import SatPath
 from nodegrphost import NodeGroupHost
+from vkrepo import VKRepoitory
 
 class SatNode:
     def __init__(self, parent, sh, vkm):
@@ -23,6 +24,7 @@ class SatNode:
         self.bdic2 = {}      # bit-dic for all vk2s in vk2dic
         self.bdic1 = {}
         self.bgrid = BitGrid(self)
+        self.vkrepo = VKRepoitory(self)
         make_taildic(self)  # make self.taildic, self.bkdic
         Center.snodes[self.nov] = self
         Center.slice(self)
@@ -173,10 +175,11 @@ class SatNode:
             kns2 = self.bdic2[b2]
             xkns = set(kns1).intersection(kns2)
             xkns.remove(vk.kname)
-            while len(xkns) > 0:
-                vk1 = handle_vk2pair(vk, self.vk2dic[xkns.pop()])
-                if vk1:
-                    self.add_vk(vk1)
+            # while len(xkns) > 0:
+            #     x = 9
+                # vk1 = handle_vk2pair(vk, self.vk2dic[xkns.pop()])
+                # if vk1:
+                #     self.add_vk(vk1)
 
     def remove_vk(self, vk):
         if vk.nob == 1:

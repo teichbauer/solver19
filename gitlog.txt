@@ -1,3 +1,7 @@
+2024-10-14->19.354
+- vklause.py/.bit and .val for vk1 convenence
+- intro of vkrepo.py/VKRepository, to be hosted by snode and more
+- using vkrepo.add_vk1/add_vk2, put info in 2024-09-27.txt
 2024-10-11->19.353
 - tools.py/handle_vk2pair(vkx, vky) for 2 vk2s sitting on the same 2 bits
 - satnode.add_vk: when adding vk2, and vk2-pair()the same bits is found

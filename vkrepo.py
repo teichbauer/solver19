@@ -23,6 +23,47 @@ class VKRepoitory:
         self.snode = snode  # related snode
         self.inflog = {}    # {key:[info,info,..], key:[], ...}
 
+    def clone(self):
+        xrepo = VKRepoitory(self.snode)
+        xrepo.bdic1 = {b: lst[:] for b, lst in self.bdic1.items()}
+        xrepo.bdic2 = {b: lst[:] for b, lst in self.bdic2.items()}
+        xrepo.k1ns = self.k1ns[:]
+        xrepo.vk2dic = {kn:vk2 for kn, vk2 in self.vk2dic.items()}
+        xrepo.blocks = [node.copy() for node in self.blocks]
+        for kn, lst in self.excls.items():
+            xrepo.excls[kn] = [node.copy() for node in lst]
+        return xrepo
+    
+    def add_snode_root(self, bgrid):
+        bdic1_rbits = set(self.bdic1).intersection(bgrid.bits)
+        for rb1 in bdic1_rbits:
+            for k1n in self.bdic1[rb1]:
+                vk1 = Center.vk1dic[k1n]
+                cvs = bgrid.cvs_subset(vk1.bits[0], vk1.dic[vk1.bits[0]])
+                # these cvs are hits with vk1.cvs node
+                cmm_cvs = cvs_intersect((vk1.nov, vk1.cvs),(bgrid.nov, cvs))
+                self.blocks.append(cmm_cvs)
+        cmm_rbits = set(self.bdic2).intersection(bgrid.bits)
+        for rb in cmm_rbits:
+            for k2n in self.bdic2[rb]:
+                vk2 = self.vk2dic[k2n]
+                if set(vk2.bits).issubset(bgrid.bits):
+                    hit_cvs = bgrid.vk2_hits(vk2)
+                    print(f"{k2n} inside {bgrid.nov}-root, blocking {hit_cvs}")
+                    self.blocks.append({vk2.nov:vk2.cvs, bgrid.nov: hit_cvs})
+                else:# vk1.cvs is compound  caused by overlapping 
+                    # with xsn.root-bits, will be named with R-prefix
+                    x_cvs_subset = bgrid.cvs_subset(rb, vk2.dic[rb])
+                    node = {vk2.nov: vk2.cvs, bgrid.nov: x_cvs_subset}
+                    if self.add_excl(vk2, node):
+                        vk1 = vk2.clone('R',[rb], node) # R prefix, drop rb
+                        if self.add_vk1(vk1):
+                            self.add_block(vk1)
+    
+    def merge_snode(self, sn):
+        self.add_snode_root(sn.bgrid)
+        x = 9
+
     def add_vk1(self, vk1, add2center=True):
         name = vk1.kname
         if name in self.k1ns:

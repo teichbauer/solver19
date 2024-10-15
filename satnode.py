@@ -62,8 +62,10 @@ class SatNode:
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
             print(f"NOV:{self.nov}")
-            nodehost = NodeGroupHost(Center.snodes[60])
-            nodehost.merge_snode(Center.snodes[57])
+            pathrepo = Center.snodes[60].vkrepo.clone()
+            pathrepo.merge_snode(Center.snodes[57])
+            # nodehost = NodeGroupHost(Center.snodes[60])
+            # nodehost.merge_snode(Center.snodes[57])
             # nodehost.merge_down(Center.snodes[57]
             x = 9
 

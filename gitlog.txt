@@ -1,3 +1,6 @@
+2024-10-15->19.356
+- VKRepository added method clone and add_snode_root
+  will refer to nodegrouphost for next.
 2024-10-14->19.355
 - restructured: condensed bdic1/bdic2/vk2dic/k1ns of snode all into
   vkrepo. Also vkrepository's add_vk1 and add_vk2 covers the recursive

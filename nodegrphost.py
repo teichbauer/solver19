@@ -1,70 +1,7 @@
 from center import Center
 import copy
-from tools import handle_vk2pair
+from tools import handle_vk2pair, cvs_intersect
 from basics import add_vk1, add_vk2, merge_cvs
-
-def cvs_intersect(tp1, tp2): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
-    '''#--- in case of set-typed cvs, nv1 or nv2 plays a role
-    # 1：(60, {1,2,3}) + (60,{2,4,6})          =>  {60:{2}}
-    # 2: (60, {1,2,3}) + (60,{0,4,6})          =>  None: no common cv
-    # 3: (60, {1,2,3}) + (57, {0, 1, 2, 3}) =>{60:{1,2,3}, 57:{0,1,2,3}}
-    #--- in case a cvs is a dict, its nv can be ignored
-    ## if both are dict, one entry with no intersection leads to None-return
-    # 4: (60, {1,2,3}) + (60, {60:(2,3}, 57:{0,4} })   => {60:{2}, 57:{0,4}}
-    # 5: (60, {1,2,3}) + (60, {60:(0,4}, 57:{0,4} })   => None
-    # 6: (60,{60:(1,2,3), 57:(0,4} }) + (57,{60:{0}, 57:{0,4} }) => None
-    # 7: (60,{60:(1,2,3), 57:(0,4} }) + (57,{60:{2}, 57:{0,4} }) 
-    #     => {60:{2}, 57:{0,4}}
-    #======================================================================='''
-    t1 = type(tp1[1])
-    t2 = type(tp2[1])
-    if t1 == t2:
-        if t1 == set:
-            if tp1[0] != tp2[0]: 
-                return {tp1[0]: tp1[1], tp2[0]: tp2[1]}
-            cmm = tp1[1].intersection(tp2[1])
-            if len(cmm)==0: return None
-            return {tp1[0]: cmm}
-        else: # both t1 and t2 are dicts
-            l1 = len(t1)
-            l2 = len(t2)
-            if l1 == l2:
-                tx = t1.copy()
-                for nv, cvs in t1.items():
-                    cmm = cvs.intersection(t2[nv])
-                    if len(cmm) == 0: return None
-                    tx[nv] = cmm
-                return tx
-            # t1 and t2 are of diff length
-            elif l1 > l2: # make sure t2 is the longer one
-                t1, t2 = t2, t1 # swap 
-            tx = t1.copy()      # tx copy from the shorter one
-            for nv, cvs in t2.items():  # look thru the longer one
-                if nv in t1:
-                    cmm = t1[nv].intersection(t2[nv])
-                    if len(cmm): return None
-                    tx[nv] = cmm
-                else:
-                    tx[nv] = 99  # nv in tx is a wild-card
-            return tx
-    elif t1 == set: # t2 is dict
-        ts = tp1[1]
-        td = tp2[1]
-        nov = tp1[0]
-    else: # t2 == set
-        ts = tp2[1]
-        td = tp1[1]
-        nov = tp2[0]
-    assert nov in td    # don't know yet what to do ???
-    # (57, {2,3}) + (60,{60:(1,2,3}, 57:{3,4,6}}) => 
-    # ts:(57, {2,3})  td: (60,{60:(1,2,3}, 57:{3,4,6}})
-    # return {60:(1,2,3), 57:{3}}
-    cmm = ts.intersection(td[nov])
-    if len(cmm) == 0: return None
-    tx = td.copy()
-    tx[nov] = cmm
-    return tx
-
 
 class NodeGroupHost:
     # class variables:

@@ -100,6 +100,8 @@ def cvs_intersect(vkx, vky): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
     # 7: (60,{60:(1,2,3), 57:(0,4} }) + (57,{60:{2}, 57:{0,4} }) 
     #     => {60:{2}, 57:{0,4}}
     #======================================================================='''
+    cvs1 = vkx.cvs
+    cvs2 = vky.cvs
     if type(vkx.cvs) ==type(vky.cvs):
         if type(vkx.cvs) == set: # both are sets
             if vkx.nov != vky.nov: 
@@ -108,8 +110,6 @@ def cvs_intersect(vkx, vky): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
             if len(cmm)==0: return None
             return {vkx.nov: cmm}
         else: # both vkx.cvs and vky.cvs are dicts
-            cvs1 = vkx.cvs
-            cvs2 = vky.cvs
             if len(cvs1) == len(cvs2):
                 tx = cvs1.copy()
                 for nv, cvs in cvs1.items():

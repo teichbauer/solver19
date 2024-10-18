@@ -67,6 +67,10 @@ class VKRepoitory:
     
     def merge_snode(self, sn):
         self.add_snode_root(sn.bgrid)
+        for k1n in sn.vkrepo.k1ns:
+            self.add_vk1(Center.vk1dic[k1n])
+        for vk2 in sn.vkrepo.vk2dic.values():
+            self.add_vk2(vk2)
         x = 9
 
     def newvk1_to_vk1(self, nvk, ovk, add_nvk=False): 

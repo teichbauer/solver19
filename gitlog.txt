@@ -1,3 +1,7 @@
+2024-10-17->19.358
+- fix in tools/cvs_intersect
+- added in merge_snode: add_vk1 for all vk1s in sn, add_vk2 for vk2s in sn
+  yet to be tested.
 2024-10-17->19.357
 - tools/cvs_intersect changed input signature
   added 2 funcs: cvs_subset and reduce_cvs - not yet used(tested)

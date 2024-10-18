@@ -51,9 +51,44 @@ def filter_conflict(snode, satdic):
             excl_chvs.update(vk.cvs)
     return excl_chvs
 
+def cvs_subset(big_cvs, small_cvs):
+    # check if small-cvs is a subset of big-cvs
+    if type(big_cvs) == set and type(small_cvs) == set:
+        cmm = small_cvs.intersection(big_cvs)
+        if len(cmm) == 0: return None
+        return cmm
+    if type(big_cvs) == dict and type(small_cvs) == dict:
+        res = big_cvs.copy()
+        for nv, cvs in small_cvs.items():
+            if nv not in big_cvs or not cvs.issubset(big_cvs[nv]):
+                return None
+            res[nv] = big_cvs - cvs
+        return res
 
-def cvs_intersect(tp1, tp2): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
-    '''#--- in case of set-typed cvs, nv1 or nv2 plays a role
+
+def reduce_cvs(vk, cmm):
+    # reduce vk.cvs by cmm, where it has been certain, cmm is subset
+    # of vk.cvs. 2 cases:
+    # 1. vk.cvs and cmm are sets like vk.cvs:{0,1,2,3} and cmm: {2,3}
+    #    vk.cvs is reduces by cmm becomes: vk.cvs == {0,1}
+    # 2. vk.cvs:{60:(0,1,2,3}, 57: {1,3,5}}, cmm: {60:{1}, 57:{3}}
+    #    vk.cvs is then reduced by cmm and becomes
+    #    {60:(0,2,3}, 57: {1,5}}
+    if type(vk.cvs) == set:
+        if type(cmm) == set:
+            vk.cvs -= cmm
+        else: # cmm: {57:{2,3}}
+            vk.cvs -= cmm[vk.nov]
+    else: # vk.cvs is a dict
+        if type(cmm) == set:
+            vk.cvs[vk.nov] -= cmm
+        else: # cmm is a dict
+            for nv, s in cmm.items():
+                vk.cvs[nv] -= s
+    return vk
+
+def cvs_intersect(vkx, vky): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
+    '''#--- in case of set-typed vk.cvs, vk.nov plays a role
     # 1：(60, {1,2,3}) + (60,{2,4,6})          =>  {60:{2}}
     # 2: (60, {1,2,3}) + (60,{0,4,6})          =>  None: no common cv
     # 3: (60, {1,2,3}) + (57, {0, 1, 2, 3}) =>{60:{1,2,3}, 57:{0,1,2,3}}
@@ -65,45 +100,42 @@ def cvs_intersect(tp1, tp2): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
     # 7: (60,{60:(1,2,3), 57:(0,4} }) + (57,{60:{2}, 57:{0,4} }) 
     #     => {60:{2}, 57:{0,4}}
     #======================================================================='''
-    t1 = type(tp1[1])
-    t2 = type(tp2[1])
-    if t1 == t2:
-        if t1 == set:
-            if tp1[0] != tp2[0]: 
-                return {tp1[0]: tp1[1], tp2[0]: tp2[1]}
-            cmm = tp1[1].intersection(tp2[1])
+    if type(vkx.cvs) ==type(vky.cvs):
+        if type(vkx.cvs) == set: # both are sets
+            if vkx.nov != vky.nov: 
+                return {vkx.nov: vkx.cvs, vky.nov: vky.cvs}
+            cmm = vkx.cvs.intersection(vky.cvs)
             if len(cmm)==0: return None
-            return {tp1[0]: cmm}
-        else: # both t1 and t2 are dicts
-            l1 = len(t1)
-            l2 = len(t2)
-            if l1 == l2:
-                tx = t1.copy()
-                for nv, cvs in t1.items():
-                    cmm = cvs.intersection(t2[nv])
+            return {vkx.nov: cmm}
+        else: # both vkx.cvs and vky.cvs are dicts
+            cvs1 = vkx.cvs
+            cvs2 = vky.cvs
+            if len(cvs1) == len(cvs2):
+                tx = cvs1.copy()
+                for nv, cvs in cvs1.items():
+                    cmm = cvs.intersection(cvs2[nv])
                     if len(cmm) == 0: return None
                     tx[nv] = cmm
                 return tx
-            # t1 and t2 are of diff length
-            elif l1 > l2: # make sure t2 is the longer one
-                t1, t2 = t2, t1 # swap 
-            tx = t1.copy()      # tx copy from the shorter one
-            for nv, cvs in t2.items():  # look thru the longer one
-                if nv in t1:
-                    cmm = t1[nv].intersection(t2[nv])
+            # vkx.cvs and vky.cvs are of diff length
+            elif len(cvs1) > len(cvs2): # make sure t2 is the longer one
+                cvs1, cvs2 = cvs2, cvs1 # swap 
+            tx = cvs1.copy()      # tx copy from the shorter one
+            for nv, cvs in cvs2.items():  # look thru the longer one
+                if nv in cvs1:
+                    cmm = cvs1[nv].intersection(cvs2[nv])
                     if len(cmm): return None
                     tx[nv] = cmm
                 else:
                     tx[nv] = 99  # nv in tx is a wild-card
             return tx
-    elif t1 == set: # t2 is dict
-        ts = tp1[1]
-        td = tp2[1]
-        nov = tp1[0]
-    else: # t2 == set
-        ts = tp2[1]
-        td = tp1[1]
-        nov = tp2[0]
+    # vkx.cvs and vky.cvs are of different type: set/dict or dict/set
+    elif type(cvs1) == set: # cvs2 is dict
+        ts, td = cvs1, cvs2
+        nov = vkx.nov
+    else: # cvs2 is a set
+        ts, td = cvs2, cvs1
+        nov = vky.nov
     assert nov in td    # don't know yet what to do ???
     # (57, {2,3}) + (60,{60:(1,2,3}, 57:{3,4,6}}) => 
     # ts:(57, {2,3})  td: (60,{60:(1,2,3}, 57:{3,4,6}})

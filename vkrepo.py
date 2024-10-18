@@ -1,5 +1,5 @@
 from center import Center
-from tools import handle_vk2pair, cvs_intersect
+from tools import handle_vk2pair, cvs_intersect, reduce_cvs, cvs_subset
 
 sngl_cvs = (  # cvs is a set like {0,1,2,3}, or {5}
     'S', # 2 touch-bits resulted vk1: C0212->S0212, C0212 disappeared
@@ -40,9 +40,15 @@ class VKRepoitory:
             for k1n in self.bdic1[rb1]:
                 vk1 = Center.vk1dic[k1n]
                 cvs = bgrid.cvs_subset(vk1.bits[0], vk1.dic[vk1.bits[0]])
+                if not cvs: continue
                 # these cvs are hits with vk1.cvs node
-                cmm_cvs = cvs_intersect((vk1.nov, vk1.cvs),(bgrid.nov, cvs))
-                self.blocks.append(cmm_cvs)
+                if type(vk1.cvs) == set:
+                    self.blocks.append({vk1.nov: cvs.intersection(vk1.cvs)})
+                else:
+                    nd = vk1.cvs.copy()
+                    nd[bgrid.nov] = cvs
+                    self.blocks.append(nd)
+        # handle vk2s bouncing with bgrid.bits
         cmm_rbits = set(self.bdic2).intersection(bgrid.bits)
         for rb in cmm_rbits:
             for k2n in self.bdic2[rb]:
@@ -57,72 +63,92 @@ class VKRepoitory:
                     node = {vk2.nov: vk2.cvs, bgrid.nov: x_cvs_subset}
                     if self.add_excl(vk2, node):
                         vk1 = vk2.clone('R',[rb], node) # R prefix, drop rb
-                        if self.add_vk1(vk1):
-                            self.add_block(vk1)
+                        self.add_vk1(vk1)
     
     def merge_snode(self, sn):
         self.add_snode_root(sn.bgrid)
         x = 9
 
-    def add_vk1(self, vk1, add2center=True):
+    def newvk1_to_vk1(self, nvk, ovk, add_nvk=False): 
+        # new-vk1 and old-vk1 are sitting on the same bit
+        if nvk.val != ovk.val:
+            cmm = cvs_intersect(nvk, ovk)
+            if cmm: self.blocks.append(cmm)
+        if add_nvk:
+            self.insert_vk1(nvk)
+
+    def insert_vk1(self, vk1, add2center): # simply add vk1 to the repo
         name = vk1.kname
         if name in self.k1ns:
-            vk = Center.vk1dic[name]
-            if vk.equal(vk1):
-                self.inflog.setdefault(name,[])\
-                    .append(f"add_vk1:{name} already in. Not added")
-                return
-            elif name[0] == 'U':
-                name = f"V{name[1:]}"
-            else:
-                raise Exception("vk1 name conflict-1")
-        # handle with existing vk1s
-        self.k1ns.append(name)
-        if vk1.bit in self.bdic1:
-            for kn in self.bdic1[vk1.bit]:
-                vk = Center.vk1dic[kn]
-                cmm = vk1.cvs.intersection(vk.cvs)
-                if vk1.nov == vk.nov and \
-                    name[0] in sngl_cvs and vk.kname[0] in sngl_cvs: 
-                    # both vk and vk1 sngl-cvs
-                    if cmm == vk1.cvs:
-                        if vk.val == vk1.val:
-                            self.inflog.setdefault(name,[])\
-                            .append(f"add_vk1:{name} b/v existed. Not added")
-                        else: # vk.val != vk1.val
-                            self.inflog.setdefault(name,[])\
-                            .append(f"add_vk1:{name}:total added as bock.")
-                        return
-                    elif vk.val != vk1.val and len(cmm) > 0:
-                        node = {vk.nov: cmm}
-                        self.blocks.append(node)
-                        self.inflog.setdefault(name,[])\
-                            .append(f"{name} causes block: {node}")
-                else:
-                    print("what to do?")
-
-        self.bdic1.setdefault(vk1.bit,[]).append(name)
+            if vk1.equal(Center.vk1dic[name]): return
+            if name[0] == 'U': 
+                vk1.kname = f"V{name[1:]}"
+            elif name[0] == 'V': 
+                vk1.kname = f"X{name[1:]}"
+        self.k1ns.append(vk1.kname)
+        self.bdic1.setdefault(vk1.bit,[]).append(vk1.kname)
         if add2center:
             Center.add_vk1(vk1)
+    
+    def insert_vk2(self, vk2):
+        name = vk2.kname
+        b1, b2 = vk2.bits
+        if (b1 not in self.bdic2) or name not in self.bdic2[b1]:
+            self.bdic2.setdefault(b1,[]).append(name)
+        if (b2 not in self.bdic2) or name not in self.bdic2[b2]:
+            self.bdic2.setdefault(b2,[]).append(name)
+        self.vk2dic[name] = vk2
+
+    def newvk1_to_vk2(self, nvk, vk2):
+        # when a vk1 shares 1 bit with an existing vk2, and vk1 and vk2 
+        # have no intersect in cvs, return - nothing happens. But if they
+        # do have cvs-intersection(cmm) on their common nov, then 2 cases:
+        # 1. vk1.val == vk2.dic[bit] -> vk2's cvs(on the same nov) 
+        #    reduces by cmm
+        # 2. vk1.val != vk2.dic[bit] -> 
+        #    2.1: vk2's cvs(on the same nov) 
+        #    2.2: new vk1 is generated for the other bit, with cmm
+        cmm = cvs_intersect(nvk, vk2)
+        if not cmm: return
+        self.add_excl(vk2, cmm)
+        if vk2.dic[nvk.bit] != nvk.val:
+            vkx = vk2.clone('U', [nvk.bit], cmm)
+            self.add_vk1(vkx)
+
+    def add_vk1(self, vk1, add2center=True):
+        print(vk1.print_msg())
+        # handle with existing vk1s
+        if vk1.bit in self.bdic1:
+            for kn in self.bdic1[vk1.bit]:
+                self.newvk1_to_vk1(vk1, Center.vk1dic[kn])
         # handle with vk2s
         if vk1.bit in self.bdic2:
-            for kn in self.bdic2[vk1.bit]:
+            for kn in self.bdic2[vk1.bit]: # all vk2 are named 'Cnnnn'
+                if vk1.kname[1:] == kn[1:]: continue
                 vk = self.vk2dic[kn]
-                cmm = cvs_intersect((vk1.nov, vk1.cvs),(vk.nov, vk.cvs))
-                if not cmm: continue
-                self.add_excl(vk, cmm)
-                if vk.dic[vk1.bit] != vk1.val:
-                    vkx = vk.clone('U', [vk1.bit], cmm)
-                    self.add_vk1(vkx)
+                self.newvk1_to_vk2(vk1, vk)
+        self.insert_vk1(vk1, add2center)
+
+    def handle_vk1_block(self, vk1):
+        # for a newly found vk1, see if an opposite vk(1) exists in this
+        # repo, and if yes do the two generat a block? if yes, put it in
+        if vk1.kname in self.k1ns or vk1.bit not in self.bdic1: 
+            return
+        for kn in self.bdic1[vk1.bit]:
+            vk = Center.vk1dic[kn]
+            if vk.val != vk1.val:
+                cmm = cvs_intersect(vk, vk1)
+                if cmm:
+                    self.blocks.append(cmm)
 
     def add_vk2(self, vk2):
-        name = vk2.kname
+        print(vk2.print_msg())
         for b in vk2.bits:
             if b in self.bdic1:
                 kns = self.bdic1[b]  # for loop variable must be immutable
                 for kn in kns:
                     vk1 = Center.vk1dic[kn]
-                    cmm = cvs_intersect((vk1.nov, vk1.cvs),(vk2.nov, vk2.cvs))
+                    cmm = cvs_intersect(vk1, vk2)
                     if not cmm: continue
                     self.add_excl(vk2, cmm)
                     if vk2.dic[b] != vk1.val:
@@ -131,23 +157,24 @@ class VKRepoitory:
                         else:
                             vkx = vk2.clone('U', [b], cmm)
                         self.add_vk1(vkx)
-        # if vk2 with the same bits exits?
-        b1, b2 = vk2.bits
-        if (b1 not in self.bdic2) or name not in self.bdic2[b1]:
-            self.bdic2.setdefault(b1,[]).append(name)
-        if (b2 not in self.bdic2) or name not in self.bdic2[b2]:
-            self.bdic2.setdefault(b2,[]).append(name)
-        self.vk2dic[name] = vk2
-
+        self.insert_vk2(vk2)
         # handle case of 2 overlapping bits with existing vk2
+        self.proc_vk2pair(vk2) # if vk2 has a twin in vk2dic
+
+    def proc_vk2pair(self, vk2):
+        # check if vk2 share its 2 bits with an existing vk2, if yes
+        # and if both vals on the same bit are the same, and the vals on
+        # the bit are diff, then a new vk1 is generated. 
+        # This is based on the fact: (a + b)( a + not_b) == a
+        b1, b2 = vk2.bits
         kns1 = self.bdic2[b1]
         kns2 = self.bdic2[b2]
         xkns = set(kns1).intersection(kns2)
-        xkns.remove(name)
+        xkns.remove(vk2.kname)
         while len(xkns) > 0:
             vk1 = handle_vk2pair(vk2, self.vk2dic[xkns.pop()])
-            if vk1:
-                self.add_vk1(vk1)
+            if vk1: self.add_vk1(vk1)
+
 
     def add_excl(self, vk2, node):
         if len(node) == 1: # in case node has only 1 entry like {60:{3,7}

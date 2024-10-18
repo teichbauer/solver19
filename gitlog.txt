@@ -1,3 +1,7 @@
+2024-10-17->19.357
+- tools/cvs_intersect changed input signature
+  added 2 funcs: cvs_subset and reduce_cvs - not yet used(tested)
+- refactored VKRepository
 2024-10-15->19.356
 - VKRepository added method clone and add_snode_root
   will refer to nodegrouphost for next.

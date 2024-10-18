@@ -24,7 +24,7 @@ class VKlause:
         return self.bits[0], self.dic[self.bits[0]]
     
     def equal(self, vk):
-        return self.dic == vk.dic and self.cvs == vk.cvs
+        return self.dic == vk.dic and self.cvs == vk.cvs and self.nov == vk.nov
 
     def lbit_value(self):
         return self.dic[self.bits[-1]]

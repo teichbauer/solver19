@@ -1,16 +1,6 @@
 from center import Center
 from tools import handle_vk2pair, cvs_intersect, reduce_cvs, cvs_subset
-
-sngl_cvs = (  # cvs is a set like {0,1,2,3}, or {5}
-    'S', # 2 touch-bits resulted vk1: C0212->S0212, C0212 disappeared
-    'T', # Snnnn vk1 splits a vk2
-    'D'  # 2 vk2a in the same snode, (a + not-b)(a + b) -> a (vk1): Dnnnn
-)
-cmpd_cvs = (  # compound-cvs: lie {60:{3,5}, 57:{0,1}}
-    'U',
-    'V',
-    'X'
-)
+from namepool import NamePool
 
 class VKRepoitory:
     def __init__(self, snode):
@@ -62,7 +52,8 @@ class VKRepoitory:
                     x_cvs_subset = bgrid.cvs_subset(rb, vk2.dic[rb])
                     node = {vk2.nov: vk2.cvs, bgrid.nov: x_cvs_subset}
                     if self.add_excl(vk2, node):
-                        vk1 = vk2.clone('R',[rb], node) # R prefix, drop rb
+                        vk1 = vk2.clone(NamePool(vk2.kname).next_uname('R'),
+                                        [rb], node) # R prefix, drop rb
                         self.add_vk1(vk1)
     
     def merge_snode(self, sn):
@@ -77,7 +68,11 @@ class VKRepoitory:
         # new-vk1 and old-vk1 are sitting on the same bit
         if nvk.val != ovk.val:
             cmm = cvs_intersect(nvk, ovk)
-            if cmm: self.blocks.append(cmm)
+            if cmm: 
+                infokey = tuple(sorted([nvk.kname, ovk.kname]))
+                self.inflog.setdefault(infokey,[])\
+                    .append("resulted in block:"+str(cmm))
+                self.blocks.append(cmm)
         if add_nvk:
             self.insert_vk1(nvk)
 
@@ -85,10 +80,7 @@ class VKRepoitory:
         name = vk1.kname
         if name in self.k1ns:
             if vk1.equal(Center.vk1dic[name]): return
-            if name[0] == 'U': 
-                vk1.kname = f"V{name[1:]}"
-            elif name[0] == 'V': 
-                vk1.kname = f"X{name[1:]}"
+            vk1.kname = NamePool(name).next_uname()
         self.k1ns.append(vk1.kname)
         self.bdic1.setdefault(vk1.bit,[]).append(vk1.kname)
         if add2center:
@@ -116,7 +108,9 @@ class VKRepoitory:
         if not cmm: return
         self.add_excl(vk2, cmm)
         if vk2.dic[nvk.bit] != nvk.val:
-            vkx = vk2.clone('U', [nvk.bit], cmm)
+            vkx = vk2.clone(NamePool(vk2.kname).next_uname(), 
+                            [nvk.bit], cmm)
+            # vkx = vk2.clone('U', [nvk.bit], cmm)
             self.add_vk1(vkx)
 
     def add_vk1(self, vk1, add2center=True):
@@ -157,9 +151,11 @@ class VKRepoitory:
                     self.add_excl(vk2, cmm)
                     if vk2.dic[b] != vk1.val:
                         if len(cmm) == 1:
-                            vkx = vk2.clone('T', [b], cmm[vk2.nov])
+                            vkx = vk2.clone(NamePool(vk2.kname).next_sname('T'),
+                                            [b], cmm[vk2.nov])
                         else:
-                            vkx = vk2.clone('U', [b], cmm)
+                            vkx = vk2.clone(NamePool(vk2.kname).next_uname(),
+                                            [b], cmm)
                         self.add_vk1(vkx)
         self.insert_vk2(vk2)
         # handle case of 2 overlapping bits with existing vk2

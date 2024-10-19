@@ -1,6 +1,7 @@
 from basics import *
 from vklause import VKlause
 from stail import STail
+from namepool import NamePool
 
 def sort_length_list(lst):
     # [(...),(.......),(.)] => [(.),(...),(.......)]
@@ -153,24 +154,24 @@ def handle_vk2pair(vkx, vky):
     if vkx.nov == vky.nov:
         cmm = vkx.cvs.intersection(vky.cvs)
         if len(cmm) > 0:
+            name = NamePool(vkx.kname).next_sname('D')
+            vkx.cvs -= cmm
+            vky.cvs -= cmm
             if vkx.dic[b1] == vky.dic[b1]:
                 if vkx.dic[b2] != vky.dic[b2]:
-                    vkx.cvs -= cmm
-                    vky.cvs -= cmm
-                    return vkx.clone('D', [b2], cmm)
+                    return vkx.clone(name, [b2], cmm)
             elif vkx.dic[b2] == vky.dic[b2]:
                 if vkx.dic[b1] != vky.dic[b1]:
-                    vkx.cvs -= cmm
-                    vky.cvs -= cmm
-                    return vkx.clone('D', [b1], cmm)
+                    return vkx.clone(name, [b1], cmm)
     else: # vkx.nov != vky.nov
         node = {vkx.nov: vkx.cvs, vky.nov: vky.cvs}
+        name = NamePool(vkx.kname).next_uname('Y')
         if vkx.dic[b1] == vky.dic[b1]:
             if vkx.dic[b2] != vky.dic[b2]:
-                return vkx.clone('X', [b2], node)
+                return vkx.clone(name, [b2], node)
         elif vkx.dic[b2] == vky.dic[b2]:
             if vkx.dic[b1] != vky.dic[b1]:
-                return vkx.clone('X', [b1], node)
+                return vkx.clone(name, [b1], node)
     return None
 
 

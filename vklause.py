@@ -37,7 +37,7 @@ class VKlause:
         self.nob -= 1
 
     def clone(self, 
-              kname_prefix=None,    # one Captal letter, like S, T, U,..
+              new_kname=None,       # new kname, if None, use self.kname
               bits2b_dropped=None,  # bits to be dropped, if this is given:
               new_cvs=None):        # if None, copy self.cvs
         # bits2b_dropped: list of bits to be dropped.
@@ -50,10 +50,10 @@ class VKlause:
             for b in bits2b_dropped:
                 # drop off this bit from dic.
                 dic.pop(b, None)
-            if not kname_prefix:
+            if not new_kname:
                 kname = self.kname
             else:
-                kname = kname_prefix + self.kname[1:]
+                kname = new_kname
             return VKlause(kname,
                            dic, 
                            self.nov, 

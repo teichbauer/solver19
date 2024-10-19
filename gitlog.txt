@@ -1,3 +1,8 @@
+2024-10-18->19.359
+- namepool new way to manage vk1-name, remove sngl_cvs/cmpd_cvs enums
+- changed klause.clone signature: used new kname in stead of prefix.
+- add-block, if by 2 knames, used sorted tuple as key, tell the src of block.
+- for vk2-pair handling in tools/handle_vk2pair: need to finalize.
 2024-10-17->19.358
 - fix in tools/cvs_intersect
 - added in merge_snode: add_vk1 for all vk1s in sn, add_vk2 for vk2s in sn

@@ -1,5 +1,5 @@
 from center import Center
-from tools import handle_vk2pair, cvs_intersect, reduce_cvs, cvs_subset
+from tools import handle_vk2pair, cvs_intersect, outputlog
 from namepool import NamePool
 
 class VKRepoitory:
@@ -12,6 +12,12 @@ class VKRepoitory:
         self.excls = {}     # {kn:[node, node,..],..} vk not 2b used in nodes
         self.snode = snode  # related snode
         self.inflog = {}    # {key:[info,info,..], key:[], ...}
+
+    def write_logmsg(self, outfile_name):
+        ofile = open(outfile_name, 'w')
+        msg = outputlog(self, Center.vk1dic)
+        ofile.write(msg)
+        ofile.close()
 
     def clone(self):
         xrepo = VKRepoitory(self.snode)
@@ -62,6 +68,9 @@ class VKRepoitory:
             self.add_vk1(Center.vk1dic[k1n])
         for vk2 in sn.vkrepo.vk2dic.values():
             self.add_vk2(vk2)
+        self.write_logmsg('./docs/loginfo.txt')
+        # m = Center.vk1dic['R0120'].print_out()
+        # m1 = self.vk2dic['C0266'].print_out()
         x = 9
 
     def newvk1_to_vk1(self, nvk, ovk, add_nvk=False): 

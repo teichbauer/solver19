@@ -2,6 +2,69 @@ from basics import *
 from vklause import VKlause
 from stail import STail
 from namepool import NamePool
+from datetime import datetime
+
+def outputlog(repo, vk1dic):
+    now = datetime.now()
+    ts = now.isoformat().split('.')[0] # cutoff more precision than sec.
+    msg = f"{ts}: vkrepo log\n" + "="*80 + "\n"
+    msg += f"bdic1:\n----------------------------------------------------\n"
+    bitlst = sorted(set(repo.bdic1))  # all bits in sorted order
+    for bit in bitlst:
+        msg += f"{bit}: ["
+        for kn in repo.bdic1[bit]:
+            msg += f"{kn}  "
+        msg += "]\n"
+    msg += f"----------------------------------------------------\n\n"
+    msg += f"bdic2:\n----------------------------------------------------\n"
+    bitlst = sorted(set(repo.bdic2))  # all bits in sorted order
+    for bit in bitlst:
+        msg += f"{bit}: ["
+        for kn in repo.bdic2[bit]:
+            msg += f"{kn}  "
+        msg += "]\n"
+    msg += f"----------------------------------------------------\n\n"
+    msg += f"vk1s:\n----------------------------------------------------\n"
+    k1ns = sorted(repo.k1ns)
+    for kn in k1ns:
+        msg += vk1dic[kn].print_out() +'\n'
+    msg += f"----------------------------------------------------\n\n"
+    msg += f"vk2s:\n----------------------------------------------------\n"
+    k2ns = sorted(repo.vk2dic)
+    for kn in k2ns:
+        vk2 = repo.vk2dic[kn]
+        msg += vk2.print_out() +'\n'
+    msg += f"----------------------------------------------------\n\n"
+    msg += f"blocks:\n----------------------------------------------------\n"
+    for bl in repo.blocks:
+        msg += str(bl) + '\n'
+    msg += f"----------------------------------------------------\n\n"
+    msg += f"excls:\n----------------------------------------------------\n"
+    kns = sorted(repo.excls)
+    for kn in kns:
+        msg += f"{kn}:\n"
+        lst = repo.excls[kn]
+        for excl in lst:
+            msg += f"    {str(excl)}\n"
+        msg += "\n"
+    return msg
+
+def _excl_mergable(e1, e2):
+    pass
+
+def condense(vepro):
+    # compact blocks
+    res = []
+    for bl in vepro.blocks:
+        if bl not in res:
+            res.append(bl)
+    vepro.blocks = res
+    # compact excls
+    for kn, lst in vepro.excls.items():
+        res = []
+        for excl in lst:
+            pass
+
 
 def sort_length_list(lst):
     # [(...),(.......),(.)] => [(.),(...),(.......)]

@@ -1,4 +1,7 @@
-2024-10-21-19.360
+2024-10-21->19.361
+- add klause.print_out: output info in my write format for logging
+- vkrepo.write_logmsg for logging/compare
+2024-10-21->19.360
 - refactor vkrepo.py
 - finished merge S60 - S57
 2024-10-18->19.359

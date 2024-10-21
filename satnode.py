@@ -3,7 +3,6 @@ from center import Center
 from tools import sort_length_list
 from collections import OrderedDict
 from sat_path import SatPath
-from nodegrphost import NodeGroupHost
 from vkrepo import VKRepoitory
 from stail import STail
 from namepool import NamePool
@@ -65,9 +64,6 @@ class SatNode:
             print(f"NOV:{self.nov}")
             pathrepo = Center.snodes[60].vkrepo.clone()
             pathrepo.merge_snode(Center.snodes[57])
-            # nodehost = NodeGroupHost(Center.snodes[60])
-            # nodehost.merge_snode(Center.snodes[57])
-            # nodehost.merge_down(Center.snodes[57]
             x = 9
 
     def grow_path(self, base_nov, final_path=[], base_path=None):

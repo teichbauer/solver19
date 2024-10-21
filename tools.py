@@ -1,6 +1,5 @@
 from basics import *
-from vklause import VKlause
-from stail import STail
+import copy
 from namepool import NamePool
 from datetime import datetime
 
@@ -49,8 +48,19 @@ def outputlog(repo, vk1dic):
         msg += "\n"
     return msg
 
-def _excl_mergable(e1, e2):
-    pass
+def vk1s_mergable(vk1a, vk1b):
+    if vk1a.nov != vk1b.nov or vk1a.bit != vk1b.bit: return False
+    if vk1a.kname[0] not in ('U','V') or vk1b.kname[0] not in ('U','V'): 
+        return False
+    return vk1a.cvs[vk1a.nov] == vk1b.cvs[vk1a.nov]
+
+def merge_vk1_to_ovk1(vk1, ovk1):
+    nvs = list(vk1.cvs)  # get the novs as a list
+    nvs.remove(vk1.nov)
+    for nv in nvs:
+        for cv in vk1.cvs[nv]:
+            ovk1.cvs[nv].add(cv)
+    return ovk1
 
 def condense(vepro):
     # compact blocks
@@ -164,18 +174,18 @@ def cvs_intersect(vkx, vky): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
     # 7: (60,{60:(1,2,3), 57:(0,4} }) + (57,{60:{2}, 57:{0,4} }) 
     #     => {60:{2}, 57:{0,4}}
     #======================================================================='''
-    cvs1 = vkx.cvs
-    cvs2 = vky.cvs
+    cvs1 = copy.deepcopy(vkx.cvs)
+    cvs2 = copy.deepcopy(vky.cvs)
     if type(vkx.cvs) ==type(vky.cvs):
         if type(vkx.cvs) == set: # both are sets
             if vkx.nov != vky.nov: 
-                return {vkx.nov: vkx.cvs, vky.nov: vky.cvs}
+                return {vkx.nov: vkx.cvs.copy(), vky.nov: vky.cvs.copy()}
             cmm = vkx.cvs.intersection(vky.cvs)
             if len(cmm)==0: return None
             return {vkx.nov: cmm}
         else: # both vkx.cvs and vky.cvs are dicts
             if len(cvs1) == len(cvs2):
-                tx = cvs1.copy()
+                tx = copy.deepcopy(cvs1)
                 for nv, cvs in cvs1.items():
                     cmm = cvs.intersection(cvs2[nv])
                     if len(cmm) == 0: return None
@@ -184,7 +194,7 @@ def cvs_intersect(vkx, vky): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
             # vkx.cvs and vky.cvs are of diff length
             elif len(cvs1) > len(cvs2): # make sure t2 is the longer one
                 cvs1, cvs2 = cvs2, cvs1 # swap 
-            tx = cvs1.copy()      # tx copy from the shorter one
+            tx = copy.deepcopy(cvs1)      # tx copy from the shorter one
             for nv, cvs in cvs2.items():  # look thru the longer one
                 if nv in cvs1:
                     cmm = cvs1[nv].intersection(cvs2[nv])
@@ -227,7 +237,7 @@ def handle_vk2pair(vkx, vky):
                 if vkx.dic[b1] != vky.dic[b1]:
                     return vkx.clone(name, [b1], cmm)
     else: # vkx.nov != vky.nov
-        node = {vkx.nov: vkx.cvs, vky.nov: vky.cvs}
+        node = {vkx.nov: vkx.cvs.copy(), vky.nov: vky.cvs.copy()}
         name = NamePool(vkx.kname).next_uname('Y')
         if vkx.dic[b1] == vky.dic[b1]:
             if vkx.dic[b2] != vky.dic[b2]:

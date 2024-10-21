@@ -1,6 +1,7 @@
 from center import Center
-from tools import handle_vk2pair, cvs_intersect, outputlog
+from tools import *
 from namepool import NamePool
+import copy
 
 class VKRepoitory:
     def __init__(self, snode):
@@ -25,9 +26,9 @@ class VKRepoitory:
         xrepo.bdic2 = {b: lst[:] for b, lst in self.bdic2.items()}
         xrepo.k1ns = self.k1ns[:]
         xrepo.vk2dic = {kn:vk2 for kn, vk2 in self.vk2dic.items()}
-        xrepo.blocks = [node.copy() for node in self.blocks]
+        xrepo.blocks = [copy.deepcopy(node) for node in self.blocks]
         for kn, lst in self.excls.items():
-            xrepo.excls[kn] = [node.copy() for node in lst]
+            xrepo.excls[kn] = [copy.deepcopy(node) for node in lst]
         return xrepo
     
     def add_snode_root(self, bgrid):
@@ -41,9 +42,10 @@ class VKRepoitory:
                 if type(vk1.cvs) == set:
                     self.blocks.append({vk1.nov: cvs.intersection(vk1.cvs)})
                 else:
-                    nd = vk1.cvs.copy()
+                    nd = copy.deepcopy(vk1.cvs)
                     nd[bgrid.nov] = cvs
-                    self.blocks.append(nd)
+                    if nd not in self.blocks:
+                        self.blocks.append(nd)
         # handle vk2s bouncing with bgrid.bits
         cmm_rbits = set(self.bdic2).intersection(bgrid.bits)
         for rb in cmm_rbits:
@@ -52,15 +54,17 @@ class VKRepoitory:
                 if set(vk2.bits).issubset(bgrid.bits):
                     hit_cvs = bgrid.vk2_hits(vk2)
                     print(f"{k2n} inside {bgrid.nov}-root, blocking {hit_cvs}")
-                    self.blocks.append({vk2.nov:vk2.cvs, bgrid.nov: hit_cvs})
+                    block = {vk2.nov:vk2.cvs.copy(), bgrid.nov: hit_cvs}
+                    if block not in self.blocks:
+                        self.blocks.append()
                 else:# vk1.cvs is compound  caused by overlapping 
                     # with xsn.root-bits, will be named with R-prefix
                     x_cvs_subset = bgrid.cvs_subset(rb, vk2.dic[rb])
-                    node = {vk2.nov: vk2.cvs, bgrid.nov: x_cvs_subset}
-                    if self.add_excl(vk2, node):
-                        name = NamePool(vk2.kname).next_uname('R')
-                        vk1 = vk2.clone(name, [rb], node) # R prefix, drop rb
-                        self.add_vk1(vk1)
+                    node = {vk2.nov: vk2.cvs.copy(), bgrid.nov: x_cvs_subset}
+                    self.add_excl(vk2, copy.deepcopy(node))
+                    name = NamePool(vk2.kname).next_uname('R')
+                    vk1 = vk2.clone(name, [rb], node) # R prefix, drop rb
+                    self.add_vk1(vk1)
     
     def merge_snode(self, sn):
         self.add_snode_root(sn.bgrid)
@@ -81,14 +85,23 @@ class VKRepoitory:
                 infokey = tuple(sorted([nvk.kname, ovk.kname]))
                 self.inflog.setdefault(infokey,[])\
                     .append("resulted in block:"+str(cmm))
-                self.blocks.append(cmm)
+                if cmm not in self.blocks:
+                    self.blocks.append(cmm)
         if add_nvk:
             self.insert_vk1(nvk)
 
     def insert_vk1(self, vk1, add2center): # simply add vk1 to the repo
         name = vk1.kname
         while name in self.k1ns:
-            if vk1.equal(Center.vk1dic[name]): return
+            ovk1 = Center.vk1dic[name]
+            if vk1.equal(ovk1): return
+            elif vk1s_mergable(vk1, ovk1):
+                cvs = copy.deepcopy(vk1.cvs)
+                ocvs = copy.deepcopy(ovk1.cvs)
+                ovk = merge_vk1_to_ovk1(vk1, ovk1)
+                self.inflog.setdefault(name,[])\
+                    .append(f"merged: {cvs} and {ocvs} to {ovk.cvs}")
+                return
             name = NamePool(name).next_uname()
         vk1.kname = name
         self.k1ns.append(name)
@@ -116,7 +129,7 @@ class VKRepoitory:
         #    2.2: new vk1 is generated for the other bit, with cmm'''
         cmm = cvs_intersect(nvk, vk2)
         if not cmm: return
-        self.add_excl(vk2, cmm)
+        self.add_excl(vk2, copy.deepcopy(cmm))
         if vk2.dic[nvk.bit] != nvk.val:
             name = NamePool(vk2.kname).next_uname()
             new_vk1 = vk2.clone(name, [nvk.bit], cmm)
@@ -145,7 +158,7 @@ class VKRepoitory:
             vk = Center.vk1dic[kn]
             if vk.val != vk1.val:
                 cmm = cvs_intersect(vk, vk1)
-                if cmm:
+                if cmm and cmm not in self.blocks:
                     self.blocks.append(cmm)
 
     def add_vk2(self, vk2):
@@ -157,7 +170,7 @@ class VKRepoitory:
                     vk1 = Center.vk1dic[kn]
                     cmm = cvs_intersect(vk1, vk2)
                     if not cmm: continue
-                    self.add_excl(vk2, cmm)
+                    self.add_excl(vk2, copy.deepcopy(cmm))
                     if vk2.dic[b] != vk1.val:
                         if len(cmm) == 1:
                             name = NamePool(vk2.kname).next_sname('T')

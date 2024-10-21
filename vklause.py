@@ -1,4 +1,5 @@
 from basics import get_bit, set_bit, ordered_dic_string
+import copy
 
 def print_cvs(cvs):
     def print_set(s):
@@ -75,9 +76,9 @@ class VKlause:
               new_cvs=None):        # if None, copy self.cvs
         # bits2b_dropped: list of bits to be dropped.
         # They must be the top-bits
-        dic = self.dic.copy()
+        dic = copy.deepcopy(self.dic)
         if not new_cvs:
-            new_cvs = self.cvs.copy()
+            new_cvs = copy.deepcopy(self.cvs)
             
         if bits2b_dropped and len(bits2b_dropped) > 0:
             for b in bits2b_dropped:

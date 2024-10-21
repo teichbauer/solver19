@@ -1,3 +1,17 @@
+2024-10-21->19.362
+- get rid of nodegroup.py, nodegrhost.py
+- make sure when using vk.cvs which may be set or dict, always use
+  deepcopy. so that each cvs set or dict, is owned locally, not being 
+  referenced across vks, and excl/nodes.
+  Also when add_excl(vk2, node) node must be a deepcopy too
+- tools.py added: vk1s_mergable and vk1s_mergable
+  the test if 2 vk1s are mergeable: nov and bit of the two are the same, and
+  both knames are prefixed with U or V (compound-cvs); and the cvs on their
+  nov are the same.
+- vkrepo.insert_vk1: when U0179[46-1]{60:(123), 57:(04)} already existed, and 
+  a new U0179[46-1]{60:(46), 57:(04)} comes, this will be merged to the old
+  U0179, so it is now extended to U0179[46-1]{60:(12346), 57:(04)}
+- when adding a block, only when it is not already in self.block.
 2024-10-21->19.361
 - add klause.print_out: output info in my write format for logging
 - vkrepo.write_logmsg for logging/compare

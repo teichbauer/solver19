@@ -1,3 +1,6 @@
+2024-10-21-19.360
+- refactor vkrepo.py
+- finished merge S60 - S57
 2024-10-18->19.359
 - namepool new way to manage vk1-name, remove sngl_cvs/cmpd_cvs enums
 - changed klause.clone signature: used new kname in stead of prefix.

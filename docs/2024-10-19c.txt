@@ -1,0 +1,189 @@
+2024-10-19-c  19.357
+-----------------------------------------------------------------------------
+
+merge_snode(s60 <-s57)
+  self.add_snode_root(sn.bgrid)
+    for k1n in sn.vkrepo.k1ns:
+      self.add_vk1(Center.vk1dic[k1n])
+    for vk2 in sn.vkrepo.vk2dic.values():
+      self.add_vk2(vk2)    <<- add 54:C0266[54-1 47-1](0123)
+-------------------------
+
+add_vk2(vk2)  # C0266[54-1 47-1](0123)   
+  bit-54 bdic1: R0250
+    R0250[54-0]{60:(2367) 57:(04)} ^ 57:(0123) -> {60:(2367) 57:(01)} -- node
+      excl[C0266] adds node as the first excl
+      new_vk1: U0266[47-1]{60:(2367) 57:(01)}
+      add_vk1(U0266)    # bit-47 test in bdic1 and bdic2
+        bit 47 
+          in bdic1: 1x vk1 U0257
+            newvk1_to_vk1(nvk:U0266, ovk:U0257) # U0257[47-0]{60:(123), 5:(04)}
+              nvk.val != ovk.val
+              cmm: {60:(23), 5:(0)} --> add the cmm as block
+          in bdic2: C0214 C0247 C0257 C0011
+            newvk1_to_vk2(U0266, C0214)  # 60:C0214[51-1 47-0](2367)
+              cmm = {60:(2367) 57:(01)}
+              new_vk1: U0214[51-1]{cmm}
+              add_vk1(U0214)
+                bdic1: bdic2: none
+            newvk1_to_vk2(U0266, C0247)  # 60:C0247[47-0 19-0](123)
+              cmm = {60:(23) 57:(01)}
+              cmm added to xecl[C0247]+
+              U0247[19-0]{60:(23) 57:(01)}
+              add_vk1(U0247)    # bit-19 not in bdic1. in bdic2: C0021, C0113, C0247, C0102
+                60:C0021[23-0 19-0](246) cmm: {60:(2) 57:(01)} cmm ->excl[C0021]
+                60:C0113[19-1 15-1](467) cmm=None
+                60:C0247 -> kn[1:] == U0247[1:]
+                57:C0102[]19-0 13-0](137) cmmL {60:(23) 57:(1)}  -> excl[C0102]+
+            newvk1_to_vk2(U0266, C0257)  # 60:C0257[47-0 46-0](123)
+              cmm = {60:23) 57:(01)}  cmm ->excl[C0257]+
+              U0257[46-0]{60:23) 57:(01)}
+              add_vk1(U0257)
+                bit-46 in bdic1: U0179, V0179
+                  newvk1_to_vk1(U0257, U0179)  # U0179[46-1]{60:123) 57:(04)}
+                    cmm: {60:(23) 57:(0)} -> added as block
+                  newvk1_to_vk1(U0257, V0179)   # V0179[46-1]{60:(46) 57:(04)} cmm = None on 60
+                bit-46 in bdic2: C0257 C0179
+                  C0257[1:] == U0257[1:]
+                  newvk1_to_vk2(U0257, C0179)   # 57:C0179[46-1 44-1](014)
+                    cmm = {60:(23) 57:(01)}
+                    U0179[44-1]{60:(23) 57:(01)}
+                    add_vk1(U0179)
+                      bit-44 is in bdic1: R0243 U0209
+                        newvk1_to_vk1(nvk:U0179, ovk:R0243)  # R0243[44-0]{60:(123) 57:(0246)}
+                          cmm = {60:(23) 57:(0)}  added as block.
+                        newvk1_to_vk1(nvk:U0179, ovk:U0209)  # U0209[44-0]{60:(46) 57:(04)}
+                          cmm = None
+                      bit-44 is in bdic2: C0096  C0209  C0243  C0179
+                        newvk1_to_vk2(U0179, C0096)  # 60:C0096[44-1 9-0](26)
+                          cmm = {60:(2) 57:(01)} -> excl[C0096], val==val: no new-vk1
+                        newvk1_to_vk2(U0179, C0209)  # 60:C0209[44-0 2-1](467)
+                          cmm = None
+                        newvk1_to_vk2(U0179, C0243)  # 60:C0243[44-0 28-0](123)
+                          cmm = {60:(23) 57:(01)} ->excl[C0243]+
+                          ->U0243[28-0]{60:(23) 57:(01)}
+                            add_vk1(U0243)
+                              bit-28 in bdic1: U0120[28-0]{60:(467) 57:(4)}
+                                newvk1_to_vk1(nvk:U0243, ovk:U0120): val == val: no adding of nvk
+                              bit-28 in bdic2: C0120  C0207  C0243
+                                newvk1_to_vk2(U0243, C0120)  # C0120[53-0 28-0](467)
+                                  cmm = None
+                                newvk1_to_vk2(U0243, C0207)  # C0207[28-0 21-0](2367)
+                                  cmm = {60:(23) 57:(01)} -> excl[C0207]+, val == val: no new vk1
+                                C0243[1:] == U0243[1:]
+                              U0243 added as vk1 to repos
+                      when inserting U0179[44-1]{60:(23) 57:(01)}
+                        U0179 in self.k1ns -> but Center.vk1dic[U0179] not equal: new-name: V0179
+                        V0179 in self.k1ns -> but Center.vk1dic[V0179] not equal: new-name: X0179
+                        add U0179 as X0179 into repos.
+              # finished add_vk1(U0257)
+            newvk1_to_vk2(U0266, C0011)  # U0266[47-1]{60:(2367) 57:(01)} 57:C0011[55-0 47-0](467)
+              cmm = None
+      # add_vk1(U0266) finished
+    # handling bit-54 -> R0250 finished
+  bit-47 of C0266[54-1 47-1](0123) when add_vk2(C0266) -- see line 12
+    bit-47 in bdic1: U0257 U0266
+      U0257[47-0]{60:(123) 57:(04)} 
+      cmm = {60:(123) 57:(0)}
+      ->U0266[54-1]{60:(123) 57:(0)}
+        add_vk1(U0266)
+          bit-54 in bdic1: R0250
+            newvk1_to_vk1(nvk:U0266, ovk:R0250) # R0250[54-0]{60:(2367) 57:(014)}
+              cmm = {60:(23) 57:(0)}  added as block
+          bit-54 in bdic2: C0233  C0250
+            newvk1_to_vk2(U0266, C0233) # C0233[54-0 12-1](2367)
+              cmm = {60:(23) 57:(0)} ->excl[C0233]
+              ->U0233[12-1]{60:(23) 57:(0)}
+                add_vk1(U0233)
+                  bit-12 not in bdic1, in bdic2: C0073  C0233  C0240  C0255
+                    newvk1_to_vk2(U0233, C0073) # C0073[24-1 12-1](267)
+                      cmm = {60:(2) 57:(0)} -> excl[C0073], val==val no new-vk1
+                    C0233[1:] == U0233[1:]
+                    newvk1_to_vk2(U0233, C0240) # C0240[48-0 12-0](0123)
+                      cmm = {60:(23) 57:(0)} -> excl[C0240]
+                      ->U0240[48-0]{60:(23) 57:(0)}
+                      add_vk1(U0240)
+                        bit-48 not in bdic1, in bdic2: C0026  C0240
+                          newvk1_to_vk2(nvk:U0240, ovk:C0026)   # C0026[48-1 34-0](013)
+                            cmm = {60:(23) 57:(0)} ->excl[C0026]
+                            ->U0026[34-0]{60:(23) 57:(0)}
+                            add_vk1(U0026)
+                              bit-34 in bdic1: 57:T0045[34-0](26):  val==val no new-vk1
+                              bit-34 in bdic2: C0026  C0045  C0053
+                                C0026[1:]==U0026[1:]
+                                newvk1_to_vk2(U0026, C0045)  # 57:C0045[34-0 18-1](04)
+                                  cmm = {60:(23) 57:(0)} ->excl[C0045], val==val no new-vk1
+                                newvk1_to_vk2(U0026, C0053)  # 57:C0053[34-1 21-0](013)
+                                  cmm = {60:(23) 57:(0)} ->excl[C0053] already contains cmm
+                                  ->U0053[21-0]{60:(23) 57:(0)}
+                                    add_vk1(U0053)
+                                      bit-21 in bdic1: R0207  T0053
+                                        newvk1_to_vk1(U0053, R0207) # R0207[21-0]{60:(2367) 57:(0246)}
+                                          val == val: no block
+                                        newvk1_to_vk1(U0053, T0053)  val==val 
+                                      bit-21 in bdic2: C0207  C0053
+                                        newvk1_to_vk2(U0053,C0207)  # C0207[28-0 21-0](2367)
+                                          cmm = {60:(23) 57:(0)} ->excl[C0207] already in contain
+                                        C0053[1:] == U0053[1:]
+                                      inserted U0053 into repos
+                            U0026 added as vk1 into repos
+                      # finished adding U0240 into repos
+                    # finished newvk1_to_vk2(U0233, C0240) 
+                    newvk1_to_vk2(U0233, C0255) # 57:C0255[32-0 12-0](0123)
+                      cmm = {60:(23) 57:(0)} -> excl[C0255]
+                      ->U0255[32-0]{60:23) 57:(0)}
+                        add_vk1(U0255)
+                          bit-32 not in bdic1, in bdic2: C0133  C0255
+                            newvk1_to_vk2(U0255, C0133)   # 60:C0133[57-1 32-1](123)
+                              cmm = {60:(23) 57:(0)} ->excl[C0133]
+                              ->U0133[57-1]{60:(23) 57:(0)}
+                                add_vk1(U0133)
+                                  bit-57 in bdic1: U0249
+                                    newvk1_to_vk1(U0133, U0249) 
+                                      # U0249[57-1]{60:(467) 57:(13)} val==val no new vk1
+                                  bit-57 in bdic2: C0049  C0133  C0144  C0249  C0080
+                                    newvk1_to_vk2(U0133, C0049)   # 60:C0049[57-1 30-1](14)
+                                      cmm = None
+                                    C0133[!:] == U0133[1:]
+                                    newvk1_to_vk2(U0133, C0144)   # 60:C0144[57-1 26-0](467)
+                                      cmm = None
+                                    newvk1_to_vk2(U0133, C0249)   # 60:C0249[57-1 29-1](467)
+                                      cmm = None
+                                    newvk1_to_vk2(U0133, C0080)   # 57:C0080[57-0 5-1](2367)
+                                      cmm = None
+                        U0255 added as v
+                # add_vk1(U233 finished
+            newvk1_to_vk2(U0266, C0250)   # 60:C0250[54-0 36-0](2367)
+              cmm = {60:(23) 57:(0)} ->excl[C0250] already contained
+              ->U0250[36-0]{60:(23) 57:(0)}
+                add_vk1(U0250)
+                  bit-36 not in bdic1, in bdic2: C0182  C0250
+                   newvk1_to_vk2(U0250, C0183) # 60:C0183[36-1 17-0](123)
+                    cmm = {60:(23) 57:(0)} ->excl[C0183]+
+                    ->U0183[17-0]{60:(23) 57:(0)}
+                      add_vk1(U0183)
+                        bit-17 in bdic1: R0183
+                          newvk1_to_vk1(U0183, R0183)  # R0183[17-0]{60:(123) 57:(2367)} 
+                            val=val: no block
+                        bit-17 in bdic2: C0124  C0154  C0183
+                          newvk1_to_vk2(U0183, C0124) # 60:C0124[38-0 17-0](2367)
+                            cmm = {60:(23) 57:(0)} ->excl[C0124]+, val==val: no new vk1
+                          newvk1_to_vk2(U0183, C0154) # 60:C0154[17-0 8-1](246)
+                            cmm = {60:(2) 57:(0)} ->excl[C0154]+, val==val: no new vk1
+                          C0183[1:] == U0183[1:]
+                # U0250 added as vk1 into repos
+        when inserting U0266[54-1]{60:(123) 57:(0)}, U0266[47-1]{60:(2367) 57:(01)} already exists
+        ->V0266[54-1]{60:(123) 57:(0)}
+      # add_vk2(C0266)/bit-47 vk1:U0266[47-1]{60:(2367) 57:(01)}
+      cmm = 57:C0266[54-1 47-1](0123) ^ U0266[47-1]{60:(2367) 57:(01)} = {60:(2367) 57:(01)} 
+        as excl[C0266] already contain cmm, no new add of cmm as excl to C266
+      val == val: no new vk1
+C0266 added as vk2 to repo.
+-------
+Now in merging Snode-57 to path-repo(a clone of snode-60)
+all root-vk1s
+all vk1s
+all vk2s 
+have been added.
+----------------------------
+    

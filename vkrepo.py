@@ -52,8 +52,8 @@ class VKRepoitory:
                     x_cvs_subset = bgrid.cvs_subset(rb, vk2.dic[rb])
                     node = {vk2.nov: vk2.cvs, bgrid.nov: x_cvs_subset}
                     if self.add_excl(vk2, node):
-                        vk1 = vk2.clone(NamePool(vk2.kname).next_uname('R'),
-                                        [rb], node) # R prefix, drop rb
+                        name = NamePool(vk2.kname).next_uname('R')
+                        vk1 = vk2.clone(name, [rb], node) # R prefix, drop rb
                         self.add_vk1(vk1)
     
     def merge_snode(self, sn):
@@ -78,11 +78,12 @@ class VKRepoitory:
 
     def insert_vk1(self, vk1, add2center): # simply add vk1 to the repo
         name = vk1.kname
-        if name in self.k1ns:
+        while name in self.k1ns:
             if vk1.equal(Center.vk1dic[name]): return
-            vk1.kname = NamePool(name).next_uname()
-        self.k1ns.append(vk1.kname)
-        self.bdic1.setdefault(vk1.bit,[]).append(vk1.kname)
+            name = NamePool(name).next_uname()
+        vk1.kname = name
+        self.k1ns.append(name)
+        self.bdic1.setdefault(vk1.bit,[]).append(name)
         if add2center:
             Center.add_vk1(vk1)
     
@@ -96,22 +97,21 @@ class VKRepoitory:
         self.vk2dic[name] = vk2
 
     def newvk1_to_vk2(self, nvk, vk2):
-        # when a vk1 shares 1 bit with an existing vk2, and vk1 and vk2 
+        '''# when a vk1 shares 1 bit with an existing vk2, and vk1 and vk2 
         # have no intersect in cvs, return - nothing happens. But if they
         # do have cvs-intersection(cmm) on their common nov, then 2 cases:
         # 1. vk1.val == vk2.dic[bit] -> vk2's cvs(on the same nov) 
         #    reduces by cmm
         # 2. vk1.val != vk2.dic[bit] -> 
         #    2.1: vk2's cvs(on the same nov) 
-        #    2.2: new vk1 is generated for the other bit, with cmm
+        #    2.2: new vk1 is generated for the other bit, with cmm'''
         cmm = cvs_intersect(nvk, vk2)
         if not cmm: return
         self.add_excl(vk2, cmm)
         if vk2.dic[nvk.bit] != nvk.val:
-            vkx = vk2.clone(NamePool(vk2.kname).next_uname(), 
-                            [nvk.bit], cmm)
-            # vkx = vk2.clone('U', [nvk.bit], cmm)
-            self.add_vk1(vkx)
+            name = NamePool(vk2.kname).next_uname()
+            new_vk1 = vk2.clone(name, [nvk.bit], cmm)
+            self.add_vk1(new_vk1)
 
     def add_vk1(self, vk1, add2center=True):
         print(vk1.print_msg())
@@ -151,12 +151,12 @@ class VKRepoitory:
                     self.add_excl(vk2, cmm)
                     if vk2.dic[b] != vk1.val:
                         if len(cmm) == 1:
-                            vkx = vk2.clone(NamePool(vk2.kname).next_sname('T'),
-                                            [b], cmm[vk2.nov])
+                            name = NamePool(vk2.kname).next_sname('T')
+                            new_vk1 = vk2.clone(name,[b], cmm[vk2.nov])
                         else:
-                            vkx = vk2.clone(NamePool(vk2.kname).next_uname(),
-                                            [b], cmm)
-                        self.add_vk1(vkx)
+                            name = NamePool(vk2.kname).next_uname()
+                            new_vk1 = vk2.clone(name,[b], cmm)
+                        self.add_vk1(new_vk1)
         self.insert_vk2(vk2)
         # handle case of 2 overlapping bits with existing vk2
         self.proc_vk2pair(vk2) # if vk2 has a twin in vk2dic

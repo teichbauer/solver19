@@ -1,3 +1,7 @@
+2024-10-21->19.363
+- when add_excl, also test if the new node is superset of 1 in existing list
+  if yes, node will replace that 1 entry, and return True.
+  modified: tools.py, vkrepo
 2024-10-21->19.362
 - get rid of nodegroup.py, nodegrhost.py
 - make sure when using vk.cvs which may be set or dict, always use

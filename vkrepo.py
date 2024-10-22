@@ -73,8 +73,6 @@ class VKRepoitory:
         for vk2 in sn.vkrepo.vk2dic.values():
             self.add_vk2(vk2)
         self.write_logmsg('./docs/loginfo.txt')
-        # m = Center.vk1dic['R0120'].print_out()
-        # m1 = self.vk2dic['C0266'].print_out()
         x = 9
 
     def newvk1_to_vk1(self, nvk, ovk, add_nvk=False): 
@@ -206,10 +204,11 @@ class VKRepoitory:
                 return True
         lst = self.excls.setdefault(vk2.kname, [])
         if node in lst: return False
-        for d in lst:
-            for nv, cvs in node.items():
-                contained = nv in d and cvs.issubset(d[nv])
-                if not contained: break
-            if contained: return False
+        for ind, d in enumerate(lst):
+            if test_containment(node, d): # node is a subset of 1 dict in lst
+                return False              # no need to add node then
+            if test_containment(d, node): # in case node super-set 1 in lst
+                lst[ind] = node           # node replace that one
+                return True               # node has been "added"
         lst.append(node)
         return True

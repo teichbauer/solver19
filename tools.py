@@ -141,6 +141,7 @@ def cvs_subset(big_cvs, small_cvs):
 
 
 def reduce_cvs(vk, cmm):
+    '''
     # reduce vk.cvs by cmm, where it has been certain, cmm is subset
     # of vk.cvs. 2 cases:
     # 1. vk.cvs and cmm are sets like vk.cvs:{0,1,2,3} and cmm: {2,3}
@@ -148,6 +149,7 @@ def reduce_cvs(vk, cmm):
     # 2. vk.cvs:{60:(0,1,2,3}, 57: {1,3,5}}, cmm: {60:{1}, 57:{3}}
     #    vk.cvs is then reduced by cmm and becomes
     #    {60:(0,2,3}, 57: {1,5}}
+    '''
     if type(vk.cvs) == set:
         if type(cmm) == set:
             vk.cvs -= cmm
@@ -162,7 +164,8 @@ def reduce_cvs(vk, cmm):
     return vk
 
 def cvs_intersect(vkx, vky): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
-    '''#--- in case of set-typed vk.cvs, vk.nov plays a role
+    '''
+    #--- in case of set-typed vk.cvs, vk.nov plays a role
     # 1：(60, {1,2,3}) + (60,{2,4,6})          =>  {60:{2}}
     # 2: (60, {1,2,3}) + (60,{0,4,6})          =>  None: no common cv
     # 3: (60, {1,2,3}) + (57, {0, 1, 2, 3}) =>{60:{1,2,3}, 57:{0,1,2,3}}
@@ -173,7 +176,8 @@ def cvs_intersect(vkx, vky): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
     # 6: (60,{60:(1,2,3), 57:(0,4} }) + (57,{60:{0}, 57:{0,4} }) => None
     # 7: (60,{60:(1,2,3), 57:(0,4} }) + (57,{60:{2}, 57:{0,4} }) 
     #     => {60:{2}, 57:{0,4}}
-    #======================================================================='''
+    #=======================================================================
+    '''
     cvs1 = copy.deepcopy(vkx.cvs)
     cvs2 = copy.deepcopy(vky.cvs)
     if type(vkx.cvs) ==type(vky.cvs):
@@ -246,6 +250,13 @@ def handle_vk2pair(vkx, vky):
             if vkx.dic[b1] != vky.dic[b1]:
                 return vkx.clone(name, [b1], node)
     return None
+
+def test_containment(d1, d2): # if d1 is contained in d2
+    # contain means: for each entry(k/v) in d1, d2 has the same key, and
+    # d1[k] is a subset of d2[k]
+    for k, v in d1.items():
+        if not d2[k].issuperset(v): return False
+    return True
 
 
 def test_water(sname, satdic, snodes, start_nov):

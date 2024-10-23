@@ -1,3 +1,15 @@
+2024-10-23->19.364
+- started merging snode-54 into vkrepo(60+57)
+- namepool uses Z as terminating letter. it now offers next_rname: M
+  since a vk2's 2 bits could bit on 2 roots of the following snodes, two letters
+  R and M shold be enough.
+- pathrepo.pathsteps: has all snode.novs in the merged repo.
+- vkrepo.add_snode_root: bdic1_rbits and cmm_rbits are now sorted lists, for
+  making test-runs deterministic (set loop's pop order can be random)
+- logfiles now under ROOT/logs(not git-archived), no more under 
+  docs(git archived)
+- tools.test_containment/test. Used now only for add_excls. 
+  Wathing new_vk1 add_vk1: if new vk1 could also be merged? TBD.
 2024-10-21->19.363
 - when add_excl, also test if the new node is superset of 1 in existing list
   if yes, node will replace that 1 entry, and return True.

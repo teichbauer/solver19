@@ -214,15 +214,18 @@ def cvs_intersect(vkx, vky): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
     else: # cvs2 is a set
         ts, td = cvs2, cvs1
         nov = vky.nov
-    assert nov in td    # don't know yet what to do ???
+    # assert nov in td    # don't know yet what to do ???
     # (57, {2,3}) + (60,{60:(1,2,3}, 57:{3,4,6}}) => 
     # ts:(57, {2,3})  td: (60,{60:(1,2,3}, 57:{3,4,6}})
     # return {60:(1,2,3), 57:{3}}
-    cmm = ts.intersection(td[nov])
-    if len(cmm) == 0: return None
-    tx = td.copy()
-    tx[nov] = cmm
-    return tx
+    if nov in td:
+        cmm = ts.intersection(td[nov])
+        if len(cmm) == 0: return None
+        tx = td.copy()
+        tx[nov] = cmm
+        return tx
+    td[nov] = vky.cvs
+    return td
 
 def handle_vk2pair(vkx, vky):
     assert type(vkx.cvs) == set, "vk2-pair with no-set cvs"
@@ -251,12 +254,61 @@ def handle_vk2pair(vkx, vky):
                 return vkx.clone(name, [b1], node)
     return None
 
-def test_containment(d1, d2): # if d1 is contained in d2
-    # contain means: for each entry(k/v) in d1, d2 has the same key, and
-    # d1[k] is a subset of d2[k]
-    for k, v in d1.items():
-        if not d2[k].issuperset(v): return False
-    return True
+def test_containment(d1, d2): # both are dict
+    l1 = len(d1)
+    l2 = len(d2)
+    diffs = []
+    short_in_long = [] # novs where short[nov] is subset of long[nov]
+    long_in_short = [] # novs where long[nov] is subset of short[nov]
+    sames = []
+    if l1 >= l2:
+        long_d, short_d = d1, d2
+    else:
+        long_d, short_d = d2, d1
+    for nv, vs in long_d.items():
+        if nv not in short_d: continue
+        if vs.issubset(short_d[nv]):       # long in short
+            long_in_short.append(nv)       # add to lng_in_short
+            if vs.issuperset(short_d[nv]): # short also in long
+                sames.append(nv)           # they are same
+        elif vs.issuperset(short_d[nv]):   # short in long
+            short_in_long.append(nv)       # add to short_in_long
+        else:
+            diffs.append(nv)               # they are different
+    if len(diffs) > 1: return None
+    if l1 == l2:
+        if len(sames) == l1:
+            return {'cat': 'same'}
+        if len(short_in_long) == l1:
+            if long_d == d2: return { 'cat': 'contain: d1 in d2'}
+            if long_d == d1: return { 'cat': 'contain: d2 in d1'}
+        if len(long_in_short) == l1:
+            if long_d == d2: return { 'cat': 'contain: d2 in d1'}
+            if long_d == d1: return { 'cat': 'contain: d1 in d2'}
+        if len(diffs) == 1 and len(sames) == l1 - 1:
+            return {'cat': 'mergable', 'merge-nov': diffs[0]}
+    # l1 !!= l2
+    shl = len(short_d) 
+    if len(sames) == shl: # short_d covers all
+        if short_d == d1: return {'cat':'contain: d2 in d1'}
+        if long_d == d1: return {'cat':'contain: d1 in d2'}
+    if len(diffs) == 1 and len(sames) == shl - 1:
+        return {'cat':'mergable', 'merge-nov': diffs[0]}
+    return None # log-in-short:1 and short-in-long:1 ->None
+
+def vk1s_unify_test(vka, vkb):
+    if vka.bit != vkb.bit or vka.val != vkb.val or vka.nov != vkb.nov:
+        return None
+    if type(vka.cvs) != dict or type(vkb.cvs) != dict: return None
+    res = test_containment(vka.cvs, vkb.cvs)
+    if not res: return None
+    if res['cat'].startswith('contain'):
+        lst = res['cat'].split(':')[1].split() # [d1, in, d2]
+        # returning the containing vk.kname
+        if lst[2] == 'd2': return vkb.kname
+        if lst[2] == 'd1': return vka.kname
+    if res['cat'] == 'mergable':
+        return res['merge-nov']
 
 
 def test_water(sname, satdic, snodes, start_nov):

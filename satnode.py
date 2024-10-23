@@ -64,6 +64,9 @@ class SatNode:
             print(f"NOV:{self.nov}")
             pathrepo = Center.snodes[60].vkrepo.clone()
             pathrepo.merge_snode(Center.snodes[57])
+            # pathrepo.write_logmsg('./logs/loginfo.txt')
+            pathrepo.merge_snode(Center.snodes[54])
+            pathrepo.write_logmsg('./logs/loginfo.txt')
             x = 9
 
     def grow_path(self, base_nov, final_path=[], base_path=None):

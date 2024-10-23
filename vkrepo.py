@@ -12,6 +12,7 @@ class VKRepoitory:
         self.blocks = []    # [node, ..] node:{nov:cvs, nv:..} where snode fails
         self.excls = {}     # {kn:[node, node,..],..} vk not 2b used in nodes
         self.snode = snode  # related snode
+        self.pathsteps = [snode.nov]
         self.inflog = {}    # {key:[info,info,..], key:[], ...}
 
     def write_logmsg(self, outfile_name):
@@ -32,12 +33,11 @@ class VKRepoitory:
         return xrepo
     
     def add_snode_root(self, bgrid):
-        bdic1_rbits = set(self.bdic1).intersection(bgrid.bits)
+        bdic1_rbits = sorted(set(self.bdic1).intersection(bgrid.bits))
         for rb1 in bdic1_rbits:
             for k1n in self.bdic1[rb1]:
                 vk1 = Center.vk1dic[k1n]
-                cvs = bgrid.cvs_subset(vk1.bits[0], vk1.dic[vk1.bits[0]])
-                if not cvs: continue
+                cvs = bgrid.cvs_subset(vk1.bit, vk1.val)
                 # these cvs are hits with vk1.cvs node
                 if type(vk1.cvs) == set:
                     self.blocks.append({vk1.nov: cvs.intersection(vk1.cvs)})
@@ -47,7 +47,7 @@ class VKRepoitory:
                     if nd not in self.blocks:
                         self.blocks.append(nd)
         # handle vk2s bouncing with bgrid.bits
-        cmm_rbits = set(self.bdic2).intersection(bgrid.bits)
+        cmm_rbits = sorted(set(self.bdic2).intersection(bgrid.bits))
         for rb in cmm_rbits:
             for k2n in self.bdic2[rb]:
                 vk2 = self.vk2dic[k2n]
@@ -62,17 +62,18 @@ class VKRepoitory:
                     x_cvs_subset = bgrid.cvs_subset(rb, vk2.dic[rb])
                     node = {vk2.nov: vk2.cvs.copy(), bgrid.nov: x_cvs_subset}
                     self.add_excl(vk2, copy.deepcopy(node))
-                    name = NamePool(vk2.kname).next_uname('R')
-                    vk1 = vk2.clone(name, [rb], node) # R prefix, drop rb
-                    self.add_vk1(vk1)
+                    name = NamePool(vk2.kname).next_rname()
+                    new_vk1 = vk2.clone(name, [rb], node) # R prefix, drop rb
+                    self.add_vk1(new_vk1)
     
     def merge_snode(self, sn):
+        self.pathsteps.append(sn.nov)
         self.add_snode_root(sn.bgrid)
         for k1n in sn.vkrepo.k1ns:
             self.add_vk1(Center.vk1dic[k1n])
         for vk2 in sn.vkrepo.vk2dic.values():
             self.add_vk2(vk2)
-        self.write_logmsg('./docs/loginfo.txt')
+        # self.write_logmsg('./docs/loginfo.txt')
         x = 9
 
     def newvk1_to_vk1(self, nvk, ovk, add_nvk=False): 
@@ -204,11 +205,20 @@ class VKRepoitory:
                 return True
         lst = self.excls.setdefault(vk2.kname, [])
         if node in lst: return False
-        for ind, d in enumerate(lst):
-            if test_containment(node, d): # node is a subset of 1 dict in lst
-                return False              # no need to add node then
-            if test_containment(d, node): # in case node super-set 1 in lst
-                lst[ind] = node           # node replace that one
-                return True               # node has been "added"
+        for ind, old_dic in enumerate(lst):
+            cont = test_containment(node, old_dic)  # param-names: (d1, d2)
+            if cont and cont['cat'].startswith('contain'):
+                # {cat: "contain: d1 in d2"}: 
+                # user the container, dump the other
+                container = cont['cat'].split(':')[1].split()[-1] # d2
+                if container == 'd2': # old_dic is the container
+                    return False
+                elif container == 'd1':
+                    lst[ind] = node           # node replace that one
+                    return True               # node has been "added"
+            if cont['cat'] == "mergable": # merge on mergable nov into old_dic
+                nv = cont['merge-nov']
+                old_dic[nv].update(node[nv])
+                return True  # don't put into lst, since already to old-dic
         lst.append(node)
         return True

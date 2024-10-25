@@ -94,13 +94,21 @@ class VKRepoitory:
         while name in self.k1ns:
             ovk1 = Center.vk1dic[name]
             if vk1.equal(ovk1): return
-            elif vk1s_mergable(vk1, ovk1):
-                cvs = copy.deepcopy(vk1.cvs)
-                ocvs = copy.deepcopy(ovk1.cvs)
-                ovk = merge_vk1_to_ovk1(vk1, ovk1)
-                self.inflog.setdefault(name,[])\
-                    .append(f"merged: {cvs} and {ocvs} to {ovk.cvs}")
-                return
+            else:
+                cont = vk1s_unify_test(vk1, ovk1) # mergability-test
+                if cont:
+                    if cont == ovk1: 
+                        return # ovk1 contains vk1: no add
+                    if cont == vk1: 
+                        if ovk1.kname == vk1.kname:
+                            ovk1.cvs = copy.deepcopy(vk1.cvs)
+                        else:
+                            raise Exception("Weirdo!")
+                    if type(cont) == int:
+                        ovk1.cvs[cont].union(vk1.cvs[cont])
+                    self.inflog.setdefault(name,[])\
+                        .append(f"merged: {vk1.kname} with existing vk1")
+                    return
             name = NamePool(name).next_uname()
         vk1.kname = name
         self.k1ns.append(name)
@@ -207,7 +215,8 @@ class VKRepoitory:
         if node in lst: return False
         for ind, old_dic in enumerate(lst):
             cont = test_containment(node, old_dic)  # param-names: (d1, d2)
-            if cont and cont['cat'].startswith('contain'):
+            if not cont: continue
+            if cont['cat'].startswith('contain'):
                 # {cat: "contain: d1 in d2"}: 
                 # user the container, dump the other
                 container = cont['cat'].split(':')[1].split()[-1] # d2

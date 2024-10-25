@@ -1,9 +1,10 @@
 from basics import *
-import copy
+from center import Center
 from namepool import NamePool
-from datetime import datetime
+import copy
 
 def outputlog(repo, vk1dic):
+    from datetime import datetime
     now = datetime.now()
     ts = now.isoformat().split('.')[0] # cutoff more precision than sec.
     msg = f"{ts}: vkrepo log\n" + "="*80 + "\n"
@@ -163,6 +164,29 @@ def reduce_cvs(vk, cmm):
                 vk.cvs[nv] -= s
     return vk
 
+def fill_missing_nov(d1, d2): # return：2 dict of same length
+    # one dict (cvs under a nov) has 1 ot more nov(s) than the other. For each
+    # missing nov, fill the full chvals of that nov to the lacking dict
+    # return the two deepcopies of the dicts back.
+    l1, l2 = len(d1), len(d2)
+    if l1 == l2:                     # the same number of vons
+        if sorted(d1) == sorted(d2): # the same novs
+            return d1, d2
+        else:                        # the same nof nov, but they are diff
+            return None, None        # not mergable
+    misnvs = set(d1).difference(d2)
+    d1cpy = copy.deepcopy(d1)
+    d2cpy = copy.deepcopy(d2)
+    if l1 < l2:
+        for nv in misnvs:
+            d1cpy[nv] = set(Center.snodes[nv].bgrid.chvals)
+        return d1cpy, d2cpy
+    if l1 > l2:
+        for nv in misnvs:
+            d2cpy[nv] = set(Center.snodes[nv].bgrid.chvals)
+        return d1cpy, d2cpy
+
+
 def cvs_intersect(vkx, vky): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
     '''
     #--- in case of set-typed vk.cvs, vk.nov plays a role
@@ -255,45 +279,31 @@ def handle_vk2pair(vkx, vky):
     return None
 
 def test_containment(d1, d2): # both are dict
-    l1 = len(d1)
-    l2 = len(d2)
     diffs = []
-    short_in_long = [] # novs where short[nov] is subset of long[nov]
-    long_in_short = [] # novs where long[nov] is subset of short[nov]
+    d1_in_d2 = [] # novs where short[nov] is subset of long[nov]
+    d2_in_d1 = [] # novs where long[nov] is subset of short[nov]
     sames = []
-    if l1 >= l2:
-        long_d, short_d = d1, d2
-    else:
-        long_d, short_d = d2, d1
-    for nv, vs in long_d.items():
-        if nv not in short_d: continue
-        if vs.issubset(short_d[nv]):       # long in short
-            long_in_short.append(nv)       # add to lng_in_short
-            if vs.issuperset(short_d[nv]): # short also in long
+    sd1, sd2 = fill_missing_nov(d1, d2)
+    # in case d1/d2 have same nof nov, but they are diff: not mergable
+    if sd1 == None: return None 
+    leng = len(sd1)
+    for nv, vs in sd1.items():
+        if vs.issubset(sd2[nv]):       # d1 in d2
+            d1_in_d2.append(nv)        # add to lng_in_short
+            if vs.issuperset(sd2[nv]): # short also in long
                 sames.append(nv)           # they are same
-        elif vs.issuperset(short_d[nv]):   # short in long
-            short_in_long.append(nv)       # add to short_in_long
+        elif vs.issuperset(sd2[nv]):   # short in long
+            d2_in_d1.append(nv)        # add to short_in_long
         else:
-            diffs.append(nv)               # they are different
-    if len(diffs) > 1: return None
-    if l1 == l2:
-        if len(sames) == l1:
-            return {'cat': 'same'}
-        if len(short_in_long) == l1:
-            if long_d == d2: return { 'cat': 'contain: d1 in d2'}
-            if long_d == d1: return { 'cat': 'contain: d2 in d1'}
-        if len(long_in_short) == l1:
-            if long_d == d2: return { 'cat': 'contain: d2 in d1'}
-            if long_d == d1: return { 'cat': 'contain: d1 in d2'}
-        if len(diffs) == 1 and len(sames) == l1 - 1:
-            return {'cat': 'mergable', 'merge-nov': diffs[0]}
-    # l1 !!= l2
-    shl = len(short_d) 
-    if len(sames) == shl: # short_d covers all
-        if short_d == d1: return {'cat':'contain: d2 in d1'}
-        if long_d == d1: return {'cat':'contain: d1 in d2'}
-    if len(diffs) == 1 and len(sames) == shl - 1:
-        return {'cat':'mergable', 'merge-nov': diffs[0]}
+            diffs.append(nv)           # they are different
+    if len(diffs) > 1: return None     # more than 1 diff nov: not mergable
+    if len(sames) == leng:  return {'cat': 'same'}
+    if len(d2_in_d1) == leng:
+        return { 'cat': 'contain: d2 in d1'}
+    if len(d1_in_d2) == leng:
+        return { 'cat': 'contain: d1 in d2'}
+    if len(diffs) == 1 and len(sames) == leng - 1:
+        return {'cat': 'mergable', 'merge-nov': diffs[0]}
     return None # log-in-short:1 and short-in-long:1 ->None
 
 def vk1s_unify_test(vka, vkb):
@@ -305,8 +315,8 @@ def vk1s_unify_test(vka, vkb):
     if res['cat'].startswith('contain'):
         lst = res['cat'].split(':')[1].split() # [d1, in, d2]
         # returning the containing vk.kname
-        if lst[2] == 'd2': return vkb.kname
-        if lst[2] == 'd1': return vka.kname
+        if lst[2] == 'd2': return vkb
+        if lst[2] == 'd1': return vka
     if res['cat'] == 'mergable':
         return res['merge-nov']
 

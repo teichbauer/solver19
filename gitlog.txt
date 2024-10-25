@@ -1,3 +1,10 @@
+2024-10-24->19.365
+- tools.py/fill_missing_nov(d1,d2): is d1/d2 don't have the same novs,
+  fill the missing nov(s) with all chvals of that nov.
+  test_containment uses fill_missing_nov to always have d1/d2 with the same novs
+  also in vk1s_unify_test uses this, and return the containing vk
+- vkrepo.insert_vk1 use tools.vk1s_unify_test, also in add_excl.
+- gone thru (s60+s57) - S54 on add_snode_root/rbit==19. TBD: rbit==20
 2024-10-23->19.364
 - started merging snode-54 into vkrepo(60+57)
 - namepool uses Z as terminating letter. it now offers next_rname: M

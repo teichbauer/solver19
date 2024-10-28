@@ -1,3 +1,9 @@
+2024-10-28->19.366
+- when merging a lower snode into pathrepo, expand vk1s, excls and blocks to
+  fill in the missing nov:chvls. Now, every vk1.cvs is a dict with all novs
+  and the dicts in excls and blocks are also filled.
+- because of this filling policy, got rid of tools/fill_missing_nov. And also
+  tools/test_containment is simplified.
 2024-10-24->19.365
 - tools.py/fill_missing_nov(d1,d2): is d1/d2 don't have the same novs,
   fill the missing nov(s) with all chvals of that nov.

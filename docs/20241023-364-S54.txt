@@ -1,6 +1,8 @@
 2024-10-23
 pathrepo + s54 repo-vk2 on s54-root resulting vk1:
 -------------------------------
+root-bit-7 in bdic2: C0046
+
 60:C0046[25-2 7-1](14)
 ->R0046[25-1]{60:14) 54:(1357)}
   add_vk1(R0046)
@@ -273,3 +275,4 @@ pathrepo + s54 repo-vk2 on s54-root resulting vk1:
                   insert_vk1(U0156) done
           insert_vk1(U0245) done
   insert(R0046) done
+root-bit-19

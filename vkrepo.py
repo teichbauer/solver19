@@ -21,6 +21,31 @@ class VKRepoitory:
         ofile.write(msg)
         ofile.close()
 
+    def fill_dict(self, dic):
+        for nv in self.pathsteps:
+            if nv not in dic:
+                dic[nv] = set(Center.snodes[nv].bgrid.chvals)
+        return dic
+
+    def expand_vk1s(self, vk1=None):
+        if vk1:
+            if type(vk1.cvs) == set:
+                vk1.cvs = {vk1.nov: vk1.cvs}
+            self.fill_dict(vk1.cvs)
+        else:
+            for kn in self.k1ns:
+                vk1 = Center.vk1dic[kn]
+                self.expand_vk1s(vk1)
+
+    def expand_excls(self):
+        for kn, lst in self.excls.items():
+            for dic in lst:
+                self.fill_dict(dic)
+
+    def expand_blocks(self):
+        for dic in self.blocks:
+            self.fill_dict(dic)
+
     def clone(self):
         xrepo = VKRepoitory(self.snode)
         xrepo.bdic1 = {b: lst[:] for b, lst in self.bdic1.items()}
@@ -40,12 +65,13 @@ class VKRepoitory:
                 cvs = bgrid.cvs_subset(vk1.bit, vk1.val)
                 # these cvs are hits with vk1.cvs node
                 if type(vk1.cvs) == set:
-                    self.blocks.append({vk1.nov: cvs.intersection(vk1.cvs)})
+                    self.blocks.append(
+                        self.fill_dict({vk1.nov: cvs.intersection(vk1.cvs)}))
                 else:
                     nd = copy.deepcopy(vk1.cvs)
                     nd[bgrid.nov] = cvs
                     if nd not in self.blocks:
-                        self.blocks.append(nd)
+                        self.blocks.append(self.fill_dict(nd))
         # handle vk2s bouncing with bgrid.bits
         cmm_rbits = sorted(set(self.bdic2).intersection(bgrid.bits))
         for rb in cmm_rbits:
@@ -54,13 +80,15 @@ class VKRepoitory:
                 if set(vk2.bits).issubset(bgrid.bits):
                     hit_cvs = bgrid.vk2_hits(vk2)
                     print(f"{k2n} inside {bgrid.nov}-root, blocking {hit_cvs}")
-                    block = {vk2.nov:vk2.cvs.copy(), bgrid.nov: hit_cvs}
+                    block = self.fill_dict({vk2.nov:vk2.cvs.copy(), 
+                                            bgrid.nov: hit_cvs})
                     if block not in self.blocks:
                         self.blocks.append()
                 else:# vk1.cvs is compound  caused by overlapping 
                     # with xsn.root-bits, will be named with R-prefix
                     x_cvs_subset = bgrid.cvs_subset(rb, vk2.dic[rb])
-                    node = {vk2.nov: vk2.cvs.copy(), bgrid.nov: x_cvs_subset}
+                    node = self.fill_dict({vk2.nov: vk2.cvs.copy(), 
+                                           bgrid.nov: x_cvs_subset})
                     self.add_excl(vk2, copy.deepcopy(node))
                     name = NamePool(vk2.kname).next_rname()
                     new_vk1 = vk2.clone(name, [rb], node) # R prefix, drop rb
@@ -68,6 +96,9 @@ class VKRepoitory:
     
     def merge_snode(self, sn):
         self.pathsteps.append(sn.nov)
+        self.expand_vk1s()
+        self.expand_excls()
+        self.expand_blocks()
         self.add_snode_root(sn.bgrid)
         for k1n in sn.vkrepo.k1ns:
             self.add_vk1(Center.vk1dic[k1n])
@@ -104,8 +135,8 @@ class VKRepoitory:
                             ovk1.cvs = copy.deepcopy(vk1.cvs)
                         else:
                             raise Exception("Weirdo!")
-                    if type(cont) == int:
-                        ovk1.cvs[cont].union(vk1.cvs[cont])
+                    if type(cont) == int: # cont is nov to be merged on
+                        ovk1.cvs[cont].update(vk1.cvs[cont])
                     self.inflog.setdefault(name,[])\
                         .append(f"merged: {vk1.kname} with existing vk1")
                     return
@@ -143,6 +174,7 @@ class VKRepoitory:
             self.add_vk1(new_vk1)
 
     def add_vk1(self, vk1, add2center=True):
+        self.expand_vk1s(vk1)
         print(vk1.print_msg())
         # handle with existing vk1s
         if vk1.bit in self.bdic1:
@@ -201,8 +233,11 @@ class VKRepoitory:
         xkns = set(kns1).intersection(kns2)
         xkns.remove(vk2.kname)
         while len(xkns) > 0:
-            vk1 = handle_vk2pair(vk2, self.vk2dic[xkns.pop()])
-            if vk1: self.add_vk1(vk1)
+            _vk2 = self.vk2dic[xkns.pop()]
+            vk1 = handle_vk2pair(vk2, _vk2)
+            if vk1: 
+                self.expand_vk1s(vk1)
+                self.add_vk1(vk1)
 
 
     def add_excl(self, vk2, node):

@@ -50,7 +50,7 @@ class SatNode:
                 self.taildic[cv].add_vk(vk2)
         for k1n in self.vkrepo.k1ns:
             vk1 = self.Center.vk1dic[k1n]
-            for cv in vk1.cvs:
+            for cv in vk1.cvs[vk1.nov]:
                 self.taildic[cv].add_vk(vk1)
         x = 0
 

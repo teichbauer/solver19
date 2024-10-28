@@ -164,30 +164,7 @@ def reduce_cvs(vk, cmm):
                 vk.cvs[nv] -= s
     return vk
 
-def fill_missing_nov(d1, d2): # return：2 dict of same length
-    # one dict (cvs under a nov) has 1 ot more nov(s) than the other. For each
-    # missing nov, fill the full chvals of that nov to the lacking dict
-    # return the two deepcopies of the dicts back.
-    l1, l2 = len(d1), len(d2)
-    if l1 == l2:                     # the same number of vons
-        if sorted(d1) == sorted(d2): # the same novs
-            return d1, d2
-        else:                        # the same nof nov, but they are diff
-            return None, None        # not mergable
-    misnvs = set(d1).difference(d2)
-    d1cpy = copy.deepcopy(d1)
-    d2cpy = copy.deepcopy(d2)
-    if l1 < l2:
-        for nv in misnvs:
-            d1cpy[nv] = set(Center.snodes[nv].bgrid.chvals)
-        return d1cpy, d2cpy
-    if l1 > l2:
-        for nv in misnvs:
-            d2cpy[nv] = set(Center.snodes[nv].bgrid.chvals)
-        return d1cpy, d2cpy
-
-
-def cvs_intersect(vkx, vky): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
+def cvs_intersect(vkx, vky): #
     '''
     #--- in case of set-typed vk.cvs, vk.nov plays a role
     # 1：(60, {1,2,3}) + (60,{2,4,6})          =>  {60:{2}}
@@ -254,7 +231,7 @@ def cvs_intersect(vkx, vky): # tuple1: (nv1,cvs1), tuple2: (nv2,cvs2)
 def handle_vk2pair(vkx, vky):
     assert type(vkx.cvs) == set, "vk2-pair with no-set cvs"
     assert type(vky.cvs) == set, "vk2-pair with no-set cvs"
-    b1, b2 = vkx.bits
+    b1, b2 = vkx.bits # vkx and vky sit on the same 2 bits
     if vkx.nov == vky.nov:
         cmm = vkx.cvs.intersection(vky.cvs)
         if len(cmm) > 0:
@@ -283,16 +260,14 @@ def test_containment(d1, d2): # both are dict
     d1_in_d2 = [] # novs where short[nov] is subset of long[nov]
     d2_in_d1 = [] # novs where long[nov] is subset of short[nov]
     sames = []
-    sd1, sd2 = fill_missing_nov(d1, d2)
     # in case d1/d2 have same nof nov, but they are diff: not mergable
-    if sd1 == None: return None 
-    leng = len(sd1)
-    for nv, vs in sd1.items():
-        if vs.issubset(sd2[nv]):       # d1 in d2
+    leng = len(d1)
+    for nv, vs in d1.items():
+        if vs.issubset(d2[nv]):       # d1 in d2
             d1_in_d2.append(nv)        # add to lng_in_short
-            if vs.issuperset(sd2[nv]): # short also in long
+            if vs.issuperset(d2[nv]): # short also in long
                 sames.append(nv)           # they are same
-        elif vs.issuperset(sd2[nv]):   # short in long
+        elif vs.issuperset(d2[nv]):   # short in long
             d2_in_d1.append(nv)        # add to short_in_long
         else:
             diffs.append(nv)           # they are different

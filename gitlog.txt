@@ -1,3 +1,5 @@
+2024-10-30->19.368
+- cleaning up and beautify log print-out
 2024-10-30->19.367
 - namedrive replaces namepool. vk1.kname will no more reflect where it is 
   coming from (Cnnnn), but the naming is now freely given/assigned by nNameDrive

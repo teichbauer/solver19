@@ -1,33 +1,5 @@
-from basics import get_bit, set_bit, ordered_dic_string
+from basics import get_bit, set_bit, ordered_dic_string, print_cvs, print_vkdic
 import copy
-
-def print_cvs(cvs):
-    def print_set(s):
-        msg = "("
-        lst = sorted(s)
-        for v in lst:
-            msg += str(v)
-        msg += ")"
-        return msg
-    
-    if type(cvs) == set:
-        return print_set(cvs)
-    
-    nvs = sorted(cvs, reverse=True) # novs-listed in reverse-order
-    msg = ""
-    for nv in nvs:
-        cvsstr = print_set(cvs[nv])
-        msg += f"{nv}:{cvsstr} "
-    msg = msg.strip()
-    return "{ " + msg + " }"
-
-def print_dic(vk):
-    dstr = ""
-    for b in vk.bits:
-        bstr = str(b).rjust(2,' ')
-        dstr += f"{bstr}-{vk.dic[b]} "
-    dstr = dstr.strip()
-    return "[" + dstr + "]"
 
 class VKlause:
     ''' veriable klause - klause with 1, 2 or 3 bits.
@@ -49,9 +21,11 @@ class VKlause:
         self.cvs = cvs  # a set of values (as chvkdic[v]) this vk is in
 
     def print_out(self):
-        dstr = print_dic(self)
+        dstr = print_vkdic(self)
         cvsstr = print_cvs(self.cvs)
         msg = f"{self.nov}:{self.kname} {dstr}{cvsstr}"
+        if 'source' in self.__dict__:
+            msg += f"\t\t{self.source}"
         return msg
 
     def hbit_value(self):

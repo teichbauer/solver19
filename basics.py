@@ -1,6 +1,42 @@
 from datetime import datetime
 
 
+def print_cvs(cvs):
+    def print_set(s):
+        msg = "("
+        lst = sorted(s)
+        for v in lst:
+            msg += str(v)
+        msg += ")"
+        return msg
+    
+    if type(cvs) == set:
+        return print_set(cvs)
+    
+    nvs = sorted(cvs, reverse=True) # novs-listed in reverse-order
+    msg = ""
+    for nv in nvs:
+        cvsstr = print_set(cvs[nv])
+        msg += f"{nv}:{cvsstr} "
+    msg = msg.strip()
+    return "{ " + msg + " }"
+
+def print_node(dic):
+    ks = sorted(dic, reverse=True)
+    dstr = "{ "
+    for k in ks:
+        dstr += f"{k}:" + print_cvs(dic[k]).ljust(11,' ')
+    dstr += "}"
+    return dstr
+
+def print_vkdic(vk):
+    dstr = ""
+    for b in vk.bits:
+        bstr = str(b).rjust(2,' ')
+        dstr += f"{bstr}-{vk.dic[b]} "
+    dstr = dstr.strip()
+    return "[" + dstr + "]"
+
 def sat_conflict(sat1, sat2):
     intersection_bits1 = set(sat1).intersection(sat2)
     for b in intersection_bits1:

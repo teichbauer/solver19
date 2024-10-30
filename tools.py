@@ -1,6 +1,6 @@
 from basics import *
 from center import Center
-from namepool import NamePool
+from namedrive import NameDrive
 import copy
 
 def outputlog(repo, vk1dic):
@@ -229,33 +229,37 @@ def cvs_intersect(vkx, vky): #
     return td
 
 def handle_vk2pair(vkx, vky):
-    assert type(vkx.cvs) == set, "vk2-pair with no-set cvs"
-    assert type(vky.cvs) == set, "vk2-pair with no-set cvs"
+    assert type(vkx.cvs) == set, "vk2 shouldn't have dict cvs"
+    assert type(vky.cvs) == set, "vk2 shouldn't have dict cvs"
     b1, b2 = vkx.bits # vkx and vky sit on the same 2 bits
+    new_vk1 = None
     if vkx.nov == vky.nov:
         cmm = vkx.cvs.intersection(vky.cvs)
         if len(cmm) > 0:
-            name = NamePool(vkx.kname).next_sname('D')
+            name = NameDrive.dname()
             vkx.cvs -= cmm
             vky.cvs -= cmm
             if vkx.dic[b1] == vky.dic[b1]:
                 if vkx.dic[b2] != vky.dic[b2]:
-                    return vkx.clone(name, [b2], cmm)
+                    new_vk1 = vkx.clone(name, [b2], cmm)
             elif vkx.dic[b2] == vky.dic[b2]:
                 if vkx.dic[b1] != vky.dic[b1]:
-                    return vkx.clone(name, [b1], cmm)
+                    new_vk1 = vkx.clone(name, [b1], cmm)
     else: # vkx.nov != vky.nov
         node = {vkx.nov: vkx.cvs.copy(), vky.nov: vky.cvs.copy()}
-        name = NamePool(vkx.kname).next_uname('Y')
+        name = NameDrive.dname()
         if vkx.dic[b1] == vky.dic[b1]:
             if vkx.dic[b2] != vky.dic[b2]:
-                return vkx.clone(name, [b2], node)
+                new_vk1 = vkx.clone(name, [b2], node)
         elif vkx.dic[b2] == vky.dic[b2]:
             if vkx.dic[b1] != vky.dic[b1]:
-                return vkx.clone(name, [b1], node)
+                new_vk1 = vkx.clone(name, [b1], node)
+    if new_vk1:
+        new_vk1.source = vkx.kname
+        return new_vk1
     return None
 
-def test_containment(d1, d2): # both are dict
+def test_containment(d1, d2): # d1: new, d2: old. both are dict
     diffs = []
     d1_in_d2 = [] # novs where short[nov] is subset of long[nov]
     d2_in_d1 = [] # novs where long[nov] is subset of short[nov]
@@ -281,19 +285,24 @@ def test_containment(d1, d2): # both are dict
         return {'cat': 'mergable', 'merge-nov': diffs[0]}
     return None # log-in-short:1 and short-in-long:1 ->None
 
-def vk1s_unify_test(vka, vkb):
-    if vka.bit != vkb.bit or vka.val != vkb.val or vka.nov != vkb.nov:
-        return None
-    if type(vka.cvs) != dict or type(vkb.cvs) != dict: return None
-    res = test_containment(vka.cvs, vkb.cvs)
-    if not res: return None
+def vk1s_unify_test(new_vk, old_vk):
+    if new_vk.bit != old_vk.bit or new_vk.val != old_vk.val:
+        return True # to be added (no duplication)
+    if type(new_vk.cvs) != dict or type(old_vk.cvs) != dict: return None
+    res = test_containment(new_vk.cvs, old_vk.cvs)
+    if not res: return True # to be added (no duplication)
     if res['cat'].startswith('contain'):
         lst = res['cat'].split(':')[1].split() # [d1, in, d2]
         # returning the containing vk.kname
-        if lst[2] == 'd2': return vkb
-        if lst[2] == 'd1': return vka
+        if lst[2] == 'd2':  # new-vk is contained in old-vk
+            return False    # new_vk should not be added to repo
+        if lst[2] == 'd1':  # new-vk contains the old-vk
+            old_vk.cvs = copy.deepcopy(new_vk.cvs)
+            return False
     if res['cat'] == 'mergable':
-        return res['merge-nov']
+        old_vk.cvs[res['merge-nov']].update(new_vk.cvs[res['merge-nov']])
+        # return res['merge-nov']
+        return False
 
 
 def test_water(sname, satdic, snodes, start_nov):

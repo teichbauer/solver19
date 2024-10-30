@@ -275,4 +275,5 @@ root-bit-7 in bdic2: C0046
                   insert_vk1(U0156) done
           insert_vk1(U0245) done
   insert(R0046) done
-root-bit-19
+------------------------------
+root-bit-19 in bdic2: C0021 C0113 C0247 C0102

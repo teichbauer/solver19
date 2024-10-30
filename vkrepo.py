@@ -1,6 +1,6 @@
 from center import Center
 from tools import *
-from namepool import NamePool
+from namedrive import NameDrive
 import copy
 
 class VKRepoitory:
@@ -90,8 +90,9 @@ class VKRepoitory:
                     node = self.fill_dict({vk2.nov: vk2.cvs.copy(), 
                                            bgrid.nov: x_cvs_subset})
                     self.add_excl(vk2, copy.deepcopy(node))
-                    name = NamePool(vk2.kname).next_rname()
+                    name = NameDrive.rname()
                     new_vk1 = vk2.clone(name, [rb], node) # R prefix, drop rb
+                    new_vk1.source = vk2.kname
                     self.add_vk1(new_vk1)
     
     def merge_snode(self, sn):
@@ -117,33 +118,17 @@ class VKRepoitory:
                     .append("resulted in block:"+str(cmm))
                 if cmm not in self.blocks:
                     self.blocks.append(cmm)
-        if add_nvk:
-            self.insert_vk1(nvk)
+            if add_nvk:
+                self.insert_vk1(nvk)
+            return True # no duplicated old-vk1 existing
+        else: # b/v == b/v
+            return vk1s_unify_test(nvk, ovk) # vnk/d1, ovk/d2
+
+
 
     def insert_vk1(self, vk1, add2center): # simply add vk1 to the repo
-        name = vk1.kname
-        while name in self.k1ns:
-            ovk1 = Center.vk1dic[name]
-            if vk1.equal(ovk1): return
-            else:
-                cont = vk1s_unify_test(vk1, ovk1) # mergability-test
-                if cont:
-                    if cont == ovk1: 
-                        return # ovk1 contains vk1: no add
-                    if cont == vk1: 
-                        if ovk1.kname == vk1.kname:
-                            ovk1.cvs = copy.deepcopy(vk1.cvs)
-                        else:
-                            raise Exception("Weirdo!")
-                    if type(cont) == int: # cont is nov to be merged on
-                        ovk1.cvs[cont].update(vk1.cvs[cont])
-                    self.inflog.setdefault(name,[])\
-                        .append(f"merged: {vk1.kname} with existing vk1")
-                    return
-            name = NamePool(name).next_uname()
-        vk1.kname = name
-        self.k1ns.append(name)
-        self.bdic1.setdefault(vk1.bit,[]).append(name)
+        self.k1ns.append(vk1.kname)
+        self.bdic1.setdefault(vk1.bit,[]).append(vk1.kname)
         if add2center:
             Center.add_vk1(vk1)
     
@@ -169,24 +154,30 @@ class VKRepoitory:
         if not cmm: return
         self.add_excl(vk2, copy.deepcopy(cmm))
         if vk2.dic[nvk.bit] != nvk.val:
-            name = NamePool(vk2.kname).next_uname()
+            name = NameDrive.uname()
             new_vk1 = vk2.clone(name, [nvk.bit], cmm)
+            new_vk1.source = vk2.kname
             self.add_vk1(new_vk1)
 
     def add_vk1(self, vk1, add2center=True):
         self.expand_vk1s(vk1)
-        print(vk1.print_msg())
+        print(vk1.print_out())
+        add_newvk1 = True
         # handle with existing vk1s
         if vk1.bit in self.bdic1:
             for kn in self.bdic1[vk1.bit]:
-                self.newvk1_to_vk1(vk1, Center.vk1dic[kn])
+                if not self.newvk1_to_vk1(vk1, Center.vk1dic[kn]):
+                    NameDrive.recycle_name(vk1.kname)
+                    add_newvk1 = False
+                    break
         # handle with vk2s
         if vk1.bit in self.bdic2:
             for kn in self.bdic2[vk1.bit]: # all vk2 are named 'Cnnnn'
-                if vk1.kname[1:] == kn[1:]: continue
+                if vk1.source == kn: continue
                 vk = self.vk2dic[kn]
                 self.newvk1_to_vk2(vk1, vk)
-        self.insert_vk1(vk1, add2center)
+        if add_newvk1:
+            self.insert_vk1(vk1, add2center)
 
     def handle_vk1_block(self, vk1):
         # for a newly found vk1, see if an opposite vk(1) exists in this
@@ -201,7 +192,7 @@ class VKRepoitory:
                     self.blocks.append(cmm)
 
     def add_vk2(self, vk2):
-        print(vk2.print_msg())
+        print(vk2.print_out())
         for b in vk2.bits:
             if b in self.bdic1:
                 kns = self.bdic1[b]  # for loop variable must be immutable
@@ -212,11 +203,12 @@ class VKRepoitory:
                     self.add_excl(vk2, copy.deepcopy(cmm))
                     if vk2.dic[b] != vk1.val:
                         if len(cmm) == 1:
-                            name = NamePool(vk2.kname).next_sname('T')
+                            name = NameDrive.tname()
                             new_vk1 = vk2.clone(name,[b], cmm[vk2.nov])
                         else:
-                            name = NamePool(vk2.kname).next_uname()
+                            name = NameDrive.uname()
                             new_vk1 = vk2.clone(name,[b], cmm)
+                        new_vk1.source = vk2.kname
                         self.add_vk1(new_vk1)
         self.insert_vk2(vk2)
         # handle case of 2 overlapping bits with existing vk2

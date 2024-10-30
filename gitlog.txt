@@ -1,3 +1,35 @@
+2024-10-30->19.367
+- namedrive replaces namepool. vk1.kname will no more reflect where it is 
+  coming from (Cnnnn), but the naming is now freely given/assigned by nNameDrive
+  but vk1.source will contain the information about where it has been from.
+- When adding a new vk1, check if, the the same bit sitting other vk1s that
+  contains or be contained by the new vk1. If yes, use the containing vk1, and
+  don't add vk1. Also if 2 vk1s are mergable, merge them into 1 vk1
+  This reduced the total number of vk1s:
+  On merging (S60 + S57) <-merging S54, when add_vk2 starts, there were 79 Unnnn
+  and when proceed till 2nd from last (C0238), there were 448 Unnnn. And even
+  worse, on add_vk2(C0238) it had dead-loop: Unnn increased into > 100000...
+  Using the containment-check/merging when adding new vk1,  there is no more
+  deadloop, adn when ((S60 + S57) <-merging S54) is done, there are 336 Unnnn.
+  There are still similar vk1s sitting on the same bit, like on bit-46:
+  bdic1[46]:
+  ----------------------
+  U0017  60:U0017 [46-0]{ 60:(23)     57:(01)    54:(0123567) }     < C0257
+  U0146  54:U0146 [46-0]{ 60:(3)      57:(0123)  54:(5) }           < C0101
+  U0147  54:U0147 [46-0]{ 60:(7)      57:(1)     54:(57) }          < C0101
+  U0175  54:U0175 [46-0]{ 60:(46)     57:(04)    54:(1357) }        < C0125
+  U0177  54:U0177 [46-0]{ 60:(4)      57:(014)   54:(1357) }        < C0125
+  U0179  54:U0179 [46-0]{ 60:(123467) 57:(014)   54:(57) }          < C0125
+  U0217  60:U0217 [46-0]{ 60:(23)     57:(23)    54:(2367) }        < C0257
+  U0233  60:U0233 [46-0]{ 60:(23)     57:(0123)  54:(37) }          < C0257
+  U0248  54:U0248 [46-0]{ 60:(137)    57:(3)     54:(5) }           < C0101
+  U0312  54:U0312 [46-0]{ 60:(3)      57:(13)    54:(1) }           < C0101
+  U0326  60:U0326 [46-0]{ 60:(23)     57:(13)    54:(0) }           < C0257
+
+  U0012  57:U0012 [46-1]{ 60:(12346) 57:(04)  54:(0123567) }        < C0179
+  U0047  57:U0047 [46-1]{ 60:(4)     57:(014) 54:(1357) }           < C0179
+  U0069  57:U0069 [46-1]{ 60:(467)   57:(014) 54:(567) }            < C0179  
+  I will do some more study on if they can be merged? Later
 2024-10-28->19.366
 - when merging a lower snode into pathrepo, expand vk1s, excls and blocks to
   fill in the missing nov:chvls. Now, every vk1.cvs is a dict with all novs

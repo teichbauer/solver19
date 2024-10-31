@@ -1,3 +1,7 @@
+2024-10-30->19.369
+- new: pathfinder.py/PathFinder class, refactored some part from vkrepo.
+  new vkrepo.driver is its owner: path-finder
+- used generator/yield for generating all possible paths: docs/testg.py
 2024-10-30->19.368
 - cleaning up and beautify log print-out
 2024-10-30->19.367

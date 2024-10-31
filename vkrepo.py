@@ -12,42 +12,12 @@ class VKRepoitory:
         self.blocks = []    # [node, ..] node:{nov:cvs, nv:..} where snode fails
         self.excls = {}     # {kn:[node, node,..],..} vk not 2b used in nodes
         self.snode = snode  # related snode
-        self.pathsteps = [snode.nov]
+        self.driver = None
         self.inflog = {}    # {key:[info,info,..], key:[], ...}
 
-    def write_logmsg(self, outfile_name):
-        ofile = open(outfile_name, 'w')
-        msg = outputlog(self, Center.vk1dic)
-        ofile.write(msg)
-        ofile.close()
-
-    def fill_dict(self, dic):
-        for nv in self.pathsteps:
-            if nv not in dic:
-                dic[nv] = set(Center.snodes[nv].bgrid.chvals)
-        return dic
-
-    def expand_vk1s(self, vk1=None):
-        if vk1:
-            if type(vk1.cvs) == set:
-                vk1.cvs = {vk1.nov: vk1.cvs}
-            self.fill_dict(vk1.cvs)
-        else:
-            for kn in self.k1ns:
-                vk1 = Center.vk1dic[kn]
-                self.expand_vk1s(vk1)
-
-    def expand_excls(self):
-        for kn, lst in self.excls.items():
-            for dic in lst:
-                self.fill_dict(dic)
-
-    def expand_blocks(self):
-        for dic in self.blocks:
-            self.fill_dict(dic)
-
-    def clone(self):
+    def clone(self, driver):
         xrepo = VKRepoitory(self.snode)
+        xrepo.driver = driver   # pathfinder
         xrepo.bdic1 = {b: lst[:] for b, lst in self.bdic1.items()}
         xrepo.bdic2 = {b: lst[:] for b, lst in self.bdic2.items()}
         xrepo.k1ns = self.k1ns[:]
@@ -65,13 +35,13 @@ class VKRepoitory:
                 cvs = bgrid.cvs_subset(vk1.bit, vk1.val)
                 # these cvs are hits with vk1.cvs node
                 if type(vk1.cvs) == set:
-                    self.blocks.append(
-                        self.fill_dict({vk1.nov: cvs.intersection(vk1.cvs)}))
+                    self.blocks.append(fill_dict(self.driver.chvdic,
+                            {vk1.nov: cvs.intersection(vk1.cvs)}))
                 else:
                     nd = copy.deepcopy(vk1.cvs)
                     nd[bgrid.nov] = cvs
                     if nd not in self.blocks:
-                        self.blocks.append(self.fill_dict(nd))
+                        self.blocks.append(fill_dict(self.driver.chvdic, nd))
         # handle vk2s bouncing with bgrid.bits
         cmm_rbits = sorted(set(self.bdic2).intersection(bgrid.bits))
         for rb in cmm_rbits:
@@ -80,33 +50,21 @@ class VKRepoitory:
                 if set(vk2.bits).issubset(bgrid.bits):
                     hit_cvs = bgrid.vk2_hits(vk2)
                     print(f"{k2n} inside {bgrid.nov}-root, blocking {hit_cvs}")
-                    block = self.fill_dict({vk2.nov:vk2.cvs.copy(), 
-                                            bgrid.nov: hit_cvs})
+                    block = fill_dict(self.driver.chvdic,
+                                {vk2.nov:vk2.cvs.copy(), bgrid.nov: hit_cvs})
                     if block not in self.blocks:
                         self.blocks.append()
                 else:# vk1.cvs is compound  caused by overlapping 
                     # with xsn.root-bits, will be named with R-prefix
                     x_cvs_subset = bgrid.cvs_subset(rb, vk2.dic[rb])
-                    node = self.fill_dict({vk2.nov: vk2.cvs.copy(), 
-                                           bgrid.nov: x_cvs_subset})
+                    node = fill_dict(self.driver.chvdic,
+                            {vk2.nov: vk2.cvs.copy(), bgrid.nov: x_cvs_subset})
                     self.add_excl(vk2, copy.deepcopy(node))
                     name = NameDrive.rname()
                     new_vk1 = vk2.clone(name, [rb], node) # R prefix, drop rb
                     new_vk1.source = vk2.kname
                     self.add_vk1(new_vk1)
-    
-    def merge_snode(self, sn):
-        self.pathsteps.append(sn.nov)
-        self.expand_vk1s()
-        self.expand_excls()
-        self.expand_blocks()
-        self.add_snode_root(sn.bgrid)
-        for k1n in sn.vkrepo.k1ns:
-            self.add_vk1(Center.vk1dic[k1n])
-        for vk2 in sn.vkrepo.vk2dic.values():
-            self.add_vk2(vk2)
-        # self.write_logmsg('./docs/loginfo.txt')
-        x = 9
+    # end of def add_snode_root(self, bgrid):
 
     def newvk1_to_vk1(self, nvk, ovk, add_nvk=False): 
         # new-vk1 and old-vk1 are sitting on the same bit
@@ -123,8 +81,6 @@ class VKRepoitory:
             return True # no duplicated old-vk1 existing
         else: # b/v == b/v
             return vk1s_unify_test(nvk, ovk) # vnk/d1, ovk/d2
-
-
 
     def insert_vk1(self, vk1, add2center): # simply add vk1 to the repo
         self.k1ns.append(vk1.kname)
@@ -160,8 +116,8 @@ class VKRepoitory:
             self.add_vk1(new_vk1)
 
     def add_vk1(self, vk1, add2center=True):
-        self.expand_vk1s(vk1)
-        print(vk1.print_out())
+        if self.driver: expand_vk1s(self, vk1)
+        # print(vk1.print_out())
         add_newvk1 = True
         # handle with existing vk1s
         if vk1.bit in self.bdic1:
@@ -192,7 +148,7 @@ class VKRepoitory:
                     self.blocks.append(cmm)
 
     def add_vk2(self, vk2):
-        print(vk2.print_out())
+        # print(vk2.print_out())
         for b in vk2.bits:
             if b in self.bdic1:
                 kns = self.bdic1[b]  # for loop variable must be immutable
@@ -204,10 +160,9 @@ class VKRepoitory:
                     if vk2.dic[b] != vk1.val:
                         if len(cmm) == 1:
                             name = NameDrive.tname()
-                            new_vk1 = vk2.clone(name,[b], cmm[vk2.nov])
                         else:
                             name = NameDrive.uname()
-                            new_vk1 = vk2.clone(name,[b], cmm)
+                        new_vk1 = vk2.clone(name,[b], cmm)
                         new_vk1.source = vk2.kname
                         self.add_vk1(new_vk1)
         self.insert_vk2(vk2)
@@ -228,9 +183,8 @@ class VKRepoitory:
             _vk2 = self.vk2dic[xkns.pop()]
             vk1 = handle_vk2pair(vk2, _vk2)
             if vk1: 
-                self.expand_vk1s(vk1)
+                if self.driver: expand_vk1s(self, vk1)
                 self.add_vk1(vk1)
-
 
     def add_excl(self, vk2, node):
         if len(node) == 1: # in case node has only 1 entry like {60:{3,7}

@@ -49,7 +49,12 @@ class NameDrive:
     def recycle_name(cls, name):
         prefix = name[0]
         count = int(name[1:])
-        if prefix == 'T':
+        if prefix == 'U':
+            if count == cls.Ucount:
+                cls.Ucount -= 1
+            else:
+                cls.Urecycles.append(count)
+        elif prefix == 'T':
             if count == cls.Tcount:
                 cls.Tcount -= 1
             else:
@@ -59,20 +64,15 @@ class NameDrive:
                 cls.Scount -= 1
             else:
                 cls.Srecycles.append(count)
-        elif prefix == 'D':
-            if count == cls.Dcount:
-                cls.Dcount -= 1
-            else:
-                cls.Drecycles.append(count)
         elif prefix == 'R':
             if count == cls.Rcount:
                 cls.Rcount -= 1
             else:
                 cls.Rrecycles.append(count)
-        elif prefix == 'U':
-            if count == cls.Ucount:
-                cls.Ucount -= 1
+        elif prefix == 'D':
+            if count == cls.Dcount:
+                cls.Dcount -= 1
             else:
-                cls.Urecycles.append(count)
+                cls.Drecycles.append(count)
         else:
             raise Exception("What to do?")

@@ -6,6 +6,7 @@ from sat_path import SatPath
 from vkrepo import VKRepoitory
 from stail import STail
 from namedrive import NameDrive
+from pathfinder import PathFinder
 
 class SatNode:
     def __init__(self, parent, sh, vkm):
@@ -43,6 +44,7 @@ class SatNode:
                 if vk12.nob == 1:  # touched 2 bits, vk12 is vk1: C0212->S0212
                     # vk12.kname = NamePool(vk.kname).next_sname()
                     vk12.kname = NameDrive.sname()
+                    vk12.cvs = {self.nov: vk12.cvs}
                     vk12.source = vk.kname
                     self.vkrepo.add_vk1(vk12)
                 else:
@@ -64,11 +66,13 @@ class SatNode:
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
             print(f"NOV:{self.nov}")
-            pathrepo = Center.snodes[60].vkrepo.clone()
-            pathrepo.merge_snode(Center.snodes[57])
+            pathfinder = PathFinder(Center.snodes[60])
+            # pathrepo = Center.snodes[60].vkrepo.clone()
+            pathfinder.grow(Center.snodes[57])
             # pathrepo.write_logmsg('./logs/loginfo.txt')
-            pathrepo.merge_snode(Center.snodes[54])
-            pathrepo.write_logmsg('./logs/loginfo.txt')
+            pathfinder.grow(Center.snodes[54])
+            pathfinder.block_filter()
+            pathfinder.write_log('./logs/loginfo.txt')
             x = 9
 
     def grow_path(self, base_nov, final_path=[], base_path=None):

@@ -7,8 +7,8 @@ class BlockMgr:
         self.repo = repo
         self.blocks = []
 
-    def clone(self):
-        newinst = BlockMgr()
+    def clone(self, new_repo):
+        newinst = BlockMgr(new_repo)
         newinst.blocks = [copy.deepcopy(node) for node in self.blocks]
         return newinst
     
@@ -39,25 +39,26 @@ class BlockMgr:
     
     def add_block(self, newblock):
         for ind, b in enumerate(self.blocks):
-            res = self.block_conain(b, newblock)
-            if res == 1:        # block is contained in b
-                return False
+            res = self.block_contain(b, newblock)
+            if res == 1: return False # block is contained in b
             if res == -1:
-                self.blocks[ind] = newblock
-                return None
+                self.blocks[ind] = newblock # newblock not added, 
+                # but it has replaced its subset b in self.blocks
+                return 0 
         self.blocks.append(newblock)
         return True
 
-    def block_conain(self, super, sub):
+    def block_contain(self, super, sub, check_reverse=True):
         # contain means, for every nv in super, 
         # super[nv] is superset of sub[nov], if true: return 1
         # if for any nov, this is not true:
         #   test if for super <-> sub, this be true: return -1
         # if neither of the two is a superset of the other, return 0
         for nv in super:
-            if not super.issuperset(sub[nv]): 
-                if self.block_conain(sub, super):
-                    return -1
+            if not super[nv].issuperset(sub[nv]): 
+                if check_reverse:
+                    # -0 == 0, -(1) == -1
+                    return -self.block_contain(sub, super, False)
                 return 0
         return 1
     

@@ -11,7 +11,7 @@ class VKRepoitory:
         self.bdic2 = {}     # {bit: [k2n, k2n,..], bit:[], ..}
         self.k1ns = []      # [k1n, k1n,..]
         self.vk2dic = {}    # {k2n:vk2, k2n: vk2,...}
-        self.blckmgr = BlockMgr
+        self.blckmgr = BlockMgr(self)
         self.excls = {}     # {kn:[node, node,..],..} vk not 2b used in nodes
         self.snode = snode  # related snode
         self.driver = None
@@ -24,7 +24,7 @@ class VKRepoitory:
         xrepo.bdic2 = {b: lst[:] for b, lst in self.bdic2.items()}
         xrepo.k1ns = self.k1ns[:]
         xrepo.vk2dic = {kn:vk2 for kn, vk2 in self.vk2dic.items()}
-        xrepo.blckmgr  = self.blckmgr.clone()
+        xrepo.blckmgr  = self.blckmgr.clone(xrepo)
         for kn, lst in self.excls.items():
             xrepo.excls[kn] = [copy.deepcopy(node) for node in lst]
         return xrepo
@@ -37,12 +37,14 @@ class VKRepoitory:
                 cvs = bgrid.cvs_subset(vk1.bit, vk1.val)
                 # these cvs are hits with vk1.cvs node
                 if type(vk1.cvs) == set:
-                    self.blckmgr.add_block(fill_dict(self.driver.chvdic,
-                            {vk1.nov: cvs.intersection(vk1.cvs)}))
+                    block_added = self.blckmgr.add_block(
+                        fill_dict(self.driver.chvdic,
+                                  {vk1.nov: cvs.intersection(vk1.cvs)})
+                    )
                 else:
                     nd = copy.deepcopy(vk1.cvs)
                     nd[bgrid.nov] = cvs
-                    self.blckmgr.add_block(nd)
+                    block_added = self.blckmgr.add_block(nd)
         # handle vk2s bouncing with bgrid.bits
         cmm_rbits = sorted(set(self.bdic2).intersection(bgrid.bits))
         for rb in cmm_rbits:
@@ -53,7 +55,7 @@ class VKRepoitory:
                     print(f"{k2n} inside {bgrid.nov}-root, blocking {hit_cvs}")
                     block = fill_dict(self.driver.chvdic,
                                 {vk2.nov:vk2.cvs.copy(), bgrid.nov: hit_cvs})
-                    self.blckmgr.add_block(block)
+                    block_added = self.blckmgr.add_block(block)
                 else:# vk1.cvs is compound  caused by overlapping 
                     # with xsn.root-bits, will be named with R-prefix
                     x_cvs_subset = bgrid.cvs_subset(rb, vk2.dic[rb])
@@ -74,7 +76,7 @@ class VKRepoitory:
                 infokey = tuple(sorted([nvk.kname, ovk.kname]))
                 self.inflog.setdefault(infokey,[])\
                     .append("resulted in block:"+str(cmm))
-                self.blckmgr.add_block(cmm)
+                block_added = self.blckmgr.add_block(cmm)
             if add_nvk:
                 self.insert_vk1(nvk)
             return True # no duplicated old-vk1 existing
@@ -144,7 +146,8 @@ class VKRepoitory:
             if vk.val != vk1.val:
                 cmm = cvs_intersect(vk, vk1)
                 if cmm: 
-                    self.blckmgr.add_block(cmm)
+                    block_added = self.blckmgr.add_block(cmm)
+                    x = 9
 
     def add_vk2(self, vk2):
         # print(vk2.po())

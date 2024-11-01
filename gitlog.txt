@@ -1,3 +1,5 @@
+2024-11-01->19.371
+- fixes in BlockMgr
 2024-10-31->19.370
 - new: blockmgr.py/BlockMgr to encapsulate block-stuff, replace repo.blocks
 - minor fix in bitgrid

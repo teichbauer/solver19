@@ -32,7 +32,7 @@ class PathFinder:
         all_paths = self.pgenerator()
         valids = []
         for p in all_paths:
-            if self.repo.blckmgr.verify_pth(p)
+            if self.repo.blckmgr.verify_pth(p):
                 valids.append(p)
         return valids
 
@@ -50,7 +50,7 @@ class PathFinder:
                     res.pop()
                 res.pop()
         # -------------------------------
-        base = self.chvdic.values()
+        base = [self.chvdic[nv] for nv in self.steps]
         paths = []
         g = gen(base)
         try:

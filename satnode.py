@@ -71,6 +71,7 @@ class SatNode:
             pathfinder.grow(Center.snodes[57])
             # pathrepo.write_logmsg('./logs/loginfo.txt')
             pathfinder.grow(Center.snodes[54])
+            pathfinder.grow(Center.snodes[51])
             pathfinder.block_filter()
             pathfinder.write_log('./logs/loginfo.txt')
             x = 9
@@ -179,4 +180,4 @@ class SatNode:
 
     def print_vk2dic(self):
         for vk in self.vkrepo.vk2dic.values():
-            print(vk.print_out())
+            print(vk.po())

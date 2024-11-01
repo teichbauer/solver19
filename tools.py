@@ -27,18 +27,15 @@ def outputlog(repo, vk1dic):
     msg += f"vk1s:\n----------------------------------------------------\n"
     k1ns = sorted(repo.k1ns)
     for kn in k1ns:
-        msg += vk1dic[kn].print_out() +'\n'
+        msg += vk1dic[kn].po() +'\n'
     msg += f"----------------------------------------------------\n\n"
     msg += f"vk2s:\n----------------------------------------------------\n"
     k2ns = sorted(repo.vk2dic)
     for kn in k2ns:
         vk2 = repo.vk2dic[kn]
-        msg += vk2.print_out() +'\n'
+        msg += vk2.po() +'\n'
     msg += f"----------------------------------------------------\n\n"
-    msg += f"blocks:\n----------------------------------------------------\n"
-    for bl in repo.blocks:
-        # msg += str(bl) + '\n'
-        msg += print_node(bl) + '\n'
+    msg += repo.blckmgr.showall(True)
     msg += f"----------------------------------------------------\n\n"
     msg += f"excls:\n----------------------------------------------------\n"
     kns = sorted(repo.excls)
@@ -46,7 +43,7 @@ def outputlog(repo, vk1dic):
         msg += f"{kn}:\n"
         lst = repo.excls[kn]
         for excl in lst:
-            msg += f"    {print_node(excl)}\n"
+            msg += f"    {pd(excl)}\n"
         msg += "\n"
     return msg
 
@@ -257,7 +254,3 @@ def expand_excls(repo):
     for kn, lst in repo.excls.items():
         for dic in lst:
             fill_dict(repo.driver.chvdic, dic)
-
-def expand_blocks(repo):
-    for dic in repo.blocks:
-        fill_dict(repo.driver.chvdic, dic)

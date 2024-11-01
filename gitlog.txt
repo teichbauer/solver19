@@ -1,3 +1,7 @@
+2024-10-31->19.370
+- new: blockmgr.py/BlockMgr to encapsulate block-stuff, replace repo.blocks
+- minor fix in bitgrid
+- basics/print_node renamed to be pd for shorter name, VKlause.print_out-> po
 2024-10-30->19.369
 - new: pathfinder.py/PathFinder class, refactored some part from vkrepo.
   new vkrepo.driver is its owner: path-finder
@@ -80,7 +84,7 @@
   U0179, so it is now extended to U0179[46-1]{60:(12346), 57:(04)}
 - when adding a block, only when it is not already in self.block.
 2024-10-21->19.361
-- add klause.print_out: output info in my write format for logging
+- add klause.po: output info in my write format for logging
 - vkrepo.write_logmsg for logging/compare
 2024-10-21->19.360
 - refactor vkrepo.py

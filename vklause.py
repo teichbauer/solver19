@@ -20,7 +20,7 @@ class VKlause:
         self.nov = nov
         self.cvs = cvs  # a set of values (as chvkdic[v]) this vk is in
 
-    def print_out(self):
+    def po(self):
         dstr = print_vkdic(self)
         cvsstr = print_cvs(self.cvs)
         msg = f"{self.nov}:{self.kname} {dstr}{cvsstr}"

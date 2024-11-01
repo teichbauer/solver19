@@ -21,11 +21,14 @@ def print_cvs(cvs):
     msg = msg.strip()
     return "{ " + msg + " }"
 
-def print_node(dic):
+def pd(dic, more_space=False):
     ks = sorted(dic, reverse=True)
     dstr = "{ "
     for k in ks:
-        dstr += f"{k}:" + print_cvs(dic[k]).ljust(11,' ')
+        if more_space:
+            dstr += f"{k}:" + print_cvs(dic[k]).ljust(11,' ')
+        else:
+            dstr += f"{k}:" + print_cvs(dic[k]) + ' '
     dstr += "}"
     return dstr
 

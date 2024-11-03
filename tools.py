@@ -47,6 +47,21 @@ def outputlog(repo, vk1dic):
         msg += "\n"
     return msg
 
+def path_iterator(base): # base:[(10,20),(3,4),(a,b)]
+    # -> (10,3,a),(10,3,b), (10,4,a),(10,4,b), (20,3,a),(20,3,b), ...
+    res = []
+    for i in range(len(base)):
+        for s60 in base[0]:
+            res.append(s60)
+            for s57 in base[1]:
+                res.append(s57)
+                for s54 in base[2]:
+                    res.append(s54)
+                    yield tuple(res)
+                    res.pop()
+                res.pop()
+            res.pop()
+# -------------------------------
 
 def sort_length_list(lst):
     # [(...),(.......),(.)] => [(.),(...),(.......)]
@@ -76,20 +91,6 @@ def filter_conflict(snode, satdic):
             # print(f"vk {vk.kname} hit with {vk.cvs}")
             excl_chvs.update(vk.cvs)
     return excl_chvs
-
-def cvs_subset(big_cvs, small_cvs):
-    # check if small-cvs is a subset of big-cvs
-    if type(big_cvs) == set and type(small_cvs) == set:
-        cmm = small_cvs.intersection(big_cvs)
-        if len(cmm) == 0: return None
-        return cmm
-    if type(big_cvs) == dict and type(small_cvs) == dict:
-        res = big_cvs.copy()
-        for nv, cvs in small_cvs.items():
-            if nv not in big_cvs or not cvs.issubset(big_cvs[nv]):
-                return None
-            res[nv] = big_cvs - cvs
-        return res
 
 
 def cvs_intersect(vkx, vky): # vkx is vk1, vky: vk1 or vk2
@@ -229,10 +230,12 @@ def vk1s_unify_test(new_vk, old_vk):
         if lst[2] == 'd1':  # new-vk contains the old-vk
             old_vk.cvs = copy.deepcopy(new_vk.cvs)
             return False
+    if res['cat'] == 'same': return False
     if res['cat'] == 'mergable':
         old_vk.cvs[res['merge-nov']].update(new_vk.cvs[res['merge-nov']])
         # return res['merge-nov']
         return False
+    raise Exception(f"test_containment returns: {res}")
 
 def fill_dict(chvdic, dic):
     for nv in chvdic:

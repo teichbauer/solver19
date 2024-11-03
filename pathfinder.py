@@ -37,22 +37,9 @@ class PathFinder:
         return valids
 
     def pgenerator(self):
-        def gen(b):
-            res = []
-            for s60 in base[0]:
-                res.append(s60)
-                for s57 in base[1]:
-                    res.append(s57)
-                    for s54 in base[2]:
-                        res.append(s54)
-                        yield tuple(res)
-                        res.pop()
-                    res.pop()
-                res.pop()
-        # -------------------------------
         base = [self.chvdic[nv] for nv in self.steps]
         paths = []
-        g = gen(base)
+        g = path_iterator(base)
         try:
             while True:
                 t = next(g)

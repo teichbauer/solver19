@@ -120,21 +120,23 @@ class VKRepoitory:
         if self.driver: expand_vk1s(self, vk1)
         # print(vk1.po())
         add_newvk1 = True
-        # handle with existing vk1s
+        # handle with existing vk1s: only block/excl added. No new-vk1
         if vk1.bit in self.bdic1:
             for kn in self.bdic1[vk1.bit]:
                 if not self.newvk1_to_vk1(vk1, Center.vk1dic[kn]):
+                    # vk1 has duplicate on this bit. 
+                    # vk1.kname be recycled, and vk1 not be added into repo
                     NameDrive.recycle_name(vk1.kname)
                     add_newvk1 = False
                     break
-        # handle with vk2s
+        if add_newvk1:
+            self.insert_vk1(vk1, add2center)
+        # handle with vk2s. possibly new-vk1 be generated
         if vk1.bit in self.bdic2:
             for kn in self.bdic2[vk1.bit]: # all vk2 are named 'Cnnnn'
                 if vk1.source == kn: continue
                 vk = self.vk2dic[kn]
                 self.newvk1_to_vk2(vk1, vk)
-        if add_newvk1:
-            self.insert_vk1(vk1, add2center)
 
     def handle_vk1_block(self, vk1):
         # for a newly found vk1, see if an opposite vk(1) exists in this

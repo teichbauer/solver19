@@ -40,11 +40,11 @@ class BlockMgr:
     def add_block(self, newblock):
         for ind, b in enumerate(self.blocks):
             res = self.block_contain(b, newblock)
-            if res == 1: return False # block is contained in b
-            if res == -1:
-                self.blocks[ind] = newblock # newblock not added, 
-                # but it has replaced its subset b in self.blocks
-                return 0 
+            if res != 0:
+                if res == 1: return False # block is contained in b
+                if res == -1:  # newblock over-writes/replace
+                    self.blocks[ind] = newblock
+                    return 0 
         self.blocks.append(newblock)
         return True
 

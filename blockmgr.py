@@ -1,5 +1,6 @@
 from basics import pd
 from tools import fill_dict
+from sequencer import Sequencer
 import copy
 
 class BlockMgr:
@@ -38,6 +39,9 @@ class BlockMgr:
         return False # there is (at least) one block that contains pth: blocked
     
     def add_block(self, newblock):
+        if len(self.blocks) == 0:
+            self.blocks.append(newblock)
+            return True
         for ind, b in enumerate(self.blocks):
             res = self.block_contain(b, newblock)
             if res != 0:
@@ -45,20 +49,21 @@ class BlockMgr:
                 if res == -1:  # newblock over-writes/replace
                     self.blocks[ind] = newblock
                     return 0 
-        self.blocks.append(newblock)
+        # self.blocks.append(newblock)
+        self.putin(newblock)
         return True
 
-    def block_contain(self, super, sub, check_reverse=True):
-        # contain means, for every nv in super, 
-        # super[nv] is superset of sub[nov], if true: return 1
-        # if for any nov, this is not true:
-        #   test if for super <-> sub, this be true: return -1
-        # if neither of the two is a superset of the other, return 0
+    def putin(self, newblck):
+        seq = Sequencer(newblck)
+        # all pthrds not contained in self.blocks
+        rests = seq.reduce_from_iter(self.blocks, [])
+        for pt in rests:
+            self.blocks.append(pt)
+        x = 9
+
+    def block_contain(self, super, sub):
         for nv in super:
             if not super[nv].issuperset(sub[nv]): 
-                if check_reverse:
-                    # -0 == 0, -(1) == -1
-                    return -self.block_contain(sub, super, False)
                 return 0
         return 1
     

@@ -1,3 +1,9 @@
+2024-11-04->19.373
+- sequencer.py/Sequencer replacing pathsequence.py
+- blockmgr simplified using Sequencer
+2024-11-02->19.372
+- minor refactor in BlockMgr
+- getting tools ready: PathSequence/docs/testg1.py/testg2.py
 2024-11-01->19.371
 - fixes in BlockMgr
 2024-10-31->19.370

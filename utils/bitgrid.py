@@ -1,5 +1,5 @@
-from basics import set_bit
-from vklause import VKlause
+from utils.basics import set_bit
+from utils.vklause import VKlause
 
 
 class BitGrid:

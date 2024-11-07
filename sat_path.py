@@ -1,5 +1,5 @@
 from center import Center
-from tools import filter_conflict
+from utils.tools import filter_conflict
 
 class SatPath:
     def __init__(self, name, sat, nov,logfile=None):

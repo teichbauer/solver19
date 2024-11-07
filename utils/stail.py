@@ -1,4 +1,4 @@
-from basics import sat_conflict, get_vk2sats
+from utils.basics import sat_conflict, get_vk2sats
 
 class STail:
     def __init__(self, snode, chval): #vkm, anc_bits, check_val):

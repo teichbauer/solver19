@@ -1,4 +1,4 @@
-from vk3picker import Vk3Picker
+from utils.vk3picker import Vk3Picker
 from center import Center
 
 class VKManager:

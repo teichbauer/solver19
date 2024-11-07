@@ -1,11 +1,11 @@
 import sys
 import time
-from basics import get_sdic, ordered_dic_string, verify_sat, display_vkdic
+from utils.basics import get_sdic, ordered_dic_string, verify_sat, display_vkdic
 from center import Center
-from satholder import SatHolder
+from utils.satholder import SatHolder
 from satnode import SatNode
-from vkmgr import VKManager
-from vklause import VKlause
+from utils.vkmgr import VKManager
+from utils.vklause import VKlause
 
 
 def make_vkdic(kdic):

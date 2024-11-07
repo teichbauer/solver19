@@ -1,4 +1,4 @@
-from basics import get_bit, get_sdic, set_bits
+from utils.basics import get_bit, get_sdic, set_bits
 from datetime import datetime
 
 

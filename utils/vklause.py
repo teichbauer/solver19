@@ -1,4 +1,4 @@
-from basics import get_bit, set_bit, ordered_dic_string, print_cvs, print_vkdic
+from utils.basics import get_bit, set_bit, ordered_dic_string, print_cvs, print_vkdic
 import copy
 
 class VKlause:

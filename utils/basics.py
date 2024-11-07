@@ -266,7 +266,7 @@ def display_vkdic(vkd, title=None, outfile=None):
 
 
 def testing(bgrid):
-    from vklause import VKlause
+    from utils.vklause import VKlause
     """ 
     cvd:[0,5]/000, 101
     bits: 16,6,1

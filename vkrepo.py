@@ -1,8 +1,9 @@
 from center import Center
-from basics import pd
-from tools import *
-from namedrive import NameDrive
+from utils.basics import pd
+from utils.tools import *
+from utils.namedrive import NameDrive
 from blockmgr import BlockMgr
+from bblockermgr import BitBlockerMgr
 import copy
 
 class VKRepoitory:
@@ -11,6 +12,7 @@ class VKRepoitory:
         self.bdic2 = {}     # {bit: [k2n, k2n,..], bit:[], ..}
         self.k1ns = []      # [k1n, k1n,..]
         self.vk2dic = {}    # {k2n:vk2, k2n: vk2,...}
+        self.bbmgr = BitBlockerMgr(self)
         self.blckmgr = BlockMgr(self)
         self.excls = {}     # {kn:[node, node,..],..} vk not 2b used in nodes
         self.snode = snode  # related snode
@@ -25,6 +27,7 @@ class VKRepoitory:
         xrepo.k1ns = self.k1ns[:]
         xrepo.vk2dic = {kn:vk2 for kn, vk2 in self.vk2dic.items()}
         xrepo.blckmgr  = self.blckmgr.clone(xrepo)
+        xrepo.bbmgr = self.bbmgr.clone(xrepo)
         for kn, lst in self.excls.items():
             xrepo.excls[kn] = [copy.deepcopy(node) for node in lst]
         return xrepo
@@ -117,7 +120,8 @@ class VKRepoitory:
             self.add_vk1(new_vk1)
 
     def add_vk1(self, vk1, add2center=True):
-        if self.driver: expand_vk1s(self, vk1)
+        if self.driver: 
+            expand_vk1s(self, vk1)
         # print(vk1.po())
         add_newvk1 = True
         # handle with existing vk1s: only block/excl added. No new-vk1

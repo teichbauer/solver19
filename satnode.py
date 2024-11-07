@@ -1,11 +1,11 @@
-from bitgrid import BitGrid
+from utils.bitgrid import BitGrid
 from center import Center
-from tools import sort_length_list
+from utils.tools import sort_length_list
 from collections import OrderedDict
 from sat_path import SatPath
 from vkrepo import VKRepoitory
-from stail import STail
-from namedrive import NameDrive
+from utils.stail import STail
+from utils.namedrive import NameDrive
 from pathfinder import PathFinder
 
 class SatNode:
@@ -47,6 +47,7 @@ class SatNode:
                     vk12.cvs = {self.nov: vk12.cvs}
                     vk12.source = vk.kname
                     self.vkrepo.add_vk1(vk12)
+                    self.vkrepo.bbmgr.add(vk12)
                 else:
                     self.vkrepo.add_vk2(vk12)
         for vk2 in self.vkrepo.vk2dic.values():
@@ -177,7 +178,3 @@ class SatNode:
         if incl_root:
             bits.update(self.bgrid.bits)
         return bits
-
-    def print_vk2dic(self):
-        for vk in self.vkrepo.vk2dic.values():
-            print(vk.po())

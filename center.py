@@ -1,4 +1,4 @@
-from basics import verify_sat, add_vk1
+from utils.basics import verify_sat, add_vk1
 known_sats = [
     # sat 0
   { 59: 1, 58: 1, 57: 1, 56: 0, 55: 0, 54: 1, 53: 0, 52: 1, 51: 1, 50: 0, # all

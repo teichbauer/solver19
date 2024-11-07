@@ -1,11 +1,14 @@
-from basics import pd
-from tools import fill_dict
-from sequencer import Sequencer
+from utils.basics import pd, verify_sat
+from utils.tools import fill_dict, break_node
+from utils.sequencer import Sequencer
+from utils.knowns import GRIDSATS
 import copy
+
 
 class BlockMgr:
     def __init__(self, repo):
         self.repo = repo
+        self.bbmgr = repo.bbmgr
         self.blocks = []
 
     def clone(self, new_repo):
@@ -40,6 +43,7 @@ class BlockMgr:
     
     def add_block(self, newblock):
         if len(self.blocks) == 0:
+            self.test_block(newblock)
             self.blocks.append(newblock)
             return True
         for ind, b in enumerate(self.blocks):
@@ -66,7 +70,38 @@ class BlockMgr:
             if not super[nv].issuperset(sub[nv]): 
                 return 0
         return 1
+
+    def test_pthrd(self, pthrd):
+        bbsat = self.bbmgr.collect_sat(pthrd)
+        sat = copy.deecopy(bbsat)
+        vk2dic = self.collect_vk2dic(pthrd)
+        for nv, cv in pthrd.items():
+            sat.update(GRIDSATS[nv][tuple(cv)[0]])
+        return verify_sat(vk2dic, sat)
     
+    def test_block(self, block=None): # block==None: test all
+        if block==None:
+            for bl in self.block:
+                res = self.test_block(bl)
+        else:
+            doit = break_node(block, Sequencer)
+            if doit == True: # block is a single
+                if self.test_pthrd(block):
+                    print(f"{block} passed.")
+                else:
+                    print(f"{block} failed.")
+            else:
+                print(f"breaking {block} and test them:")
+                while not doit.done:
+                    self.test_block(doit.get_next())
+
+    def collect_vk2dic(self, pthrd):
+        dic = {}
+        for kn, vk2 in self.repo.vk2dic.items():
+            if vk2.cvs.issuperset(pthrd[vk2.nov]):
+                dic[kn] = vk2
+        return dic
+
     def showall(self, more_space=False):
         m = "blocs:\n" + "-"*80 + "\n"
         for i, b in enumerate(self.blocks):

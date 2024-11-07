@@ -1,3 +1,6 @@
+2024-11-06->19.374
+- re-structure the file-tree: put utilities under utils
+- intro: cvsnode.py/class-CVS, class Node. Going to use them under vk, and more
 2024-11-04->19.373
 - sequencer.py/Sequencer replacing pathsequence.py
 - blockmgr simplified using Sequencer

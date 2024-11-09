@@ -1,4 +1,4 @@
-from utils.basics import get_bit, set_bit, ordered_dic_string, print_cvs, print_vkdic
+from utils.basics import get_bit, set_bit, ordered_dic_string, print_cvs, print_dic
 import copy
 
 class VKlause:
@@ -21,7 +21,7 @@ class VKlause:
         self.cvs = cvs  # a set of values (as chvkdic[v]) this vk is in
 
     def po(self):
-        dstr = print_vkdic(self)
+        dstr = print_dic(self.dic)
         cvsstr = print_cvs(self.cvs)
         msg = f"{self.nov}:{self.kname} {dstr}{cvsstr}"
         if 'source' in self.__dict__:
@@ -183,9 +183,12 @@ class VKlause:
             if cv in self.cvs:
                 self.cvs.remove(cv)
             
-    def add_cvs(self, cvs):
+    def add_cvs(self, cvs, nv=None):
         for cv in cvs:
-            self.cvs.add(cv)
+            if nv: # self.cvs is a node-dict
+                self.cvs[nv].add(cv)
+            else:  # self.cvs is a set
+                self.cvs.add(cv)
 
     def print_msg(self):
         dmsg = ordered_dic_string(self.dic)

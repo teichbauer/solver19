@@ -3,16 +3,15 @@ from utils.basics import pd
 from utils.tools import *
 from utils.namedrive import NameDrive
 from blockmgr import BlockMgr
-from bblockermgr import BitBlockerMgr
+from bblocker import BitBlocker
 import copy
 
 class VKRepoitory:
     def __init__(self, snode):
-        self.bdic1 = {}     # {bit: [k1n, k1n,..], bit:[], ..}
+        self.bdic1 = {}     # {bit: bblocker, bit:bblocker, ..}
         self.bdic2 = {}     # {bit: [k2n, k2n,..], bit:[], ..}
         self.k1ns = []      # [k1n, k1n,..]
         self.vk2dic = {}    # {k2n:vk2, k2n: vk2,...}
-        self.bbmgr = BitBlockerMgr(self)
         self.blckmgr = BlockMgr(self)
         self.excls = {}     # {kn:[node, node,..],..} vk not 2b used in nodes
         self.snode = snode  # related snode
@@ -32,6 +31,20 @@ class VKRepoitory:
             xrepo.excls[kn] = [copy.deepcopy(node) for node in lst]
         return xrepo
     
+    def filter_vk2s(self):
+        # in local-mode (inside snode, no merge across snodes)
+        # check vk2s against bit-blockers: if vk2.cvs get cut, or
+        # new bit-blocker generated from b-t-blocker<->vk2
+        bit12 = set(self.bdic1).intersection(self.bdic2)
+        for b in bit12:
+            k2ns = self.bdic2[b]
+            for kn in k2ns:
+                vk2 = self.vk2dic[kn]
+                val = vk2.dic[b]
+                for v in self.bdic1[b]:
+                    # v != val-> gen new vk1, v == val -> only reduce vk2.cvs
+                    self.bdic1[b][val].filter_vk2(vk2, v != val)
+
     def add_snode_root(self, bgrid):
         bdic1_rbits = sorted(set(self.bdic1).intersection(bgrid.bits))
         for rb1 in bdic1_rbits:
@@ -70,27 +83,6 @@ class VKRepoitory:
                     new_vk1.source = vk2.kname
                     self.add_vk1(new_vk1)
     # end of def add_snode_root(self, bgrid):
-
-    def newvk1_to_vk1(self, nvk, ovk, add_nvk=False): 
-        # new-vk1 and old-vk1 are sitting on the same bit
-        if nvk.val != ovk.val:
-            cmm = cvs_intersect(nvk, ovk)
-            if cmm: 
-                infokey = tuple(sorted([nvk.kname, ovk.kname]))
-                self.inflog.setdefault(infokey,[])\
-                    .append("resulted in block:"+str(cmm))
-                block_added = self.blckmgr.add_block(cmm)
-            if add_nvk:
-                self.insert_vk1(nvk)
-            return True # no duplicated old-vk1 existing
-        else: # b/v == b/v
-            return vk1s_unify_test(nvk, ovk) # vnk/d1, ovk/d2
-
-    def insert_vk1(self, vk1, add2center): # simply add vk1 to the repo
-        self.k1ns.append(vk1.kname)
-        self.bdic1.setdefault(vk1.bit,[]).append(vk1.kname)
-        if add2center:
-            Center.add_vk1(vk1)
     
     def insert_vk2(self, vk2):
         name = vk2.kname
@@ -101,78 +93,17 @@ class VKRepoitory:
             self.bdic2.setdefault(b2,[]).append(name)
         self.vk2dic[name] = vk2
 
-    def newvk1_to_vk2(self, nvk, vk2):
-        '''# when a vk1 shares 1 bit with an existing vk2, and vk1 and vk2 
-        # have no intersect in cvs, return - nothing happens. But if they
-        # do have cvs-intersection(cmm) on their common nov, then 2 cases:
-        # 1. vk1.val == vk2.dic[bit] -> vk2's cvs(on the same nov) 
-        #    reduces by cmm
-        # 2. vk1.val != vk2.dic[bit] -> 
-        #    2.1: vk2's cvs(on the same nov) 
-        #    2.2: new vk1 is generated for the other bit, with cmm'''
-        cmm = cvs_intersect(nvk, vk2)
-        if not cmm: return
-        self.add_excl(vk2, copy.deepcopy(cmm))
-        if vk2.dic[nvk.bit] != nvk.val:
-            name = NameDrive.uname()
-            new_vk1 = vk2.clone(name, [nvk.bit], cmm)
-            new_vk1.source = vk2.kname
-            self.add_vk1(new_vk1)
 
-    def add_vk1(self, vk1, add2center=True):
-        if self.driver: 
-            expand_vk1s(self, vk1)
-        # print(vk1.po())
-        add_newvk1 = True
-        # handle with existing vk1s: only block/excl added. No new-vk1
-        if vk1.bit in self.bdic1:
-            for kn in self.bdic1[vk1.bit]:
-                if not self.newvk1_to_vk1(vk1, Center.vk1dic[kn]):
-                    # vk1 has duplicate on this bit. 
-                    # vk1.kname be recycled, and vk1 not be added into repo
-                    NameDrive.recycle_name(vk1.kname)
-                    add_newvk1 = False
-                    break
-        if add_newvk1:
-            self.insert_vk1(vk1, add2center)
-        # handle with vk2s. possibly new-vk1 be generated
-        if vk1.bit in self.bdic2:
-            for kn in self.bdic2[vk1.bit]: # all vk2 are named 'Cnnnn'
-                if vk1.source == kn: continue
-                vk = self.vk2dic[kn]
-                self.newvk1_to_vk2(vk1, vk)
-
-    def handle_vk1_block(self, vk1):
-        # for a newly found vk1, see if an opposite vk(1) exists in this
-        # repo, and if yes do the two generat a block? if yes, put it in
-        if vk1.kname in self.k1ns or vk1.bit not in self.bdic1: 
-            return
-        for kn in self.bdic1[vk1.bit]:
-            vk = Center.vk1dic[kn]
-            if vk.val != vk1.val:
-                cmm = cvs_intersect(vk, vk1)
-                if cmm: 
-                    block_added = self.blckmgr.add_block(cmm)
-                    x = 9
+    def add_bblocker(self, bit, val, node, info=None):
+        # BitBlocker(bit, self)
+        bb_dic = self.bdic1.setdefault(bit, {})
+        bb_dic[val] = BitBlocker(bit, val, self)
+        bb_dic[val].add(node, info, None)
 
     def add_vk2(self, vk2):
-        # print(vk2.po())
-        for b in vk2.bits:
-            if b in self.bdic1:
-                kns = self.bdic1[b]  # for loop variable must be immutable
-                for kn in kns:
-                    vk1 = Center.vk1dic[kn]
-                    cmm = cvs_intersect(vk1, vk2)
-                    if not cmm: continue
-                    self.add_excl(vk2, copy.deepcopy(cmm))
-                    if vk2.dic[b] != vk1.val:
-                        if len(cmm) == 1:
-                            name = NameDrive.tname()
-                        else:
-                            name = NameDrive.uname()
-                        new_vk1 = vk2.clone(name,[b], cmm)
-                        new_vk1.source = vk2.kname
-                        self.add_vk1(new_vk1)
+        bits = set(self.bdic1).intersection(vk2.bits)
+        for bit in bits:
+            self.bdic1[bit].check_vk2(vk2)
         self.insert_vk2(vk2)
         # handle case of 2 overlapping bits with existing vk2
         self.proc_vk2pair(vk2) # if vk2 has a twin in vk2dic

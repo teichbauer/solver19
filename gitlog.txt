@@ -1,3 +1,11 @@
+2024-11-09->19.375
+- VKlause.add_cvs adds optional nov to add cvs to node-dict, if None add to set
+- minor change in basics/print_vkdic -> print_vkdic
+- new: cvsnodetools.py to replace cvsnode.py TBD
+- bblockermgr -> bblocker 
+- remove repo.bbmgr, now repo.bdic1[bit] = {0:BitBlocker, 1:BitBlocker}, more...
+- snode stop using make_taildic, now using fill_repo
+- refactoring vkrepo ongoing.
 2024-11-06->19.374
 - re-structure the file-tree: put utilities under utils
 - intro: cvsnode.py/class-CVS, class Node. Going to use them under vk, and more

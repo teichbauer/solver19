@@ -24,8 +24,9 @@ class SatNode:
         self.choice = vkm.make_choice(self.nov) # (vals, bits, t2s, t1s)
         self.bgrid = BitGrid(self)
         self.vkrepo = VKRepoitory(self)
-        self.taildic = {v: STail(self, v) for v in self.choice[0] }
-        self.make_taildic()  # make taildic
+        self.fill_repo()
+        # self.taildic = {v: STail(self, v) for v in self.choice[0] }
+        # self.make_taildic()  # make taildic
         Center.slice(self)
         self.next = None
         self.next_sh = self.sh.reduce(self.bgrid.bits)
@@ -33,6 +34,22 @@ class SatNode:
             self.logfile = open("logfile.txt",'a')
         else:
             self.logfile = None
+
+    def fill_repo(self):
+        repo = self.vkrepo
+        for kn in self.choice[2] + self.choice[3]: 
+            if kn in self.vkm.vkdic:
+                vk = self.vkm.pop_vk(kn)
+                vk.nov = self.nov
+                vk12 = self.bgrid.reduce_vk(vk)
+                if vk12.nob == 1:
+                    repo.add_bblocker(vk12.bit, vk12.val, 
+                                     {self.nov: vk12.cvs},
+                        [f"from {vk12.kname}: {vk12.bit}/{vk12.val}"])
+                else:
+                    repo.insert_vk2(vk12)
+        repo.filter_vk2s() # process vk2s touching bit-blockers
+
 
     def make_taildic(self):
         # all vk(kn) touching 1, or 2 bit o f snode's root

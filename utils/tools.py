@@ -258,16 +258,6 @@ def expand_excls(repo):
         for dic in lst:
             fill_dict(repo.driver.chvdic, dic)
 
-def is_single(node):
-    for cvs in node.values():
-        if len(cvs) > 1: return False
-    return True
-
-def break_node(node, Seq):
-    # all values in node is a single valued set - node is single, no break
-    if is_single(node): return True 
-    return Seq(node) # returna generator
-
 def print_vk2dic(vk2dic):
     for vk in vk2dic.values():
         print(vk.po())

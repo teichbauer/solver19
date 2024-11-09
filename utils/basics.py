@@ -32,11 +32,11 @@ def pd(dic, more_space=False):
     dstr += "}"
     return dstr
 
-def print_vkdic(vk):
+def print_dic(dic):
     dstr = ""
-    for b in vk.bits:
+    for b in sorted(dic, reverse=True):
         bstr = str(b).rjust(2,' ')
-        dstr += f"{bstr}-{vk.dic[b]} "
+        dstr += f"{bstr}-{dic[b]} "
     dstr = dstr.strip()
     return "[" + dstr + "]"
 

@@ -178,9 +178,12 @@ class VKlause:
                 return False
         return True
 
-    def pop_cvs(self, cvs):
+    def pop_cvs(self, cvs, nv=None):
         for cv in cvs:
-            if cv in self.cvs:
+            if nv:
+                if cv in self.cvs[nv]:
+                    self.cvs[nv].remove(cv)
+            elif cv in self.cvs:
                 self.cvs.remove(cv)
             
     def add_cvs(self, cvs, nv=None):

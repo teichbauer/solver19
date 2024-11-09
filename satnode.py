@@ -48,7 +48,8 @@ class SatNode:
                         [f"from {vk12.kname}: {vk12.bit}/{vk12.val}"])
                 else:
                     repo.insert_vk2(vk12)
-        repo.filter_vk2s() # process vk2s touching bit-blockers
+        bdic1_bits = set(repo.bdic1)
+        repo.filter_vk2s(bdic1_bits) # process vk2s touching bit-blockers
 
 
     def make_taildic(self):

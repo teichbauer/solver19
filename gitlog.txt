@@ -1,3 +1,5 @@
+2024-11-09->19.376
+- fixes in bblocker, satnode, vkrepo
 2024-11-09->19.375
 - VKlause.add_cvs adds optional nov to add cvs to node-dict, if None add to set
 - minor change in basics/print_vkdic -> print_vkdic

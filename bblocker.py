@@ -33,7 +33,7 @@ class BitBlocker:
 
     def filter_vk2(self, vk2, new_vk1): # vk2 can generate vk1 or not: (T/F)
         if new_vk1:
-            vk1 = vk2.clone('_', [self.bit], {vk2.nov: set()})
+            vk1 = vk2.clone('NewVk', [self.bit], {vk2.nov: set()})
         else: vk1 = None
         for nd in self.nodes:
             nv, cvs = tuple(nd.items())[0] # nd can only have 1 nv/cvs entry
@@ -45,13 +45,9 @@ class BitBlocker:
         if vk1 and len(vk1.cvs[vk2.nov]) > 0:
             bb_dic = self.repo.bdic1.setdefault(vk1.bit, {})
             bb = bb_dic[vk1.val] = BitBlocker(vk1.bit, vk1.val, self.repo)
-            bb.add(vk1.cvs, [f"from {vk2.kname}: {vk1.bit}/{vk1.val}"]) 
-            if vk1.bit in self.repo.bdic2:
-                kns = self.bdic2[vk1.bit]
-                for kn in kns:
-                    xvk2 = self.repo.vk2dic[kn]
-                    xval = xvk2.dic[vk1.bit]
-                    bb.filter_vk2(xvk2, vk1.val != xval)
+            bb.add(vk1.cvs, [f"from {vk2.kname}: {vk1.bit}/{vk1.val}"])
+            return vk1
+        return None
 
     def merge_add(self, val, node, info=None, nlst=None):
         pass

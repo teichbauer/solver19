@@ -31,11 +31,12 @@ class VKRepoitory:
             xrepo.excls[kn] = [copy.deepcopy(node) for node in lst]
         return xrepo
     
-    def filter_vk2s(self):
+    def filter_vk2s(self, bb_bits):
         # in local-mode (inside snode, no merge across snodes)
         # check vk2s against bit-blockers: if vk2.cvs get cut, or
         # new bit-blocker generated from b-t-blocker<->vk2
-        bit12 = set(self.bdic1).intersection(self.bdic2)
+        bit12 = bb_bits.intersection(self.bdic2)
+        new_bb_bits = set()
         for b in bit12:
             k2ns = self.bdic2[b]
             for kn in k2ns:
@@ -43,7 +44,13 @@ class VKRepoitory:
                 val = vk2.dic[b]
                 for v in self.bdic1[b]:
                     # v != val-> gen new vk1, v == val -> only reduce vk2.cvs
-                    self.bdic1[b][val].filter_vk2(vk2, v != val)
+                    # in case of new-vk1, collect vk1.bit into new_bb_bits
+                    new_vk1 = self.bdic1[b][v].filter_vk2(vk2, v != val)
+                    if new_vk1: new_bb_bits.add(new_vk1.bit)
+        if len(new_bb_bits) > 0:
+            # these bits are new, recursion on them
+            self.filter_vk2s(new_bb_bits)
+
 
     def add_snode_root(self, bgrid):
         bdic1_rbits = sorted(set(self.bdic1).intersection(bgrid.bits))
@@ -98,7 +105,7 @@ class VKRepoitory:
         # BitBlocker(bit, self)
         bb_dic = self.bdic1.setdefault(bit, {})
         bb_dic[val] = BitBlocker(bit, val, self)
-        bb_dic[val].add(node, info, None)
+        bb_dic[val].add(node, info)
 
     def add_vk2(self, vk2):
         bits = set(self.bdic1).intersection(vk2.bits)

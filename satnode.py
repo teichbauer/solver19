@@ -45,9 +45,10 @@ class SatNode:
                 if vk12.nob == 1:
                     repo.add_bblocker(vk12.bit, vk12.val, 
                                      {self.nov: vk12.cvs},
-                        [f"from {vk12.kname}: {vk12.bit}/{vk12.val}"])
+                                     [f"from {vk12.kname}"])
                 else:
                     repo.insert_vk2(vk12)
+                    repo.proc_vk2pair(vk12)
         bdic1_bits = set(repo.bdic1)
         repo.filter_vk2s(bdic1_bits) # process vk2s touching bit-blockers
 

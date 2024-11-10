@@ -14,13 +14,19 @@ class BitBlocker:
 
     def add(self, node, infos=None):
         if is_single(node):
-            node_to_lst(node, self.nodes)
+            added = node_to_lst(node, self.nodes)
         else:
             doit = node_seq(node)
             while not doit.done:
                 nd = doit.get_next()
                 self.add(nd, infos)
-        if len(infos) > 0: self.log.append(infos.pop())
+        if len(infos) > 0: 
+            msg = infos.pop()
+            if added:
+                msg += ":added"
+            else:
+                msg += ":not added"
+            self.log.append(msg)
         return self
 
     def filter_nodes(self, nodes, nd):
@@ -44,8 +50,9 @@ class BitBlocker:
             if vk1: vk1.add_cvs(cmm, vk2.nov)
         if vk1 and len(vk1.cvs[vk2.nov]) > 0:
             bb_dic = self.repo.bdic1.setdefault(vk1.bit, {})
-            bb = bb_dic[vk1.val] = BitBlocker(vk1.bit, vk1.val, self.repo)
-            bb.add(vk1.cvs, [f"from {vk2.kname}: {vk1.bit}/{vk1.val}"])
+            bb = bb_dic.setdefault(vk1.val, 
+                                   BitBlocker(vk1.bit, vk1.val, self.repo))
+            bb.add(vk1.cvs, [f"from {vk2.kname}"])
             return vk1
         return None
 

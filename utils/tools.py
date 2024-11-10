@@ -1,6 +1,5 @@
 from utils.basics import *
 from center import Center
-from utils.namedrive import NameDrive
 import copy
 
 def outputlog(repo, vk1dic):
@@ -165,30 +164,23 @@ def handle_vk2pair(vkx, vky):
     if vkx.nov == vky.nov:
         cmm = vkx.cvs.intersection(vky.cvs)
         if len(cmm) > 0:
-            name = NameDrive.dname()
             vkx.cvs -= cmm
             vky.cvs -= cmm
             if vkx.dic[b1] == vky.dic[b1]:
                 if vkx.dic[b2] != vky.dic[b2]:
-                    new_vk1 = vkx.clone(name, [b2], cmm)
+                    new_vk1 = vkx.clone("NewVk", [b2], {vkx.nov:cmm})
             elif vkx.dic[b2] == vky.dic[b2]:
                 if vkx.dic[b1] != vky.dic[b1]:
-                    new_vk1 = vkx.clone(name, [b1], cmm)
+                    new_vk1 = vkx.clone("NewVk", [b1], {vkx.nov:cmm})
     else: # vkx.nov != vky.nov
         node = {vkx.nov: vkx.cvs.copy(), vky.nov: vky.cvs.copy()}
-        name = NameDrive.dname()
         if vkx.dic[b1] == vky.dic[b1]:
             if vkx.dic[b2] != vky.dic[b2]:
-                new_vk1 = vkx.clone(name, [b2], node)
+                new_vk1 = vkx.clone("NewVk", [b2], node)
         elif vkx.dic[b2] == vky.dic[b2]:
             if vkx.dic[b1] != vky.dic[b1]:
-                new_vk1 = vkx.clone(name, [b1], node)
-    if new_vk1:
-        new_vk1.source = vkx.kname
-        if type(new_vk1.cvs) == set:
-            new_vk1.cvs = {new_vk1.nov: new_vk1.cvs}
-        return new_vk1
-    return None
+                new_vk1 = vkx.clone("NewVk", [b1], node)
+    return new_vk1
 
 def test_containment(d1, d2): # d1: new, d2: old. both are dict
     diffs = []

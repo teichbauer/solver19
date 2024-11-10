@@ -1,3 +1,8 @@
+2024-11-09->19.377
+- in tools.py remove NameDrive in handle_vk2pair
+- BitBlocker.add: adding node result(deede/not added) suffix into log-info
+  fix in filter_vk2
+- vkrepo fix in add_bblocker, proc_vk2pair
 2024-11-09->19.376
 - fixes in bblocker, satnode, vkrepo
 2024-11-09->19.375

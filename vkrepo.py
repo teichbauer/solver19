@@ -35,7 +35,7 @@ class VKRepoitory:
         # in local-mode (inside snode, no merge across snodes)
         # check vk2s against bit-blockers: if vk2.cvs get cut, or
         # new bit-blocker generated from b-t-blocker<->vk2
-        bit12 = bb_bits.intersection(self.bdic2)
+        bit12 = sorted(bb_bits.intersection(self.bdic2))
         new_bb_bits = set()
         for b in bit12:
             k2ns = self.bdic2[b]
@@ -104,8 +104,8 @@ class VKRepoitory:
     def add_bblocker(self, bit, val, node, info=None):
         # BitBlocker(bit, self)
         bb_dic = self.bdic1.setdefault(bit, {})
-        bb_dic[val] = BitBlocker(bit, val, self)
-        bb_dic[val].add(node, info)
+        bb = bb_dic.setdefault(val, BitBlocker(bit, val, self))
+        bb.add(node, info)
 
     def add_vk2(self, vk2):
         bits = set(self.bdic1).intersection(vk2.bits)
@@ -129,8 +129,9 @@ class VKRepoitory:
             _vk2 = self.vk2dic[xkns.pop()]
             vk1 = handle_vk2pair(vk2, _vk2)
             if vk1: 
-                if self.driver: expand_vk1s(self, vk1)
-                self.add_vk1(vk1)
+                self.add_bblocker(
+                        vk1.bit, vk1.val,vk1.cvs,
+                        [f"from double of {vk2.kname}+{_vk2.kname}"])
 
     def add_excl(self, vk2, node):
         if len(node) == 1: # in case node has only 1 entry like {60:{3,7}

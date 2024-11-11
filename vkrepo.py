@@ -1,16 +1,14 @@
 from center import Center
 from utils.basics import pd
 from utils.tools import *
-from utils.namedrive import NameDrive
 from blockmgr import BlockMgr
-from bblocker import BitBlocker
+from bblocker import *
 import copy
 
 class VKRepoitory:
     def __init__(self, snode):
         self.bdic1 = {}     # {bit: bblocker, bit:bblocker, ..}
         self.bdic2 = {}     # {bit: [k2n, k2n,..], bit:[], ..}
-        self.k1ns = []      # [k1n, k1n,..]
         self.vk2dic = {}    # {k2n:vk2, k2n: vk2,...}
         self.blckmgr = BlockMgr(self)
         self.excls = {}     # {kn:[node, node,..],..} vk not 2b used in nodes
@@ -21,14 +19,14 @@ class VKRepoitory:
     def clone(self, driver):
         xrepo = VKRepoitory(self.snode)
         xrepo.driver = driver   # pathfinder
-        xrepo.bdic1 = {b: lst[:] for b, lst in self.bdic1.items()}
+        xrepo.bdic1 = {b:{v: bb.clone(self) for v, bb in bbdic.items()} 
+                       for b, bbdic in self.bdic1.items()}
         xrepo.bdic2 = {b: lst[:] for b, lst in self.bdic2.items()}
-        xrepo.k1ns = self.k1ns[:]
         xrepo.vk2dic = {kn:vk2 for kn, vk2 in self.vk2dic.items()}
         xrepo.blckmgr  = self.blckmgr.clone(xrepo)
-        xrepo.bbmgr = self.bbmgr.clone(xrepo)
         for kn, lst in self.excls.items():
             xrepo.excls[kn] = [copy.deepcopy(node) for node in lst]
+        xrepo.inflog = self.inflog.copy()
         return xrepo
     
     def filter_vk2s(self, bb_bits):
@@ -55,18 +53,10 @@ class VKRepoitory:
     def add_snode_root(self, bgrid):
         bdic1_rbits = sorted(set(self.bdic1).intersection(bgrid.bits))
         for rb1 in bdic1_rbits:
-            for k1n in self.bdic1[rb1]:
-                vk1 = Center.vk1dic[k1n]
-                cvs = bgrid.cvs_subset(vk1.bit, vk1.val)
-                # these cvs are hits with vk1.cvs node
-                if type(vk1.cvs) == set:
-                    block_added = self.blckmgr.add_block(
-                        fill_dict(self.driver.chvdic,
-                                  {vk1.nov: cvs.intersection(vk1.cvs)})
-                    )
-                else:
-                    nd = copy.deepcopy(vk1.cvs)
-                    nd[bgrid.nov] = cvs
+            for bb in self.bdic1[rb1].values():
+                cvs = bgrid.cvs_subset(bb.bit, bb.val)
+                nd = fill_nvs({bgrid.nov: cvs})
+                if bb.add(nd, [f"from {bgrid.nov}-root:{cvs}"]):
                     block_added = self.blckmgr.add_block(nd)
         # handle vk2s bouncing with bgrid.bits
         cmm_rbits = sorted(set(self.bdic2).intersection(bgrid.bits))
@@ -85,10 +75,9 @@ class VKRepoitory:
                     node = fill_dict(self.driver.chvdic,
                             {vk2.nov: vk2.cvs.copy(), bgrid.nov: x_cvs_subset})
                     self.add_excl(vk2, copy.deepcopy(node))
-                    name = NameDrive.rname()
-                    new_vk1 = vk2.clone(name, [rb], node) # R prefix, drop rb
-                    new_vk1.source = vk2.kname
-                    self.add_vk1(new_vk1)
+                    new_vk1 = vk2.clone("NewVk", [rb], node) # R prefix, drop rb
+                    self.add_bblocker(new_vk1.bit, new_vk1.val, node,
+                                      [f"from R57-{rb}+{vk2.kname}"])
     # end of def add_snode_root(self, bgrid):
     
     def insert_vk2(self, vk2):

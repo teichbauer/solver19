@@ -1,7 +1,4 @@
-from center import Center
-from utils.sequencer import Sequencer
 from utils.cvsnodetools import *
-import copy
 
 class BitBlocker:
     # on a bit in repo.bdic1: {bit: {0: BitBlocker(), 1:BitBlocker()}}
@@ -11,6 +8,31 @@ class BitBlocker:
         self.nodes = [] # list of nodes
         self.repo = repo
         self.log = []
+
+    def clone(self, repo):
+        ninst = BitBlocker(self.bit, self.val, repo)
+        ninst.nodes = [copy.deepcopy(n) for n in self.nodes]
+        ninst.log = self.log.copy()
+        return ninst
+
+    def merge(self, bb):
+        x = 0
+
+    def spousal_conflict(self, chvdict):
+        blocks = []
+        for other_node in self.spouse.nodes:
+            for node in self.nodes:
+                res = node_intersect(node, other_node)
+                if res != None:
+                    blocks.append(res)
+        for bl in blocks:
+            self.subtr_node(bl)
+            self.spouse.subtr_node(bl)
+            self.repo.blckmgr.add_block(bl)
+
+    def subtr_node(self, node):
+        pass
+
 
     def add(self, node, infos=None):
         if is_single(node):

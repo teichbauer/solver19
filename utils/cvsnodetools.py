@@ -31,6 +31,12 @@ def is_single(node):
 def node_seq(node):
     return Sequencer(node) # returna generator
 
+def fill_nvs(node, nvs):
+    for nv in nvs:
+        if nv not in node:
+            node[nv] = {'*'}
+    return node
+
 def fill_missing(node1, node2):
     nvs1 = sorted(node1)
     nvs2 = sorted(node2)
@@ -63,5 +69,8 @@ def node_to_lst(node, lst): # add node to lst, if node is not contained in it.
         if node1_C_node2(nd, node): return False
     lst.append(node)
     return True
+
+def subtract(node, delta_node):
+    x = 9
 
 

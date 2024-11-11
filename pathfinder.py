@@ -3,7 +3,7 @@ from utils.tools import *
 class PathFinder:
     def __init__(self, start_snode):
         self.snode = start_snode
-        self.repo = start_snode.vkrepo.clone(self)
+        self.repo = start_snode.repo.clone(self)
         self.steps = [self.snode.nov]
         self.chvdic = {start_snode.nov: start_snode.bgrid.chvals[:]}
 
@@ -17,13 +17,20 @@ class PathFinder:
     def grow(self, sn):
         self.steps.append(sn.nov)
         self.chvdic[sn.nov] = sn.bgrid.chvals[:]
-        expand_vk1s(self.repo)
-        expand_excls(self.repo)
-        self.repo.blckmgr.expand()
+        # self.repo.blckmgr.expand()
         self.repo.add_snode_root(sn.bgrid)
-        for k1n in sn.vkrepo.k1ns:
-            self.repo.add_vk1(Center.vk1dic[k1n])
-        for vk2 in sn.vkrepo.vk2dic.values():
+        for bit, bbdic in sn.repo.bdic1.items():
+            dic = self.repo.bdic1.setdefault(bit, {})
+            for v, bb in bbdic.items():
+                if v in dic:
+                    dic[v].merge(bb)
+                else:
+                    dic[v] = bb.clone(self.repo)
+            if len(dic) == 2:
+                dic[0].spouse = dic[1]
+                dic[1].spouse = dic[0]
+                dic[0].spousal_conflict(self.chvdic)
+        for vk2 in sn.repo.vk2dic.values():
             self.repo.add_vk2(vk2)
         x = 9
 

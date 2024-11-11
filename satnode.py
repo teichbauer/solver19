@@ -23,10 +23,8 @@ class SatNode:
         # choice[0]: chvals, [1]: vk3s, [2]: touchd 2 bits, [3]: touched 1 bit
         self.choice = vkm.make_choice(self.nov) # (vals, bits, t2s, t1s)
         self.bgrid = BitGrid(self)
-        self.vkrepo = VKRepoitory(self)
+        self.repo = VKRepoitory(self)
         self.fill_repo()
-        # self.taildic = {v: STail(self, v) for v in self.choice[0] }
-        # self.make_taildic()  # make taildic
         Center.slice(self)
         self.next = None
         self.next_sh = self.sh.reduce(self.bgrid.bits)
@@ -36,7 +34,7 @@ class SatNode:
             self.logfile = None
 
     def fill_repo(self):
-        repo = self.vkrepo
+        repo = self.repo
         for kn in self.choice[2] + self.choice[3]: 
             if kn in self.vkm.vkdic:
                 vk = self.vkm.pop_vk(kn)
@@ -52,32 +50,6 @@ class SatNode:
         bdic1_bits = set(repo.bdic1)
         repo.filter_vk2s(bdic1_bits) # process vk2s touching bit-blockers
 
-
-    def make_taildic(self):
-        # all vk(kn) touching 1, or 2 bit o f snode's root
-        for kn in self.choice[2] + self.choice[3]: 
-            if kn in self.vkm.vkdic:
-                vk = self.vkm.pop_vk(kn)
-                vk.nov = self.nov
-                vk12 = self.bgrid.reduce_vk(vk)
-                if vk12.nob == 1:  # touched 2 bits, vk12 is vk1: C0212->S0212
-                    # vk12.kname = NamePool(vk.kname).next_sname()
-                    vk12.kname = NameDrive.sname()
-                    vk12.cvs = {self.nov: vk12.cvs}
-                    vk12.source = vk.kname
-                    self.vkrepo.add_vk1(vk12)
-                    self.vkrepo.bbmgr.add(vk12)
-                else:
-                    self.vkrepo.add_vk2(vk12)
-        for vk2 in self.vkrepo.vk2dic.values():
-            for cv in vk2.cvs:
-                self.taildic[cv].add_vk(vk2)
-        for k1n in self.vkrepo.k1ns:
-            vk1 = self.Center.vk1dic[k1n]
-            for cv in vk1.cvs[vk1.nov]:
-                self.taildic[cv].add_vk(vk1)
-        x = 0
-
     def spawn(self):
         if len(self.vkm.vkdic) > 0:  # there exist vk3 in vkm.vkdic, make next
             self.next = SatNode(self, self.next_sh.clone(), self.vkm)
@@ -87,7 +59,7 @@ class SatNode:
             Center.sat_pool = [] # list of sat-path(dics)
             print(f"NOV:{self.nov}")
             pathfinder = PathFinder(Center.snodes[60])
-            # pathrepo = Center.snodes[60].vkrepo.clone()
+            # pathrepo = Center.snodes[60].repo.clone()
             pathfinder.grow(Center.snodes[57])
             # pathrepo.write_logmsg('./logs/loginfo.txt')
             pathfinder.grow(Center.snodes[54])
@@ -190,10 +162,3 @@ class SatNode:
             if chval in bkval:
                 return bk_ind
         return -1
-
-    def tail_bits(self, incl_root=False):
-        print(f'my nov: {self.nov}')
-        bits = set(self.vkrepo.bdic2)
-        if incl_root:
-            bits.update(self.bgrid.bits)
-        return bits

@@ -3,6 +3,7 @@ from utils.basics import pd
 from utils.tools import *
 from blockmgr import BlockMgr
 from bblocker import *
+from exclmgr import ExclMgr
 import copy
 
 class VKRepoitory:
@@ -11,7 +12,7 @@ class VKRepoitory:
         self.bdic2 = {}     # {bit: [k2n, k2n,..], bit:[], ..}
         self.vk2dic = {}    # {k2n:vk2, k2n: vk2,...}
         self.blckmgr = BlockMgr(self)
-        self.excls = {}     # {kn:[node, node,..],..} vk not 2b used in nodes
+        self.exclmgr = ExclMgr(self)
         self.snode = snode  # related snode
         self.driver = None
         self.inflog = {}    # {key:[info,info,..], key:[], ...}
@@ -24,8 +25,7 @@ class VKRepoitory:
         xrepo.bdic2 = {b: lst[:] for b, lst in self.bdic2.items()}
         xrepo.vk2dic = {kn:vk2 for kn, vk2 in self.vk2dic.items()}
         xrepo.blckmgr  = self.blckmgr.clone(xrepo)
-        for kn, lst in self.excls.items():
-            xrepo.excls[kn] = [copy.deepcopy(node) for node in lst]
+        xrepo.exclmgr = self.exclmgr.clone(xrepo)
         xrepo.inflog = self.inflog.copy()
         return xrepo
     
@@ -74,7 +74,8 @@ class VKRepoitory:
                     x_cvs_subset = bgrid.cvs_subset(rb, vk2.dic[rb])
                     node = fill_dict(self.driver.chvdic,
                             {vk2.nov: vk2.cvs.copy(), bgrid.nov: x_cvs_subset})
-                    self.add_excl(vk2, copy.deepcopy(node))
+                    self.exclmgr.add(vk2, copy.deepcopy(node))
+                    # self.add_excl(vk2, copy.deepcopy(node))
                     new_vk1 = vk2.clone("NewVk", [rb], node) # R prefix, drop rb
                     self.add_bblocker(new_vk1.bit, new_vk1.val, node,
                                       [f"from R57-{rb}+{vk2.kname}"])
@@ -99,7 +100,16 @@ class VKRepoitory:
     def add_vk2(self, vk2):
         bits = set(self.bdic1).intersection(vk2.bits)
         for bit in bits:
-            self.bdic1[bit].check_vk2(vk2)
+            bb_dic = self.bdic1[bit]
+            vk2_node = fill_nvs({vk2.nov: vk2.cvs}, self.driver.steps)
+            for v in bb_dic:
+                cmm = bb_dic[v].intersect(vk2_node)
+                if len(cmm) > 0:
+                    self.exclmgr.add(vk2, cmm)
+                if v != vk2.dic[bit]:
+                    vk1 = vk2.clone("NewVk", [bit], cmm)
+                    self.add_bblocker(vk1.bit, vk1.val, cmm,
+                                      [f"from {vk2.kname}"])
         self.insert_vk2(vk2)
         # handle case of 2 overlapping bits with existing vk2
         self.proc_vk2pair(vk2) # if vk2 has a twin in vk2dic
@@ -122,29 +132,29 @@ class VKRepoitory:
                         vk1.bit, vk1.val,vk1.cvs,
                         [f"from double of {vk2.kname}+{_vk2.kname}"])
 
-    def add_excl(self, vk2, node):
-        if len(node) == 1: # in case node has only 1 entry like {60:{3,7}
-            nov, cvs = tuple(node.items())[0] # like {60:{3,7}}->60, {3,7}
-            if nov == vk2.nov:  # vk2,cvs:{2,3,6,7}
-                vk2.cvs -= cvs  # vk2.cvs -> {2,6}
-                return True
-        lst = self.excls.setdefault(vk2.kname, [])
-        if node in lst: return False
-        for ind, old_dic in enumerate(lst):
-            cont = test_containment(node, old_dic)  # param-names: (d1, d2)
-            if not cont: continue
-            if cont['cat'].startswith('contain'):
-                # {cat: "contain: d1 in d2"}: 
-                # user the container, dump the other
-                container = cont['cat'].split(':')[1].split()[-1] # d2
-                if container == 'd2': # old_dic is the container
-                    return False
-                elif container == 'd1':
-                    lst[ind] = node           # node replace that one
-                    return True               # node has been "added"
-            if cont['cat'] == "mergable": # merge on mergable nov into old_dic
-                nv = cont['merge-nov']
-                old_dic[nv].update(node[nv])
-                return True  # don't put into lst, since already to old-dic
-        lst.append(node)
-        return True
+    # def add_excl(self, vk2, node):
+    #     if len(node) == 1: # in case node has only 1 entry like {60:{3,7}
+    #         nov, cvs = tuple(node.items())[0] # like {60:{3,7}}->60, {3,7}
+    #         if nov == vk2.nov:  # vk2,cvs:{2,3,6,7}
+    #             vk2.cvs -= cvs  # vk2.cvs -> {2,6}
+    #             return True
+    #     lst = self.excls.setdefault(vk2.kname, [])
+    #     if node in lst: return False
+    #     for ind, old_dic in enumerate(lst):
+    #         cont = test_containment(node, old_dic)  # param-names: (d1, d2)
+    #         if not cont: continue
+    #         if cont['cat'].startswith('contain'):
+    #             # {cat: "contain: d1 in d2"}: 
+    #             # user the container, dump the other
+    #             container = cont['cat'].split(':')[1].split()[-1] # d2
+    #             if container == 'd2': # old_dic is the container
+    #                 return False
+    #             elif container == 'd1':
+    #                 lst[ind] = node           # node replace that one
+    #                 return True               # node has been "added"
+    #         if cont['cat'] == "mergable": # merge on mergable nov into old_dic
+    #             nv = cont['merge-nov']
+    #             old_dic[nv].update(node[nv])
+    #             return True  # don't put into lst, since already to old-dic
+    #     lst.append(node)
+    #     return True

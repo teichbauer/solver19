@@ -15,8 +15,13 @@ class BitBlocker:
         ninst.log = self.log.copy()
         return ninst
 
-    def merge(self, bb):
-        x = 0
+    def merge(self, bb, nvs):
+        nds = []
+        bb = fill_nvs(bb, nvs)
+        for nd in self.nodes:
+            if bb.contains(nd): continue
+            nds.append(nd)
+        self.nodes = nds
 
     def spousal_conflict(self, chvdict):
         blocks = []
@@ -26,12 +31,17 @@ class BitBlocker:
                 if res != None:
                     blocks.append(res)
         for bl in blocks:
-            self.subtr_node(bl)
-            self.spouse.subtr_node(bl)
+            self.subtr_node(bl, chvdict)
+            self.spouse.subtr_node(bl, chvdict)
             self.repo.blckmgr.add_block(bl)
 
-    def subtr_node(self, node):
-        pass
+    def subtr_node(self, delta_node, chvdict):
+        res_nodes = []
+        for node in self.nodes:
+            node = subtract_delta_node(node, chvdict, delta_node)
+            if node: res_nodes.append(node)
+        self.nodes = res_nodes
+        x = 0
 
 
     def add(self, node, infos=None):
@@ -77,20 +87,16 @@ class BitBlocker:
             bb.add(vk1.cvs, [f"from {vk2.kname}"])
             return vk1
         return None
+    
+    def contains(self, node):
+        for nd in self.nodes:
+            if node1_C_node2(nd, node): return True
+        return False
 
-    def merge_add(self, val, node, info=None, nlst=None):
-        pass
-
-    def merge_check_vk2(self, vk2):
-        if self.bit not in vk2.bits: return # vk2 shares no bit
-        node = {vk2.nov: vk2.cvs}
-        val = vk2.dic[self.bit]
-        excl_nodes = self.ndic[val]
-        blck_nodes = self.ndic[flip(val)]
-
-        for nd in excl_nodes:
-            x = 0
-
-        for nd in blck_nodes:
-            x = 0
+    def intersect(self, node):
+        res = []
+        for nd in self.nodes:
+            cmm = node_intersect(nd, node)
+            if cmm: res.append(cmm)
+        return res
 

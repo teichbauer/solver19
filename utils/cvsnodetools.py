@@ -29,13 +29,19 @@ def is_single(node):
     return True
 
 def node_seq(node):
-    return Sequencer(node) # returna generator
+    return Sequencer(node) # return a generator
 
-def fill_nvs(node, nvs):
-    for nv in nvs:
-        if nv not in node:
-            node[nv] = {'*'}
-    return node
+def fill_nvs(node, nvs): # node can be a dict, or a BitBlocker-inst
+    if type(node) == dict:
+        for nv in nvs:
+            if nv not in node:
+                node[nv] = {'*'}
+        return node
+    # node is of class BitBlocker
+    bb = node
+    for nd in bb.nodes:
+        nd = fill_nvs(nd, nvs)
+    return bb
 
 def fill_missing(node1, node2):
     nvs1 = sorted(node1)
@@ -70,7 +76,13 @@ def node_to_lst(node, lst): # add node to lst, if node is not contained in it.
     lst.append(node)
     return True
 
-def subtract(node, delta_node):
-    x = 9
+def subtract_delta_node(node, chvdict, delta_node):
+    nvs = sorted(node)
+    for nv in nvs:
+        if node[nv] == {'*'}: node[nv] = set(chvdict[nv])
+        if delta_node[nv] == {'*'}: delta_node[nv] = set(chvdict[nv])
+    delta = node_intersect( node, delta_node)
+    if not delta: return node
+    if delta == node: return None
 
 

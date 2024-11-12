@@ -1,3 +1,5 @@
+2024-11-12->19.381
+- fix in vkrepo
 2024-11-11->19.380
 - refactor bblocker, cvsnodetools
 - new ExclMgr/Excl class, modified vkrepo using that in place of excls{}

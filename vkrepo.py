@@ -104,8 +104,8 @@ class VKRepoitory:
             vk2_node = fill_nvs({vk2.nov: vk2.cvs}, self.driver.steps)
             for v in bb_dic:
                 cmm = bb_dic[v].intersect(vk2_node)
-                if len(cmm) > 0:
-                    self.exclmgr.add(vk2, cmm)
+                if len(cmm) == 0: continue
+                self.exclmgr.add(vk2, cmm)
                 if v != vk2.dic[bit]:
                     vk1 = vk2.clone("NewVk", [bit], cmm)
                     self.add_bblocker(vk1.bit, vk1.val, cmm,
@@ -131,30 +131,3 @@ class VKRepoitory:
                 self.add_bblocker(
                         vk1.bit, vk1.val,vk1.cvs,
                         [f"from double of {vk2.kname}+{_vk2.kname}"])
-
-    # def add_excl(self, vk2, node):
-    #     if len(node) == 1: # in case node has only 1 entry like {60:{3,7}
-    #         nov, cvs = tuple(node.items())[0] # like {60:{3,7}}->60, {3,7}
-    #         if nov == vk2.nov:  # vk2,cvs:{2,3,6,7}
-    #             vk2.cvs -= cvs  # vk2.cvs -> {2,6}
-    #             return True
-    #     lst = self.excls.setdefault(vk2.kname, [])
-    #     if node in lst: return False
-    #     for ind, old_dic in enumerate(lst):
-    #         cont = test_containment(node, old_dic)  # param-names: (d1, d2)
-    #         if not cont: continue
-    #         if cont['cat'].startswith('contain'):
-    #             # {cat: "contain: d1 in d2"}: 
-    #             # user the container, dump the other
-    #             container = cont['cat'].split(':')[1].split()[-1] # d2
-    #             if container == 'd2': # old_dic is the container
-    #                 return False
-    #             elif container == 'd1':
-    #                 lst[ind] = node           # node replace that one
-    #                 return True               # node has been "added"
-    #         if cont['cat'] == "mergable": # merge on mergable nov into old_dic
-    #             nv = cont['merge-nov']
-    #             old_dic[nv].update(node[nv])
-    #             return True  # don't put into lst, since already to old-dic
-    #     lst.append(node)
-    #     return True

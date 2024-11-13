@@ -1,3 +1,5 @@
+2024-11-13->19.383
+- use python property in vkrepo.steps, chvdict, saving '()'.
 2024-11-13->19.382
 - in cvsnodetools, add nvs(steps) to fill_missing, ...
 - move chvdictas method from pathfinder to vkrepo, and steps too

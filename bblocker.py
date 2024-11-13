@@ -27,7 +27,7 @@ class BitBlocker:
         blocks = []
         for other_node in self.spouse.nodes:
             for node in self.nodes:
-                res = node_intersect(node, other_node, self.repo.steps())
+                res = node_intersect(node, other_node, self.repo.steps)
                 if res != None:
                     blocks.append(res)
         for bl in blocks:
@@ -38,7 +38,7 @@ class BitBlocker:
     def subtr_node(self, delta_node):
         res_nodes = []
         for node in self.nodes:
-            node = subtract_delta_node(node, delta_node, self.repo.chvdict())
+            node = subtract_delta_node(node, delta_node, self.repo.chvdict)
             if node: res_nodes.append(node)
         self.nodes = res_nodes
         x = 0
@@ -49,7 +49,7 @@ class BitBlocker:
             for nd in node:
                 self.add(nd, infos)
         elif is_single(node):
-            added = node_to_lst(node, self.nodes, self.repo.steps())
+            added = node_to_lst(node, self.nodes, self.repo.steps)
         else:
             doit = node_seq(node)
             while not doit.done:
@@ -67,7 +67,7 @@ class BitBlocker:
     def filter_nodes(self, nodes, nd):
         pnds = []
         for nx in nodes:
-            cmm = node_intersect(nx, nd, self.repo.steps())
+            cmm = node_intersect(nx, nd, self.repo.steps)
             if cmm:
                 pnds.append(cmm)
         return pnds
@@ -93,13 +93,13 @@ class BitBlocker:
     
     def contains(self, node):
         for nd in self.nodes:
-            if node1_C_node2(nd, node, self.repo.steps()): return True
+            if node1_C_node2(nd, node, self.repo.steps): return True
         return False
 
     def intersect(self, node):
         res = []
         for nd in self.nodes:
-            cmm = node_intersect(nd, node, self.repo.steps())
+            cmm = node_intersect(nd, node, self.repo.steps)
             if cmm: res.append(cmm)
         return res
 

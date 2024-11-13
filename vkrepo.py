@@ -30,9 +30,11 @@ class VKRepoitory:
         xrepo.inflog = self.inflog.copy()
         return xrepo
     
+    @property
     def steps(self):
         return sorted(self.snode_dic)
     
+    @property
     def chvdict(self):
         return {nv: sn.bgrid.chvals for nv, sn in self.sonde_dic.items()}
 
@@ -73,13 +75,13 @@ class VKRepoitory:
                 if set(vk2.bits).issubset(bgrid.bits):
                     hit_cvs = bgrid.vk2_hits(vk2)
                     print(f"{k2n} inside {bgrid.nov}-root, blocking {hit_cvs}")
-                    block = fill_dict(self.chvdict(),
+                    block = fill_dict(self.chvdict,
                                 {vk2.nov:vk2.cvs.copy(), bgrid.nov: hit_cvs})
                     block_added = self.blckmgr.add_block(block)
                 else:# vk1.cvs is compound  caused by overlapping 
                     # with xsn.root-bits, will be named with R-prefix
                     x_cvs_subset = bgrid.cvs_subset(rb, vk2.dic[rb])
-                    node = fill_dict(self.chvdict(),
+                    node = fill_dict(self.chvdict,
                             {vk2.nov: vk2.cvs.copy(), bgrid.nov: x_cvs_subset})
                     self.exclmgr.add(vk2.kname, copy.deepcopy(node))
                     # self.add_excl(vk2, copy.deepcopy(node))

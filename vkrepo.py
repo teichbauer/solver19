@@ -7,28 +7,35 @@ from exclmgr import ExclMgr
 import copy
 
 class VKRepoitory:
-    def __init__(self, snode):
+    def __init__(self, snode_dic):
         self.bdic1 = {}     # {bit: bblocker, bit:bblocker, ..}
         self.bdic2 = {}     # {bit: [k2n, k2n,..], bit:[], ..}
         self.vk2dic = {}    # {k2n:vk2, k2n: vk2,...}
         self.blckmgr = BlockMgr(self)
         self.exclmgr = ExclMgr(self)
-        self.snode = snode  # related snode
-        self.driver = None
+        self.snode_dic = snode_dic  # related snode
+        self.pathmgr = None
         self.inflog = {}    # {key:[info,info,..], key:[], ...}
 
-    def clone(self, driver):
-        xrepo = VKRepoitory(self.snode)
-        xrepo.driver = driver   # pathfinder
+    def clone(self, pathmgr):
+        xrepo = VKRepoitory(self.snode_dic.copy())
+        xrepo.pathmgr = pathmgr   # pathfinder
         xrepo.bdic1 = {b:{v: bb.clone(self) for v, bb in bbdic.items()} 
                        for b, bbdic in self.bdic1.items()}
         xrepo.bdic2 = {b: lst[:] for b, lst in self.bdic2.items()}
         xrepo.vk2dic = {kn:vk2 for kn, vk2 in self.vk2dic.items()}
+        xrepo.sonde_dic = self.snode_dic.copy()
         xrepo.blckmgr  = self.blckmgr.clone(xrepo)
         xrepo.exclmgr = self.exclmgr.clone(xrepo)
         xrepo.inflog = self.inflog.copy()
         return xrepo
     
+    def steps(self):
+        return sorted(self.snode_dic)
+    
+    def chvdict(self):
+        return {nv: sn.bgrid.chvals for nv, sn in self.sonde_dic.items()}
+
     def filter_vk2s(self, bb_bits):
         # in local-mode (inside snode, no merge across snodes)
         # check vk2s against bit-blockers: if vk2.cvs get cut, or
@@ -66,15 +73,15 @@ class VKRepoitory:
                 if set(vk2.bits).issubset(bgrid.bits):
                     hit_cvs = bgrid.vk2_hits(vk2)
                     print(f"{k2n} inside {bgrid.nov}-root, blocking {hit_cvs}")
-                    block = fill_dict(self.driver.chvdic,
+                    block = fill_dict(self.chvdict(),
                                 {vk2.nov:vk2.cvs.copy(), bgrid.nov: hit_cvs})
                     block_added = self.blckmgr.add_block(block)
                 else:# vk1.cvs is compound  caused by overlapping 
                     # with xsn.root-bits, will be named with R-prefix
                     x_cvs_subset = bgrid.cvs_subset(rb, vk2.dic[rb])
-                    node = fill_dict(self.driver.chvdic,
+                    node = fill_dict(self.chvdict(),
                             {vk2.nov: vk2.cvs.copy(), bgrid.nov: x_cvs_subset})
-                    self.exclmgr.add(vk2, copy.deepcopy(node))
+                    self.exclmgr.add(vk2.kname, copy.deepcopy(node))
                     # self.add_excl(vk2, copy.deepcopy(node))
                     new_vk1 = vk2.clone("NewVk", [rb], node) # R prefix, drop rb
                     self.add_bblocker(new_vk1.bit, new_vk1.val, node,
@@ -101,11 +108,11 @@ class VKRepoitory:
         bits = set(self.bdic1).intersection(vk2.bits)
         for bit in bits:
             bb_dic = self.bdic1[bit]
-            vk2_node = fill_nvs({vk2.nov: vk2.cvs}, self.driver.steps)
+            vk2_node = fill_nvs({vk2.nov: vk2.cvs}, self.steps())
             for v in bb_dic:
                 cmm = bb_dic[v].intersect(vk2_node)
                 if len(cmm) == 0: continue
-                self.exclmgr.add(vk2, cmm)
+                self.exclmgr.add(vk2.kname, cmm)
                 if v != vk2.dic[bit]:
                     vk1 = vk2.clone("NewVk", [bit], cmm)
                     self.add_bblocker(vk1.bit, vk1.val, cmm,

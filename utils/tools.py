@@ -239,7 +239,7 @@ def expand_vk1s(repo, vk1=None):
     if vk1:
         if type(vk1.cvs) == set:
             vk1.cvs = {vk1.nov: vk1.cvs}
-        fill_dict(repo.driver.chvdic, vk1.cvs)
+        fill_dict(repo.chvdict(), vk1.cvs)
     else:
         for kn in repo.k1ns:
             vk1 = Center.vk1dic[kn]
@@ -248,7 +248,7 @@ def expand_vk1s(repo, vk1=None):
 def expand_excls(repo):
     for kn, lst in repo.excls.items():
         for dic in lst:
-            fill_dict(repo.driver.chvdic, dic)
+            fill_dict(repo.chvdict(), dic)
 
 def print_vk2dic(vk2dic):
     for vk in vk2dic.values():

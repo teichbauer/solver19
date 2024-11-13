@@ -4,8 +4,7 @@ class PathFinder:
     def __init__(self, start_snode):
         self.snode = start_snode
         self.repo = start_snode.repo.clone(self)
-        self.steps = [self.snode.nov]
-        self.chvdic = {start_snode.nov: start_snode.bgrid.chvals[:]}
+        self.repo.pathmgr = self
 
     def write_log(self, outfile_name):
         ofile = open(outfile_name, 'w')
@@ -15,21 +14,20 @@ class PathFinder:
 
 
     def grow(self, sn):
-        self.steps.append(sn.nov)
-        self.chvdic[sn.nov] = sn.bgrid.chvals[:]
+        self.repo.snode_dic[sn.nov] = sn
         # self.repo.blckmgr.expand()
         self.repo.add_snode_root(sn.bgrid)
         for bit, bbdic in sn.repo.bdic1.items():
             dic = self.repo.bdic1.setdefault(bit, {})
             for v, bb in bbdic.items():
                 if v in dic:
-                    dic[v].merge(bb, self.steps)
+                    dic[v].merge(bb, self.repo.steps())
                 else:
                     dic[v] = bb.clone(self.repo)
             if len(dic) == 2:
                 dic[0].spouse = dic[1]
                 dic[1].spouse = dic[0]
-                dic[0].spousal_conflict(self.chvdic)
+                dic[0].spousal_conflict()
         for vk2 in sn.repo.vk2dic.values():
             self.repo.add_vk2(vk2)
         x = 9

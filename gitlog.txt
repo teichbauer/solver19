@@ -1,4 +1,7 @@
-2024-11-12->19.381
+2024-11-13->19.382
+- in cvsnodetools, add nvs(steps) to fill_missing, ...
+- move chvdictas method from pathfinder to vkrepo, and steps too
+-vkrepo has snode_dic, constructor now has {nov:snode} as input
 - fix in vkrepo
 2024-11-11->19.380
 - refactor bblocker, cvsnodetools

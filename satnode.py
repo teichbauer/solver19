@@ -23,7 +23,7 @@ class SatNode:
         # choice[0]: chvals, [1]: vk3s, [2]: touchd 2 bits, [3]: touched 1 bit
         self.choice = vkm.make_choice(self.nov) # (vals, bits, t2s, t1s)
         self.bgrid = BitGrid(self)
-        self.repo = VKRepoitory(self)
+        self.repo = VKRepoitory({self.nov:self})
         self.fill_repo()
         Center.slice(self)
         self.next = None

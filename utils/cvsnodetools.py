@@ -43,26 +43,22 @@ def fill_nvs(node, nvs): # node can be a dict, or a BitBlocker-inst
         nd = fill_nvs(nd, nvs)
     return bb
 
-def fill_missing(node1, node2):
-    nvs1 = sorted(node1)
-    nvs2 = sorted(node2)
-    if nvs1 == nvs2: return
-    if len(nvs1) > len(nvs2):
-        for nv in nvs1:
-            if nv not in node2: node2[nv] = {'*'}
-    if len(nvs2) > len(nvs1):
-        for nv in nvs2:
-            if nv not in node1: node1[nv] = {'*'}
+def fill_missing(node1, node2, steps):
+    if len(steps) == len(node1) and len(steps)  == len(node2): 
+        return
+    for nv in steps:
+        if nv not in node1: node1[nv] = {'*'}
+        if nv not in node2: node2[nv] = {'*'}
 
-def node1_C_node2(n1, n2):
-    fill_missing(n1, n2)
+def node1_C_node2(n1, n2, steps):
+    fill_missing(n1, n2, steps)
     for nv, cvs in n1.items():
         if not cvs1_C_cvs2(n1[nv], n2[nv]):
             return False
     return True
 
-def node_intersect(n1, n2):
-    fill_missing(n1, n2)
+def node_intersect(n1, n2, steps):
+    fill_missing(n1, n2, steps)
     dic = {}
     for nv in n1:
         intrsct = cvs1_I_cvs2(n1[nv], n2[nv])
@@ -70,18 +66,18 @@ def node_intersect(n1, n2):
         dic[nv] = intrsct
     return dic
 
-def node_to_lst(node, lst): # add node to lst, if node is not contained in it.
+def node_to_lst(node, lst, steps): # add node to lst, if node is not contained in it.
     for nd in lst:
-        if node1_C_node2(nd, node): return False
+        if node1_C_node2(nd, node, steps): return False
     lst.append(node)
     return True
 
-def subtract_delta_node(node, chvdict, delta_node):
+def subtract_delta_node(node, delta_node, chvdict):
     nvs = sorted(node)
     for nv in nvs:
-        if node[nv] == {'*'}: node[nv] = set(chvdict[nv])
+        if node[nv] == {'*'}:       node[nv] = set(chvdict[nv])
         if delta_node[nv] == {'*'}: delta_node[nv] = set(chvdict[nv])
-    delta = node_intersect( node, delta_node)
+    delta = node_intersect(node, delta_node, chvdict)
     if not delta: return node
     if delta == node: return None
 

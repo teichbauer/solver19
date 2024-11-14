@@ -1,3 +1,5 @@
+2024-11-14->19.384
+- vkrepo.filter_vk2s api
 2024-11-13->19.383
 - use python property in vkrepo.steps, chvdict, saving '()'.
 2024-11-13->19.382

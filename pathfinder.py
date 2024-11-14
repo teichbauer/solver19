@@ -14,23 +14,27 @@ class PathFinder:
 
 
     def grow(self, sn):
-        self.repo.snode_dic[sn.nov] = sn
+        repo = self.repo
+        repo.snode_dic[sn.nov] = sn
         # self.repo.blckmgr.expand()
-        self.repo.add_snode_root(sn.bgrid)
+        repo.add_snode_root(sn.bgrid)
         for bit, bbdic in sn.repo.bdic1.items():
-            dic = self.repo.bdic1.setdefault(bit, {})
+            dic = repo.bdic1.setdefault(bit, {})
             for v, bb in bbdic.items():
                 if v in dic:
-                    dic[v].merge(bb, self.repo.steps())
+                    dic[v].merge(bb, repo.steps)
                 else:
-                    dic[v] = bb.clone(self.repo)
+                    dic[v] = bb.clone(repo)
             if len(dic) == 2:
                 dic[0].spouse = dic[1]
                 dic[1].spouse = dic[0]
                 dic[0].spousal_conflict()
+        new_bits = set()
         for vk2 in sn.repo.vk2dic.values():
-            self.repo.add_vk2(vk2)
-        x = 9
+            repo.add_vk2(vk2, new_bits)
+        if len(new_bits) > 0:
+            bit12 = sorted(new_bits.intersection(repo.bdic2))
+            self.repo.filter_vk2s(bit12)
 
 
     def fishout_path(self):

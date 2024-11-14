@@ -38,11 +38,10 @@ class VKRepoitory:
     def chvdict(self):
         return {nv: sn.bgrid.chvals for nv, sn in self.sonde_dic.items()}
 
-    def filter_vk2s(self, bb_bits):
+    def filter_vk2s(self, bit12):
         # in local-mode (inside snode, no merge across snodes)
         # check vk2s against bit-blockers: if vk2.cvs get cut, or
         # new bit-blocker generated from b-t-blocker<->vk2
-        bit12 = sorted(bb_bits.intersection(self.bdic2))
         new_bb_bits = set()
         for b in bit12:
             k2ns = self.bdic2[b]
@@ -56,7 +55,7 @@ class VKRepoitory:
                     if new_vk1: new_bb_bits.add(new_vk1.bit)
         if len(new_bb_bits) > 0:
             # these bits are new, recursion on them
-            self.filter_vk2s(new_bb_bits)
+            self.filter_vk2s(sorted(new_bb_bits.intersection(self.bdic2))
 
 
     def add_snode_root(self, bgrid):
@@ -106,24 +105,27 @@ class VKRepoitory:
         bb = bb_dic.setdefault(val, BitBlocker(bit, val, self))
         bb.add(node, info)
 
-    def add_vk2(self, vk2):
+    def add_vk2(self, vk2, new_bits):
         bits = set(self.bdic1).intersection(vk2.bits)
-        for bit in bits:
-            bb_dic = self.bdic1[bit]
-            vk2_node = fill_nvs({vk2.nov: vk2.cvs}, self.steps())
-            for v in bb_dic:
-                cmm = bb_dic[v].intersect(vk2_node)
-                if len(cmm) == 0: continue
-                self.exclmgr.add(vk2.kname, cmm)
-                if v != vk2.dic[bit]:
-                    vk1 = vk2.clone("NewVk", [bit], cmm)
-                    self.add_bblocker(vk1.bit, vk1.val, cmm,
-                                      [f"from {vk2.kname}"])
+        if len(bits) > 0:
+            for bit in bits:
+                bb_dic = self.bdic1[bit]
+                vk2_node = fill_nvs({vk2.nov: vk2.cvs}, self.steps)
+                for v in bb_dic:
+                    cmm = bb_dic[v].intersect(vk2_node)
+                    if len(cmm) == 0: continue
+                    self.exclmgr.add(vk2.kname, cmm)
+                    if v != vk2.dic[bit]:
+                        vk1 = vk2.clone("NewVk", [bit], cmm)
+                        self.add_bblocker(vk1.bit, vk1.val, cmm,
+                                        [f"from {vk2.kname}"])
+                        new_bits.add(vk1.bit)
         self.insert_vk2(vk2)
         # handle case of 2 overlapping bits with existing vk2
-        self.proc_vk2pair(vk2) # if vk2 has a twin in vk2dic
+        self.proc_vk2pair(vk2, new_bits) # if vk2 has a twin in vk2dic
+        return new_bits
 
-    def proc_vk2pair(self, vk2):
+    def proc_vk2pair(self, vk2, new_bits=None):
         # check if vk2 share its 2 bits with an existing vk2, if yes
         # and if both vals on the same bit are the same, and the vals on
         # the bit are diff, then a new vk1 is generated. 
@@ -137,6 +139,8 @@ class VKRepoitory:
             _vk2 = self.vk2dic[xkns.pop()]
             vk1 = handle_vk2pair(vk2, _vk2)
             if vk1: 
+                if new_bits: new_bits.add(vk1.bit)
                 self.add_bblocker(
-                        vk1.bit, vk1.val,vk1.cvs,
-                        [f"from double of {vk2.kname}+{_vk2.kname}"])
+                    vk1.bit, vk1.val,vk1.cvs,
+                    [f"from double of {vk2.kname}+{_vk2.kname}"])
+                

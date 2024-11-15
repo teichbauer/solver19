@@ -1,4 +1,5 @@
 from utils.tools import *
+from utils.cvsnodetools import check_spouse
 
 class PathFinder:
     def __init__(self, start_snode):
@@ -25,10 +26,7 @@ class PathFinder:
                     dic[v].merge(bb, repo.steps)
                 else:
                     dic[v] = bb.clone(repo)
-            if len(dic) == 2:
-                dic[0].spouse = dic[1]
-                dic[1].spouse = dic[0]
-                dic[0].spousal_conflict()
+            check_spouse(dic)
         new_bits = set()
         for vk2 in sn.repo.vk2dic.values():
             repo.add_vk2(vk2, new_bits)

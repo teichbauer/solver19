@@ -1,3 +1,6 @@
+2024-11-14->19.385
+- cleanup tools/cvs_intersect, test_containment -> save.py
+-BitBlocker.srcdic replaces inflog
 2024-11-14->19.384
 - vkrepo.filter_vk2s api
 2024-11-13->19.383

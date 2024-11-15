@@ -74,11 +74,25 @@ def node_to_lst(node, lst, steps): # add node to lst, if node is not contained i
 
 def subtract_delta_node(node, delta_node, chvdict):
     nvs = sorted(node)
-    for nv in nvs:
-        if node[nv] == {'*'}:       node[nv] = set(chvdict[nv])
-        if delta_node[nv] == {'*'}: delta_node[nv] = set(chvdict[nv])
-    delta = node_intersect(node, delta_node, chvdict)
-    if not delta: return node
-    if delta == node: return None
+    # for nv in nvs:
+    #     if node[nv] == {'*'}:       node[nv] = set(chvdict[nv])
+    #     if delta_node[nv] == {'*'}: delta_node[nv] = set(chvdict[nv])
+    cmm = node_intersect(node, delta_node, chvdict)
+    if not cmm: return node
+    res = []
+    seq1 = Sequencer(cmm)
+    seq2 = Sequencer(node)
+    while not seq1.done:
+        while not seq2.done:
+            n1 = seq1.get_next()
+            n2 = seq2.get_next()
+            if n1 != n2:
+                res.append(n2)
+    return res
 
+def check_spouse(bb_dic):
+    if len(bb_dic) > 1:
+        bb_dic[0].spouse = bb_dic[1]
+        bb_dic[1].spouse = bb_dic[0]
+        bb_dic[0].spousal_conflict(bb_dic[1])
 

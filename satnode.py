@@ -42,8 +42,8 @@ class SatNode:
                 vk12 = self.bgrid.reduce_vk(vk)
                 if vk12.nob == 1:
                     repo.add_bblocker(vk12.bit, vk12.val, 
-                                     {self.nov: vk12.cvs},
-                                     [f"from {vk12.kname}"])
+                                      {self.nov: vk12.cvs},
+                                      {vk12.kname: f'S{vk12.nov}'})
                 else:
                     repo.insert_vk2(vk12)
                     repo.proc_vk2pair(vk12)

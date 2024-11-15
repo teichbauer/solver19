@@ -24,7 +24,6 @@ class VKRepoitory:
                        for b, bbdic in self.bdic1.items()}
         xrepo.bdic2 = {b: lst[:] for b, lst in self.bdic2.items()}
         xrepo.vk2dic = {kn:vk2 for kn, vk2 in self.vk2dic.items()}
-        xrepo.sonde_dic = self.snode_dic.copy()
         xrepo.blckmgr  = self.blckmgr.clone(xrepo)
         xrepo.exclmgr = self.exclmgr.clone(xrepo)
         xrepo.inflog = self.inflog.copy()
@@ -36,7 +35,7 @@ class VKRepoitory:
     
     @property
     def chvdict(self):
-        return {nv: sn.bgrid.chvals for nv, sn in self.sonde_dic.items()}
+        return {nv: sn.bgrid.chvals for nv, sn in self.snode_dic.items()}
 
     def filter_vk2s(self, bit12):
         # in local-mode (inside snode, no merge across snodes)
@@ -48,14 +47,17 @@ class VKRepoitory:
             for kn in k2ns:
                 vk2 = self.vk2dic[kn]
                 val = vk2.dic[b]
-                for v in self.bdic1[b]:
+                bb_dic = self.bdic1[b]
+                for v in bb_dic:
+                    if vk2.kname in bb_dic[v].srcdic: continue
                     # v != val-> gen new vk1, v == val -> only reduce vk2.cvs
                     # in case of new-vk1, collect vk1.bit into new_bb_bits
-                    new_vk1 = self.bdic1[b][v].filter_vk2(vk2, v != val)
-                    if new_vk1: new_bb_bits.add(new_vk1.bit)
+                    new_vk1 = bb_dic[v].filter_vk2(vk2, v != val)
+                    if new_vk1: 
+                        new_bb_bits.add(new_vk1.bit)
         if len(new_bb_bits) > 0:
             # these bits are new, recursion on them
-            self.filter_vk2s(sorted(new_bb_bits.intersection(self.bdic2))
+            self.filter_vk2s(sorted(new_bb_bits.intersection(self.bdic2)))
 
 
     def add_snode_root(self, bgrid):
@@ -86,7 +88,7 @@ class VKRepoitory:
                     # self.add_excl(vk2, copy.deepcopy(node))
                     new_vk1 = vk2.clone("NewVk", [rb], node) # R prefix, drop rb
                     self.add_bblocker(new_vk1.bit, new_vk1.val, node,
-                                      [f"from R57-{rb}+{vk2.kname}"])
+                                      {vk2.kname: f"R{vk2.nov}-{rb}"})
     # end of def add_snode_root(self, bgrid):
     
     def insert_vk2(self, vk2):
@@ -99,11 +101,12 @@ class VKRepoitory:
         self.vk2dic[name] = vk2
 
 
-    def add_bblocker(self, bit, val, node, info=None):
+    def add_bblocker(self, bit, val, node, srcdic):
         # BitBlocker(bit, self)
         bb_dic = self.bdic1.setdefault(bit, {})
         bb = bb_dic.setdefault(val, BitBlocker(bit, val, self))
-        bb.add(node, info)
+        bb.add(node, srcdic)
+        check_spouse(bb_dic)
 
     def add_vk2(self, vk2, new_bits):
         bits = set(self.bdic1).intersection(vk2.bits)
@@ -118,7 +121,7 @@ class VKRepoitory:
                     if v != vk2.dic[bit]:
                         vk1 = vk2.clone("NewVk", [bit], cmm)
                         self.add_bblocker(vk1.bit, vk1.val, cmm,
-                                        [f"from {vk2.kname}"])
+                                        {vk2.kname: f'U{vk2.nov}'})
                         new_bits.add(vk1.bit)
         self.insert_vk2(vk2)
         # handle case of 2 overlapping bits with existing vk2
@@ -142,5 +145,5 @@ class VKRepoitory:
                 if new_bits: new_bits.add(vk1.bit)
                 self.add_bblocker(
                     vk1.bit, vk1.val,vk1.cvs,
-                    [f"from double of {vk2.kname}+{_vk2.kname}"])
-                
+                    {vk2.kname:f'D{vk2.nov}',_vk2.kname:f'D{_vk2.nov}'})
+        x = 0

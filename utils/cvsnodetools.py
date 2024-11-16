@@ -80,6 +80,14 @@ def node_to_lst(node, lst, steps): # add node to lst, if node is not contained i
     lst.append(node)
     return True
 
+def expand_star(node, chvdict):
+    dic = {}
+    for nv, cvs in node.items():
+        if cvs == {'*'}:
+            cvs = chvdict[nv]
+        dic[nv] = cvs
+    return dic
+
 def subtract_delta_node(node, delta_node, chvdict):
     nvs = sorted(node)
     # for nv in nvs:
@@ -88,11 +96,11 @@ def subtract_delta_node(node, delta_node, chvdict):
     cmm = node_intersect(node, delta_node, chvdict)
     if not cmm: return node
     res = []
-    seq1 = Sequencer(cmm)
-    seq2 = Sequencer(node)
+    seq1 = Sequencer(expand_star(cmm,chvdict))
+    seq2 = Sequencer(expand_star(node,chvdict))
     while not seq1.done:
+        n1 = seq1.get_next()
         while not seq2.done:
-            n1 = seq1.get_next()
             n2 = seq2.get_next()
             if n1 != n2:
                 res.append(n2)

@@ -35,7 +35,7 @@ class VKRepoitory:
     
     @property
     def chvdict(self):
-        return {nv: sn.bgrid.chvals for nv, sn in self.snode_dic.items()}
+        return {nv: set(sn.bgrid.chvals) for nv, sn in self.snode_dic.items()}
 
     def filter_vk2s(self, bit12, local=False):
         # in local-mode (inside snode, no merge across snodes)

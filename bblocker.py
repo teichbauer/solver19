@@ -34,6 +34,7 @@ class BitBlocker:
             self.subtr_node(bl)
             spouse.subtr_node(bl)
             self.repo.blckmgr.add_block(bl)
+        x = 0
 
     def subtr_node(self, delta_node):
         res_nodes = []

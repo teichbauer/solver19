@@ -37,11 +37,11 @@ class VKRepoitory:
     def chvdict(self):
         return {nv: sn.bgrid.chvals for nv, sn in self.snode_dic.items()}
 
-    def filter_vk2s(self, bit12):
+    def filter_vk2s(self, bit12, local=False):
         # in local-mode (inside snode, no merge across snodes)
         # check vk2s against bit-blockers: if vk2.cvs get cut, or
         # new bit-blocker generated from b-t-blocker<->vk2
-        new_bb_bits = set()
+        new_bits = set()
         for b in bit12:
             k2ns = self.bdic2[b]
             for kn in k2ns:
@@ -52,12 +52,12 @@ class VKRepoitory:
                     if vk2.kname in bb_dic[v].srcdic: continue
                     # v != val-> gen new vk1, v == val -> only reduce vk2.cvs
                     # in case of new-vk1, collect vk1.bit into new_bb_bits
-                    new_vk1 = bb_dic[v].filter_vk2(vk2, v != val)
+                    new_vk1 = bb_dic[v].filter_vk2(vk2, v != val, local)
                     if new_vk1: 
-                        new_bb_bits.add(new_vk1.bit)
-        if len(new_bb_bits) > 0:
+                        new_bits.add(new_vk1.bit)
+        if len(new_bits) > 0:
             # these bits are new, recursion on them
-            self.filter_vk2s(sorted(new_bb_bits.intersection(self.bdic2)))
+            self.filter_vk2s(sorted(new_bits.intersection(self.bdic2)), local)
 
 
     def add_snode_root(self, bgrid):

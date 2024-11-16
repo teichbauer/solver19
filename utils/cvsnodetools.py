@@ -2,13 +2,16 @@ import copy
 from utils.sequencer import Sequencer
 # --------- cvs tools ------------
 # C: contains, I: intersection
-def cvs1_C_cvs2(c1, c2):
+def cvs1_contains_cvs2(c1, c2):
     return c1 == {'*'} or c1.issuperset(c2)
 
-def cvs1_I_cvs2(c1, c2):
+def cvs1_intersect_cvs2(c1, c2):
     if c1 == {'*'}: return c2
     if c2 == {'*'}: return c1
     return c1.intersection(c2)
+
+def cvs1_minus_cvs2(c1, c2, chvdict):
+    pass
 
 def po_cvs(cvs):
     m = '('
@@ -50,10 +53,15 @@ def fill_missing(node1, node2, steps):
         if nv not in node1: node1[nv] = {'*'}
         if nv not in node2: node2[nv] = {'*'}
 
+def node_valid(node):
+    for nv, v in node.items():
+        if len(v) == 0: return False
+    return True
+
 def node1_C_node2(n1, n2, steps):
     fill_missing(n1, n2, steps)
     for nv, cvs in n1.items():
-        if not cvs1_C_cvs2(n1[nv], n2[nv]):
+        if not cvs1_contains_cvs2(n1[nv], n2[nv]):
             return False
     return True
 
@@ -61,7 +69,7 @@ def node_intersect(n1, n2, steps):
     fill_missing(n1, n2, steps)
     dic = {}
     for nv in n1:
-        intrsct = cvs1_I_cvs2(n1[nv], n2[nv])
+        intrsct = cvs1_intersect_cvs2(n1[nv], n2[nv])
         if len(intrsct) == 0: return None
         dic[nv] = intrsct
     return dic

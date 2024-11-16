@@ -1,3 +1,6 @@
+2024-11-15->19.386
+- vkrepo.filter_vk2s adds a local=False param, in snode.fill_repo, local=True
+bblocker/filter_vk2: also call repo.exclmgr.add(node). Test pending.
 2024-11-14->19.385
 - cleanup tools/cvs_intersect, test_containment -> save.py
 -BitBlocker.srcdic replaces inflog

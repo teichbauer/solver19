@@ -189,7 +189,7 @@ class VKlause:
     def add_cvs(self, cvs, nv=None):
         for cv in cvs:
             if nv: # self.cvs is a node-dict
-                self.cvs[nv].add(cv)
+                self.cvs.setdefault(nv,set()).add(cv)
             else:  # self.cvs is a set
                 self.cvs.add(cv)
 

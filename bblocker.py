@@ -95,17 +95,17 @@ class BitBlocker:
                 cmm = nd[vk2.nov].intersection(vk2.cvs)
                 if len(cmm) == 0: continue
                 for nv in nd:
-                    if nv == vk2.nov:   node[nv].update(cmm)
-                    else:               node[nv] = nd[nv]
+                    if nv == vk2.nov: node[nv].update(cmm)
+                    else:             node.setdefault(nv,set()).update(nd[nv])
         if not node_valid(node): return None # any nv in node empty-> invalid
-        if not is_local: self.repo.exclmgr.add(copy.deepcopy(node))
+        if not is_local: self.repo.exclmgr.add(vk2.kname, copy.deepcopy(node))
         if new_vk1:
             bb_dic = self.repo.bdic1.setdefault(vk1.bit, {})
             bb = bb_dic.setdefault(vk1.val, 
                                    BitBlocker(vk1.bit, vk1.val, self.repo))
             bb.add(vk1.cvs, {vk2.kname: f'U{vk2.nov}'})
             check_spouse(bb_dic)
-            return vk1
+            return (vk1.bit, vk1.val)
         return None
     
     def contains(self, node):

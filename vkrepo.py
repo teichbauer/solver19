@@ -37,29 +37,6 @@ class VKRepoitory:
     def chvdict(self):
         return {nv: set(sn.bgrid.chvals) for nv, sn in self.snode_dic.items()}
 
-    def filter_vk2s(self, bit12, local=False):
-        # in local-mode (inside snode, no merge across snodes)
-        # check vk2s against bit-blockers: if vk2.cvs get cut, or
-        # new bit-blocker generated from b-t-blocker<->vk2
-        new_bits = set()
-        for b in bit12:
-            k2ns = self.bdic2[b]
-            for kn in k2ns:
-                vk2 = self.vk2dic[kn]
-                val = vk2.dic[b]
-                bb_dic = self.bdic1[b]
-                for v in bb_dic:
-                    if vk2.kname in bb_dic[v].srcdic: continue
-                    # v != val-> gen new vk1, v == val -> only reduce vk2.cvs
-                    # in case of new-vk1, collect vk1.bit into new_bb_bits
-                    new_vk1 = bb_dic[v].filter_vk2(vk2, v != val, local)
-                    if new_vk1: 
-                        new_bits.add(new_vk1.bit)
-        if len(new_bits) > 0:
-            # these bits are new, recursion on them
-            self.filter_vk2s(sorted(new_bits.intersection(self.bdic2)), local)
-
-
     def add_snode_root(self, bgrid):
         bdic1_rbits = sorted(set(self.bdic1).intersection(bgrid.bits))
         for rb1 in bdic1_rbits:
@@ -100,13 +77,41 @@ class VKRepoitory:
             self.bdic2.setdefault(b2,[]).append(name)
         self.vk2dic[name] = vk2
 
-
     def add_bblocker(self, bit, val, node, srcdic):
         # BitBlocker(bit, self)
         bb_dic = self.bdic1.setdefault(bit, {})
         bb = bb_dic.setdefault(val, BitBlocker(bit, val, self))
         bb.add(node, srcdic)
         check_spouse(bb_dic)
+
+    def filter_vk2s(self, bb_pairs, local=False):
+        # in local-mode (inside snode, no merge across snodes)
+        # check vk2s against bit-blockers: if vk2.cvs get cut, or
+        # new bit-blocker generated from b-t-blocker<->vk2
+        bbp_index = 0
+        # bb_pairs can grow here: not for-loop
+        while bbp_index < len(bb_pairs): 
+            bb_bit, bb_val = bb_pairs[bbp_index]
+            bb = self.bdic1[bb_bit][bb_val]
+            # bb_dic = self.bdic1[b]
+            k2ns = self.bdic2[bb_bit]
+            for kn in k2ns:
+                vk2 = self.vk2dic[kn]
+                val = vk2.dic[bb_bit]
+                if vk2.kname in bb.srcdic: continue
+                new_bbp = bb.filter_vk2(vk2, bb_val != val, local)
+                if new_bbp and (new_bbp not in bb_pairs):
+                    bb_pairs.append(new_bbp)
+            bbp_index += 1
+        x = 9
+                # for v in bb_dic:
+                #     if vk2.kname in bb_dic[v].srcdic: continue
+                #     # v != val-> gen new vk1, v == val -> only reduce vk2.cvs
+                #     # in case of new-vk1, collect vk1.bit into new_bb_bits
+                #     new_bit = bb_dic[v].filter_vk2(vk2, v != val, local)
+                #     if new_bit and (new_bit in self.bdic2) and \
+                #        (new_bit not in bit12):
+                #         bit12.append(new_bit)
 
     def add_vk2(self, vk2, new_bits):
         bits = set(self.bdic1).intersection(vk2.bits)

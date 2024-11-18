@@ -30,9 +30,11 @@ class PathFinder:
         new_bits = set()
         for vk2 in sn.repo.vk2dic.values():
             repo.add_vk2(vk2, new_bits)
-        if len(new_bits) > 0:
-            bit12 = sorted(new_bits.intersection(repo.bdic2))
-            self.repo.filter_vk2s(bit12)
+        bb_pairs = [] # [(<bb-bit>,<bb-val>),..]
+        for b in sorted(new_bits):
+            for v in repo.bdic1[b]:
+                bb_pairs.append((b,v))
+            self.repo.filter_vk2s(bb_pairs)
 
 
     def fishout_path(self):

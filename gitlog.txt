@@ -1,3 +1,9 @@
+2024-11-17->19.388
+- filter_vk2s now has list of pairs like (bb-bit,bb-val). and the pair
+  being processed, will no more be popped out, but while-looped with
+  increasing index. When new bb generated a new (bb-bit,bb-val) pair be
+  appended to the list, if not already in it: this will prevent the
+  same pair be added and endless looping. Need to test this carefully.
 2024-11-16->19.387
 - fix in cvsnodetools/subtract_delta_node with expand_star.
 - vkrepo.chvdict returns dict of keyed-set, not list.

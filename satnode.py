@@ -47,8 +47,13 @@ class SatNode:
                 else:
                     repo.insert_vk2(vk12)
                     repo.proc_vk2pair(vk12)
-        bit12 = sorted(set(repo.bdic1).intersection(repo.bdic2))
-        repo.filter_vk2s(bit12, local=True) # process vk2s touching bit-blockers
+        cmm_bits = set(repo.bdic1).intersection(repo.bdic2)
+        bb_pairs = []
+        for b in sorted(cmm_bits):
+            for v in repo.bdic1[b]:
+                bb_pairs.append((b, v))
+        # process vk2s touching bit-blockers
+        repo.filter_vk2s(bb_pairs, local=True) 
 
     def spawn(self):
         if len(self.vkm.vkdic) > 0:  # there exist vk3 in vkm.vkdic, make next

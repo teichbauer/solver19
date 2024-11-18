@@ -43,8 +43,8 @@ class VKRepoitory:
             for bb in self.bdic1[rb1].values():
                 cvs = bgrid.cvs_subset(bb.bit, bb.val)
                 nd = fill_nvs({bgrid.nov: cvs})
-                if bb.add(nd, [f"from {bgrid.nov}-root:{cvs}"]):
-                    block_added = self.blckmgr.add_block(nd)
+                bb.add(nd, {f"{bb.bit}/{bb.val}": f"into R of {bgrid.nov}"})
+                block_added = self.blckmgr.add_block(nd)
         # handle vk2s bouncing with bgrid.bits
         cmm_rbits = sorted(set(self.bdic2).intersection(bgrid.bits))
         for rb in cmm_rbits:
@@ -99,19 +99,13 @@ class VKRepoitory:
                 vk2 = self.vk2dic[kn]
                 val = vk2.dic[bb_bit]
                 if vk2.kname in bb.srcdic: continue
-                new_bbp = bb.filter_vk2(vk2, bb_val != val, local)
-                if new_bbp and (new_bbp not in bb_pairs):
-                    bb_pairs.append(new_bbp)
+                result =  bb.filter_vk2(vk2, bb_val != val, local)
+                if result:
+                    new_bbp, bb_updated = result
+                    if (new_bbp not in bb_pairs) or bb_updated:
+                        bb_pairs.append(new_bbp)
             bbp_index += 1
         x = 9
-                # for v in bb_dic:
-                #     if vk2.kname in bb_dic[v].srcdic: continue
-                #     # v != val-> gen new vk1, v == val -> only reduce vk2.cvs
-                #     # in case of new-vk1, collect vk1.bit into new_bb_bits
-                #     new_bit = bb_dic[v].filter_vk2(vk2, v != val, local)
-                #     if new_bit and (new_bit in self.bdic2) and \
-                #        (new_bit not in bit12):
-                #         bit12.append(new_bit)
 
     def add_vk2(self, vk2, new_bits):
         bits = set(self.bdic1).intersection(vk2.bits)

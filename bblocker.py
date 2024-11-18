@@ -1,5 +1,19 @@
 from utils.cvsnodetools import *
 
+class BBUT: # bit-blocker-update-tester
+    def __init__(self, initial_bb):
+        self.bb_bit = initial_bb.bit
+        self.bb_val = initial_bb.val
+        self.init_node_count = len(initial_bb.nodes)
+        self.init_node_sig = signature(initial_bb.nodes)
+
+    def test_update(self, bb):
+        assert(bb.bit == self.bb_bit), "BBUT usage wrong"
+        assert(bb.val == self.bb_val), "BBUT usage wrong"
+        if self.init_node_count == 0: return False
+        new_sig = signature(bb.nodes)
+        return new_sig != self.init_node_sig
+
 class BitBlocker:
     # on a bit in repo.bdic1: {bit: {0: BitBlocker(), 1:BitBlocker()}}
     def __init__(self, bit, val, repo):
@@ -65,7 +79,6 @@ class BitBlocker:
                 self.srcdic[kname] = msg
             else:
                 self.srcdic[kname] = False
-        return self
 
     def filter_nodes(self, nodes, nd):
         pnds = []
@@ -97,15 +110,18 @@ class BitBlocker:
                 for nv in nd:
                     if nv == vk2.nov: node[nv].update(cmm)
                     else:             node.setdefault(nv,set()).update(nd[nv])
-        if not node_valid(node): return None # any nv in node empty-> invalid
+        # any nv in node empty-> invalid
+        if not node_valid(node): return None
         if not is_local: self.repo.exclmgr.add(vk2.kname, copy.deepcopy(node))
         if new_vk1:
             bb_dic = self.repo.bdic1.setdefault(vk1.bit, {})
             bb = bb_dic.setdefault(vk1.val, 
                                    BitBlocker(vk1.bit, vk1.val, self.repo))
+            bbut = BBUT(bb)
             bb.add(vk1.cvs, {vk2.kname: f'U{vk2.nov}'})
+            bb_updated = bbut.test_update(bb)
             check_spouse(bb_dic)
-            return (vk1.bit, vk1.val)
+            return (vk1.bit, vk1.val), bb_updated
         return None
     
     def contains(self, node):

@@ -1,5 +1,6 @@
 import copy
 from utils.sequencer import Sequencer
+from hashlib import md5
 # --------- cvs tools ------------
 # C: contains, I: intersection
 def cvs1_contains_cvs2(c1, c2):
@@ -25,6 +26,10 @@ flip = lambda val: (val + 1) % 2
 #------------ node tools -----------
 def clone_node(nd): # nd : {<nov>:<cvs-set>,..}
     return copy.deepcopy(nd)
+
+def signature(obj):
+    sig = md5(str(obj).encode('utf-8'))
+    return sig.digest().hex()
 
 def is_single(node):
     for cvs in node.values():

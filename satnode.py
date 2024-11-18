@@ -4,8 +4,6 @@ from utils.tools import sort_length_list
 from collections import OrderedDict
 from sat_path import SatPath
 from vkrepo import VKRepoitory
-from utils.stail import STail
-from utils.namedrive import NameDrive
 from pathfinder import PathFinder
 
 class SatNode:

@@ -1,3 +1,14 @@
+2024-11-18->19.389
+- get rid of namedrive.py, stail.py
+- in cvsnodetools: signature: use md4 to calc bb.nodes's sig
+- in bitblocker: BBUT (bit-blocker-update-tester) to see if bb has been
+  prev-existing(if new return F) and it's nodes-list has been updated.
+- in self.filter_vk2, when a new addition to an existing bb is done,
+  return new vk1.bit/val and if this bb has newer version of nodes.
+  This used in vkrepo.filter_vk2s: the bb_pairs-list, may add a new entry of bb
+  eventhu, this bb was in this list, and has been processed. but this bb may 
+  have been updated (with new nodes) so that it has to be added to the 
+  bb_pairs-list, to be processed again.
 2024-11-17->19.388
 - filter_vk2s now has list of pairs like (bb-bit,bb-val). and the pair
   being processed, will no more be popped out, but while-looped with

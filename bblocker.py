@@ -29,13 +29,26 @@ class BitBlocker:
         ninst.srcdic = self.srcdic.copy()
         return ninst
 
-    def merge(self, bb, nvs):
-        nds = []
-        bb = fill_nvs(bb, nvs)
+    def fill_star(self, chvdict):
+        # res = []
         for nd in self.nodes:
-            if bb.contains(nd): continue
-            nds.append(nd)
-        self.nodes = nds
+            for nv in chvdict:
+                if (nv not in nd) or nd[nv] == {'*'}:
+                    nd[nv] = chvdict[nv]
+        # self.nodes = res
+
+    def merge(self, bb):
+        nds = []
+        bb.fill_star(self.repo.chvdict)
+        for node in bb.nodes:
+            node_it = Sequencer(node)
+            while not node_it.done:
+                bb_node = node_it.get_next()
+                if self.contains(bb_node): 
+                    continue
+                nds.append(bb_node)
+        for nd in nds:
+            self.nodes.append(nd)
 
     def spousal_conflict(self, spouse):
         blocks = []

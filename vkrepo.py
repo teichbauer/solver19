@@ -65,7 +65,7 @@ class VKRepoitory:
                     # self.add_excl(vk2, copy.deepcopy(node))
                     new_vk1 = vk2.clone("NewVk", [rb], node) # R prefix, drop rb
                     self.add_bblocker(new_vk1.bit, new_vk1.val, node,
-                                      {vk2.kname: f"R{vk2.nov}-{rb}"})
+                                    {vk2.kname: f"R{vk2.nov}-{bgrid.nov}/{rb}"})
     # end of def add_snode_root(self, bgrid):
     
     def insert_vk2(self, vk2):

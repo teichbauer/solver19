@@ -23,7 +23,7 @@ class PathFinder:
             dic = repo.bdic1.setdefault(bit, {})
             for v, bb in bbdic.items():
                 if v in dic:
-                    dic[v].merge(bb, repo.steps)
+                    dic[v].merge(bb)
                 else:
                     dic[v] = bb.clone(repo)
             check_spouse(dic)

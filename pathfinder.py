@@ -34,7 +34,7 @@ class PathFinder:
         for b in sorted(new_bits):
             for v in repo.bdic1[b]:
                 bb_pairs.append((b,v))
-            self.repo.filter_vk2s(bb_pairs)
+        self.repo.filter_vk2s(bb_pairs)
 
 
     def fishout_path(self):

@@ -102,7 +102,13 @@ class VKRepoitory:
                 result =  bb.filter_vk2(vk2, bb_val != val, local)
                 if result:
                     new_bbp, bb_updated = result
-                    if (new_bbp not in bb_pairs) or bb_updated:
+                    if new_bbp not in bb_pairs:
+                        bb_pairs.append(new_bbp)
+                    elif bb_pairs.index(new_bbp) < bbp_index and bb_updated:
+                        # bb_pairs.index(new_bbp) cannot == bb_index, and
+                        # if it is behind bb_index: no need to be added.
+                        # only when new_bbp has been processed and now it is
+                        # updated, then it needs to be added/proc-again.
                         bb_pairs.append(new_bbp)
             bbp_index += 1
         x = 9

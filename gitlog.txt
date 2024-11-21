@@ -1,3 +1,9 @@
+2024-11-21->19.392
+- bgrid.cvs_subset now returns 2 set of cvs: hit_cvs and mis_cvs
+- correct cvsnotetools/node_to_lst
+- exclmgr now has slef.excls list: for vk2 that will never appear
+- vkrepo.steps reverse order: descending
+  add_snode_root: better understanding?
 2024-11-19->19.391
 - correction in vkrepo/filter_vk2s
 - correction in pathfinder/grow

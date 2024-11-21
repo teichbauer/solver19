@@ -26,6 +26,7 @@ class ExclMgr:
     def __init__(self, repo):
         self.repo = repo
         self.dic = {} # {kn: Excl}
+        self.excls = []
 
     def clone(self, repo):
         nexclmgr = ExclMgr(repo)
@@ -33,4 +34,10 @@ class ExclMgr:
         return nexclmgr
     
     def add(self, vkname, node):
+        if node == None: 
+            self.dic.pop(vkname, None)
+            if vkname not in self.excls:
+                self.excls.append(vkname)
+            return
+        if vkname in self.excls: return
         self.dic.setdefault(vkname, Excl()).add(node)

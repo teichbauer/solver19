@@ -31,7 +31,7 @@ class VKRepoitory:
     
     @property
     def steps(self):
-        return sorted(self.snode_dic)
+        return sorted(self.snode_dic, reverse=True) # [60, 57, 54, ...]
     
     @property
     def chvdict(self):
@@ -41,10 +41,12 @@ class VKRepoitory:
         bdic1_rbits = sorted(set(self.bdic1).intersection(bgrid.bits))
         for rb1 in bdic1_rbits:
             for bb in self.bdic1[rb1].values():
-                cvs = bgrid.cvs_subset(bb.bit, bb.val)
-                nd = fill_nvs({bgrid.nov: cvs})
-                bb.add(nd, {f"{bb.bit}/{bb.val}": f"into R of {bgrid.nov}"})
-                block_added = self.blckmgr.add_block(nd)
+                hit_cvs, mis_cvs = bgrid.cvs_subset(bb.bit, bb.val)
+                for node in bb.nodes:
+                    bl = copy.deepcopy(node)    # making a new block
+                    bl.update({bgrid.nov: hit_cvs}) # and add it to blckmgr
+                    self.blckmgr.add_block(bl)
+                    node[bgrid.nov] = mis_cvs # in stead of (2367), {*} okay
         # handle vk2s bouncing with bgrid.bits
         cmm_rbits = sorted(set(self.bdic2).intersection(bgrid.bits))
         for rb in cmm_rbits:
@@ -57,12 +59,12 @@ class VKRepoitory:
                                 {vk2.nov:vk2.cvs.copy(), bgrid.nov: hit_cvs})
                     block_added = self.blckmgr.add_block(block)
                 else:# vk1.cvs is compound  caused by overlapping 
-                    # with xsn.root-bits, will be named with R-prefix
-                    x_cvs_subset = bgrid.cvs_subset(rb, vk2.dic[rb])
+                    hit_cvs, mis_cvs = bgrid.cvs_subset(rb, vk2.dic[rb])
                     node = fill_dict(self.chvdict,
-                            {vk2.nov: vk2.cvs.copy(), bgrid.nov: x_cvs_subset})
-                    self.exclmgr.add(vk2.kname, copy.deepcopy(node))
-                    # self.add_excl(vk2, copy.deepcopy(node))
+                            {vk2.nov: vk2.cvs.copy(), bgrid.nov: hit_cvs})
+                    # in both hit_cvs/mis_cvs: vk2 to be excluded
+                    # hit_cvs: bit-blocker(vk2 not neede); mis_cvs: un-hit
+                    self.exclmgr.add(vk2.kname, None)
                     new_vk1 = vk2.clone("NewVk", [rb], node) # R prefix, drop rb
                     self.add_bblocker(new_vk1.bit, new_vk1.val, node,
                                     {vk2.kname: f"R{vk2.nov}-{bgrid.nov}/{rb}"})

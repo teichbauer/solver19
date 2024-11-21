@@ -79,9 +79,12 @@ def node_intersect(n1, n2, steps):
         dic[nv] = intrsct
     return dic
 
-def node_to_lst(node, lst, steps): # add node to lst, if node is not contained in it.
+def node_to_lst(node, lst, steps): 
+    # add node to lst, if not contained in it. 
+    # This is union operation node into lst
     for nd in lst:
-        if node1_C_node2(nd, node, steps): return False
+        # if node1_C_node2(nd, node, steps): return False
+        if node1_C_node2(nd, node, steps): continue
     lst.append(node)
     return True
 

@@ -1,3 +1,6 @@
+2024-11-22->19.393
+- progress imporving cvsnotetools, tools.py
+- refactoring bblocker.py, blckngr.py, vkrepo
 2024-11-21->19.392
 - bgrid.cvs_subset now returns 2 set of cvs: hit_cvs and mis_cvs
 - correct cvsnotetools/node_to_lst

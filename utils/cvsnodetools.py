@@ -39,7 +39,7 @@ def is_single(node):
 def node_seq(node):
     return Sequencer(node) # return a generator
 
-def fill_nvs(node, nvs): # node can be a dict, or a BitBlocker-inst
+def fill_star(node, nvs): # node can be a dict, or a BitBlocker-inst
     if type(node) == dict:
         for nv in nvs:
             if nv not in node:
@@ -48,10 +48,10 @@ def fill_nvs(node, nvs): # node can be a dict, or a BitBlocker-inst
     # node is of class BitBlocker
     bb = node
     for nd in bb.nodes:
-        nd = fill_nvs(nd, nvs)
+        nd = fill_star(nd, nvs)
     return bb
 
-def fill_missing(node1, node2, steps):
+def missing_nv2star(node1, node2, steps):
     if len(steps) == len(node1) and len(steps)  == len(node2): 
         return
     for nv in steps:
@@ -64,14 +64,14 @@ def node_valid(node):
     return True
 
 def node1_C_node2(n1, n2, steps):
-    fill_missing(n1, n2, steps)
+    missing_nv2star(n1, n2, steps)
     for nv, cvs in n1.items():
         if not cvs1_contains_cvs2(n1[nv], n2[nv]):
             return False
     return True
 
 def node_intersect(n1, n2, steps):
-    fill_missing(n1, n2, steps)
+    missing_nv2star(n1, n2, steps)
     dic = {}
     for nv in n1:
         intrsct = cvs1_intersect_cvs2(n1[nv], n2[nv])
@@ -81,11 +81,11 @@ def node_intersect(n1, n2, steps):
 
 def node_to_lst(node, lst, steps): 
     # add node to lst, if not contained in it. 
-    # This is union operation node into lst
     for nd in lst:
-        # if node1_C_node2(nd, node, steps): return False
-        if node1_C_node2(nd, node, steps): continue
-    lst.append(node)
+        if node1_C_node2(nd, node, steps):
+            # node is in one of nd in self.nodes: node not added
+            return False 
+    lst.append(node) # node not contained in any of self.nodes: add it
     return True
 
 def expand_star(node, chvdict):
@@ -96,16 +96,13 @@ def expand_star(node, chvdict):
         dic[nv] = cvs
     return dic
 
-def subtract_delta_node(node, delta_node, chvdict):
-    nvs = sorted(node)
-    # for nv in nvs:
-    #     if node[nv] == {'*'}:       node[nv] = set(chvdict[nv])
-    #     if delta_node[nv] == {'*'}: delta_node[nv] = set(chvdict[nv])
-    cmm = node_intersect(node, delta_node, chvdict)
+def subtract_delta_node(node, delta_node, steps):
+    if node == delta_node: return {}
+    cmm = node_intersect(node, delta_node, steps)
     if not cmm: return node
     res = []
-    seq1 = Sequencer(expand_star(cmm,chvdict))
-    seq2 = Sequencer(expand_star(node,chvdict))
+    seq1 = Sequencer(cmm)
+    seq2 = Sequencer(node)
     while not seq1.done:
         n1 = seq1.get_next()
         while not seq2.done:

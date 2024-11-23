@@ -51,17 +51,21 @@ class BitBlocker:
             self.nodes.append(nd)
 
     def spousal_conflict(self, spouse):
-        blocks = []
         for other_node in spouse.nodes:
-            for node in self.nodes:
-                res = node_intersect(node, other_node, self.repo.steps)
-                if res != None:
-                    blocks.append(res)
-        for bl in blocks:
-            self.subtr_node(bl)
-            spouse.subtr_node(bl)
-            self.repo.blckmgr.add_block(bl)
+            self.filter_conflict(other_node)
         x = 0
+    # def spousal_conflict(self, spouse):
+    #     blocks = []
+    #     for other_node in spouse.nodes:
+    #         for node in self.nodes:
+    #             res = node_intersect(node, other_node, self.repo.steps)
+    #             if res != None:
+    #                 blocks.append(res)
+    #     for bl in blocks:
+    #         self.subtr_node(bl)
+    #         spouse.subtr_node(bl)
+    #         self.repo.blckmgr.add_block(bl)
+    #     x = 0
 
     def subtr_node(self, delta_node):
         res_nodes = []
@@ -92,6 +96,26 @@ class BitBlocker:
                 self.srcdic[kname] = msg
             else:
                 self.srcdic[kname] = False
+
+    def filter_conflict(self, node):
+        node_delta = []
+        nd_ind = 0
+        while nd_ind < len(self.nodes):
+            nd = self.nodes[nd_ind]
+            cmm = node_intersect(nd, node, self.repo.steps)
+            if cmm != None and len(cmm) > 0:
+                self.repo.blckmgr.add_block(cmm)
+                nd = subtract_delta_node(nd, cmm, self.repo.steps)
+                node_delta.append(cmm)
+                if len(nd) == 0:
+                    del self.nodes[nd_ind]
+                    continue
+            else:
+                nd_ind += 1
+        for delta in node_delta:
+            node = subtract_delta_node(node, delta, self.repo.steps)
+            
+
 
     def filter_nodes(self, nodes, nd):
         pnds = []

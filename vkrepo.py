@@ -55,13 +55,13 @@ class VKRepoitory:
                 if set(vk2.bits).issubset(bgrid.bits):
                     hit_cvs = bgrid.vk2_hits(vk2)
                     print(f"{k2n} inside {bgrid.nov}-root, blocking {hit_cvs}")
-                    block = fill_dict(self.chvdict,
-                                {vk2.nov:vk2.cvs.copy(), bgrid.nov: hit_cvs})
+                    block = fill_star({vk2.nov:vk2.cvs.copy(), 
+                                       bgrid.nov: hit_cvs}, self.steps)
                     block_added = self.blckmgr.add_block(block)
                 else:# vk1.cvs is compound  caused by overlapping 
                     hit_cvs, mis_cvs = bgrid.cvs_subset(rb, vk2.dic[rb])
-                    node = fill_dict(self.chvdict,
-                            {vk2.nov: vk2.cvs.copy(), bgrid.nov: hit_cvs})
+                    node = fill_star({vk2.nov: vk2.cvs.copy(), 
+                                      bgrid.nov: hit_cvs}, self.steps)
                     # in both hit_cvs/mis_cvs: vk2 to be excluded
                     # hit_cvs: bit-blocker(vk2 not neede); mis_cvs: un-hit
                     self.exclmgr.add(vk2.kname, None)
@@ -82,6 +82,9 @@ class VKRepoitory:
     def add_bblocker(self, bit, val, node, srcdic):
         # BitBlocker(bit, self)
         bb_dic = self.bdic1.setdefault(bit, {})
+        flip_val = flip(val)
+        if flip_val in bb_dic:
+            bb_dic[flip_val].filter_conflict(node)
         bb = bb_dic.setdefault(val, BitBlocker(bit, val, self))
         bb.add(node, srcdic)
         check_spouse(bb_dic)
@@ -120,7 +123,7 @@ class VKRepoitory:
         if len(bits) > 0:
             for bit in bits:
                 bb_dic = self.bdic1[bit]
-                vk2_node = fill_nvs({vk2.nov: vk2.cvs}, self.steps)
+                vk2_node = fill_star({vk2.nov: vk2.cvs}, self.steps)
                 for v in bb_dic:
                     cmm = bb_dic[v].intersect(vk2_node)
                     if len(cmm) == 0: continue

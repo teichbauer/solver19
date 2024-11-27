@@ -55,7 +55,11 @@ def missing_nv2star(node1, node2, steps):
     if len(steps) == len(node1) and len(steps)  == len(node2): 
         return
     for nv in steps:
-        if nv not in node1: node1[nv] = {'*'}
+        if type(node1) == list:
+            for nd in node1:
+                if nv not in nd: nd[nv] = {'*'}
+        else:
+            if nv not in node1: node1[nv] = {'*'}
         if nv not in node2: node2[nv] = {'*'}
 
 def node_valid(node):
@@ -71,7 +75,8 @@ def node1_C_node2(n1, n2, steps):
     return True
 
 def node_intersect(n1, n2, steps):
-    missing_nv2star(n1, n2, steps)
+    if steps:
+        missing_nv2star(n1, n2, steps)
     dic = {}
     for nv in n1:
         intrsct = cvs1_intersect_cvs2(n1[nv], n2[nv])
@@ -89,14 +94,17 @@ def node_to_lst(node, lst, steps):
     return True
 
 def expand_star(node, chvdict):
-    dic = {}
-    for nv, cvs in node.items():
-        if cvs == {'*'}:
-            cvs = chvdict[nv]
-        dic[nv] = cvs
-    return dic
+    if type(node) == list:
+        ind = 0
+        while ind < len(node):
+            expand_star(node[ind], chvdict)
+            ind += 1
+    elif type(node) == dict:
+        for nv in node:
+            if node[nv] == {'*'}:
+                node[nv] = chvdict[nv]
 
-def subtract_delta_node(node, delta_node, steps):
+def subtract_delta_node(node, delta_node, steps=None):
     if node == delta_node: return {}
     cmm = node_intersect(node, delta_node, steps)
     if not cmm: return node

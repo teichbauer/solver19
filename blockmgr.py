@@ -55,7 +55,6 @@ class BlockMgr:
         self.putin(newblock)
         return True
 
-
     def block_contain(self, super, sub):
         if node1_C_node2(super, sub, self.repo.steps): 
             return 1    # super contains sub

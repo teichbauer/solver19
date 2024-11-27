@@ -1,3 +1,6 @@
+2024-11-27->19.394
+- refactoring in cvsnodetools
+- tested and fixed in bblocker/spousal_conflict
 2024-11-22->19.393
 - progress imporving cvsnotetools, tools.py
 - refactoring bblocker.py, blckngr.py, vkrepo
@@ -13,7 +16,7 @@
 2024-11-18->19.390
 - get rid of cvsnode.py (moved under log/)
 - bitblocker.fill_star: to fill missing nv with chvdict cvs
-  bitblocker.merge coded(verified when adding grow(S57) on bit 21
+  bitblocker.merge coded(verified when adding grow(S57)) on bit 21
 2024-11-18->19.389
 - get rid of namedrive.py, stail.py
 - in cvsnodetools: signature: use md4 to calc bb.nodes's sig

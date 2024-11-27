@@ -1,3 +1,13 @@
+### 2024-11-23a
+```
+when merging S57 into S60, 60:C0120[53-0 28-0](467) touches 
+57root[49-1 36-0 28-1], B(28-0):57(0246)/B(28-1):57:(137). 
+Here C0120 will be excluded anywhere, because for 28-0, 
+it will form a bit-block [53-0] where C0120 will not 
+be used; and for 28-1, C0120 is unhit(to be excluded). and
+that is the reason self.exclmgr.add(C0120, None)
+```
+  
 ### 2024-10-22
 ---
 #### in tools.py/vk1s_mergable(vk1a, vk1b) when merging S54 to s60+57

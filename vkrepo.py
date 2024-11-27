@@ -62,9 +62,7 @@ class VKRepoitory:
                     hit_cvs, mis_cvs = bgrid.cvs_subset(rb, vk2.dic[rb])
                     node = fill_star({vk2.nov: vk2.cvs.copy(), 
                                       bgrid.nov: hit_cvs}, self.steps)
-                    # in both hit_cvs/mis_cvs: vk2 to be excluded
-                    # hit_cvs: bit-blocker(vk2 not neede); mis_cvs: un-hit
-                    self.exclmgr.add(vk2.kname, None)
+                    self.exclmgr.add(vk2.kname, None) # IL2024-11-23a
                     new_vk1 = vk2.clone("NewVk", [rb], node) # R prefix, drop rb
                     self.add_bblocker(new_vk1.bit, new_vk1.val, node,
                                     {vk2.kname: f"R{vk2.nov}-{bgrid.nov}/{rb}"})
@@ -121,9 +119,9 @@ class VKRepoitory:
     def add_vk2(self, vk2, new_bits):
         bits = set(self.bdic1).intersection(vk2.bits)
         if len(bits) > 0:
+            vk2_node = fill_star({vk2.nov: vk2.cvs}, self.steps)
             for bit in bits:
                 bb_dic = self.bdic1[bit]
-                vk2_node = fill_star({vk2.nov: vk2.cvs}, self.steps)
                 for v in bb_dic:
                     cmm = bb_dic[v].intersect(vk2_node)
                     if len(cmm) == 0: continue

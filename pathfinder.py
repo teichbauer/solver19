@@ -9,7 +9,7 @@ class PathFinder:
 
     def write_log(self, outfile_name):
         ofile = open(outfile_name, 'w')
-        msg = outputlog(self.repo, Center.vk1dic)
+        msg = outputlog(self)
         ofile.write(msg)
         ofile.close()
 
@@ -35,25 +35,3 @@ class PathFinder:
             for v in repo.bdic1[b]:
                 bb_pairs.append((b,v))
         self.repo.filter_vk2s(bb_pairs)
-
-
-    def fishout_path(self):
-        all_paths = self.pgenerator()
-        valids = []
-        for p in all_paths:
-            if self.repo.blckmgr.verify_pth(p):
-                valids.append(p)
-        return valids
-
-    def pgenerator(self):
-        base = [self.chvdic[nv] for nv in self.steps]
-        paths = []
-        g = path_iterator(base)
-        try:
-            while True:
-                t = next(g)
-                paths.append(t)
-        except:
-            print(f"there are {len(paths)} paths")
-            return paths
-

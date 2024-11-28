@@ -1,0 +1,88 @@
+from utils.cvsnodetools import *
+from utils.tools import outputlog
+from vkrepo import VKRepository
+
+class Path(VKRepository):
+    def __init__(self, snode):
+        VKRepository.__init__(self, snode)
+        self.bdic1 = {
+            b:{v: bb.clone(self) for v, bb in bbdic.items()} 
+            for b, bbdic in snode.repo.bdic1.items()
+        }
+        self.classname = 'Path'
+        self.bdic2      = {b: lst[:] for b, lst in snode.repo.bdic2.items()}
+        self.vk2dic     = {kn:vk2 for kn, vk2 in snode.repo.vk2dic.items()}
+        self.blckmgr    = self.blckmgr.clone(self)
+        self.exclmgr    = self.exclmgr.clone(self)
+        self.inflog     = snode.repo.inflog.copy()
+        self.snode_dic  = {snode.nov: snode} # starting-snode as the first
+
+    def add_sn_root(self, sn_bgrid):
+        bdic1_rbits = sorted(set(self.bdic1).intersection(sn_bgrid.bits))
+        for rb1 in bdic1_rbits:
+            for bb in self.bdic1[rb1].values():
+                hit_cvs, mis_cvs = sn_bgrid.cvs_subset(bb.bit, bb.val)
+                for node in bb.nodes:
+                    bl = copy.deepcopy(node)    # making a new block
+                    bl.update({sn_bgrid.nov: hit_cvs}) # and add it to blckmgr
+                    self.blckmgr.add_block(bl)
+                    node[sn_bgrid.nov] = mis_cvs # in stead of (2367), {*} okay
+        # handle vk2s bouncing with bgrid.bits
+        cmm_rbits = sorted(set(self.bdic2).intersection(sn_bgrid.bits))
+        for rb in cmm_rbits:
+            for k2n in self.bdic2[rb]:
+                vk2 = self.vk2dic[k2n]
+                if set(vk2.bits).issubset(sn_bgrid.bits):
+                    hit_cvs = sn_bgrid.vk2_hits(vk2)
+                    m = f"{k2n} inside {sn_bgrid.nov}-root, blocking {hit_cvs}"
+                    print(m)
+                    block = fill_star({vk2.nov:vk2.cvs.copy(), 
+                                       sn_bgrid.nov: hit_cvs}, self.steps)
+                    block_added = self.blckmgr.add_block(block)
+                else:# vk1.cvs is compound  caused by overlapping 
+                    hit_cvs, mis_cvs = sn_bgrid.cvs_subset(rb, vk2.dic[rb])
+                    node = fill_star({vk2.nov: vk2.cvs.copy(), 
+                                      sn_bgrid.nov: hit_cvs}, self.steps)
+                    self.exclmgr.add(vk2.kname, None) # IL2024-11-23a
+                    new_vk1 = vk2.clone("NewVk", [rb], node) # R prefix, drop rb
+                    self.add_bblocker(
+                        new_vk1.bit, 
+                        new_vk1.val, node,
+                        {vk2.kname: f"R{vk2.nov}-{sn_bgrid.nov}/{rb}"}
+                    )
+    # end of add_sn_root
+
+    def grow(self, sn):
+        self.snode_dic[sn.nov] = sn
+        # self.repo.blckmgr.expand()
+        self.add_sn_root(sn.bgrid)
+        for bit, bbdic in sn.repo.bdic1.items():
+            dic = self.bdic1.setdefault(bit, {})
+            for v, bb in bbdic.items():
+                if v in dic:
+                    dic[v].merge(bb)
+                else:
+                    dic[v] = bb.clone(self)
+            check_spouse(dic)
+        new_bits = set()
+        for vk2 in sn.repo.vk2dic.values():
+            self.add_vk2(vk2, new_bits)
+        bb_pairs = [] # [(<bb-bit>,<bb-val>),..]
+        for b in sorted(new_bits):
+            for v in self.bdic1[b]:
+                bb_pairs.append((b,v))
+        self.filter_vk2s(bb_pairs)
+
+    def write_log(self, outfile_name):
+        ofile = open(outfile_name, 'w')
+        msg = outputlog(self)
+        ofile.write(msg)
+        ofile.close()
+
+    @property
+    def steps(self):
+        return sorted(self.snode_dic, reverse=True) # [60, 57, 54, ...]
+
+    @property
+    def chvdict(self):
+        return {nv: set(sn.bgrid.chvals) for nv, sn in self.snode_dic.items()}

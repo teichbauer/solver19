@@ -21,7 +21,6 @@ def po_cvs(cvs):
     m += ')'
     return m
 
-flip = lambda val: (val + 1) % 2
 
 #------------ node tools -----------
 def clone_node(nd): # nd : {<nov>:<cvs-set>,..}
@@ -68,7 +67,8 @@ def node_valid(node):
     return True
 
 def node1_C_node2(n1, n2, steps):
-    missing_nv2star(n1, n2, steps)
+    if steps:
+        missing_nv2star(n1, n2, steps)
     for nv, cvs in n1.items():
         if not cvs1_contains_cvs2(n1[nv], n2[nv]):
             return False
@@ -84,7 +84,7 @@ def node_intersect(n1, n2, steps):
         dic[nv] = intrsct
     return dic
 
-def node_to_lst(node, lst, steps): 
+def node_to_lst(node, lst, steps=None): 
     # add node to lst, if not contained in it. 
     for nd in lst:
         if node1_C_node2(nd, node, steps):

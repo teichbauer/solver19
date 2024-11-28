@@ -1,25 +1,26 @@
 from center import Center
 from utils.basics import pd
+from utils.cvsnodetools import *
 from utils.tools import *
 from blockmgr import BlockMgr
-from bblocker import *
+from bblocker import BitBlocker
 from exclmgr import ExclMgr
 import copy
 
-class VKRepoitory:
-    def __init__(self, snode_dic):
+class VKRepository:
+    def __init__(self, snode):
         self.bdic1 = {}     # {bit: bblocker, bit:bblocker, ..}
         self.bdic2 = {}     # {bit: [k2n, k2n,..], bit:[], ..}
         self.vk2dic = {}    # {k2n:vk2, k2n: vk2,...}
-        self.blckmgr = BlockMgr(self)
-        self.exclmgr = ExclMgr(self)
-        self.snode_dic = snode_dic  # related snode
-        self.pathmgr = None
+        cn = 'VKRepository'
+        self.classname = cn
+        self.blckmgr = [None, BlockMgr(self)][cn == 'VKRepository']
+        self.exclmgr = [None, ExclMgr(self) ][cn == 'VKRepository']
+        self.snode = snode  # related snode
         self.inflog = {}    # {key:[info,info,..], key:[], ...}
 
-    def clone(self, pathmgr):
-        xrepo = VKRepoitory(self.snode_dic.copy())
-        xrepo.pathmgr = pathmgr   # pathfinder
+    def clone(self):
+        xrepo = VKRepository(self.snode)
         xrepo.bdic1 = {b:{v: bb.clone(self) for v, bb in bbdic.items()} 
                        for b, bbdic in self.bdic1.items()}
         xrepo.bdic2 = {b: lst[:] for b, lst in self.bdic2.items()}
@@ -28,45 +29,6 @@ class VKRepoitory:
         xrepo.exclmgr = self.exclmgr.clone(xrepo)
         xrepo.inflog = self.inflog.copy()
         return xrepo
-    
-    @property
-    def steps(self):
-        return sorted(self.snode_dic, reverse=True) # [60, 57, 54, ...]
-    
-    @property
-    def chvdict(self):
-        return {nv: set(sn.bgrid.chvals) for nv, sn in self.snode_dic.items()}
-
-    def add_snode_root(self, bgrid):
-        bdic1_rbits = sorted(set(self.bdic1).intersection(bgrid.bits))
-        for rb1 in bdic1_rbits:
-            for bb in self.bdic1[rb1].values():
-                hit_cvs, mis_cvs = bgrid.cvs_subset(bb.bit, bb.val)
-                for node in bb.nodes:
-                    bl = copy.deepcopy(node)    # making a new block
-                    bl.update({bgrid.nov: hit_cvs}) # and add it to blckmgr
-                    self.blckmgr.add_block(bl)
-                    node[bgrid.nov] = mis_cvs # in stead of (2367), {*} okay
-        # handle vk2s bouncing with bgrid.bits
-        cmm_rbits = sorted(set(self.bdic2).intersection(bgrid.bits))
-        for rb in cmm_rbits:
-            for k2n in self.bdic2[rb]:
-                vk2 = self.vk2dic[k2n]
-                if set(vk2.bits).issubset(bgrid.bits):
-                    hit_cvs = bgrid.vk2_hits(vk2)
-                    print(f"{k2n} inside {bgrid.nov}-root, blocking {hit_cvs}")
-                    block = fill_star({vk2.nov:vk2.cvs.copy(), 
-                                       bgrid.nov: hit_cvs}, self.steps)
-                    block_added = self.blckmgr.add_block(block)
-                else:# vk1.cvs is compound  caused by overlapping 
-                    hit_cvs, mis_cvs = bgrid.cvs_subset(rb, vk2.dic[rb])
-                    node = fill_star({vk2.nov: vk2.cvs.copy(), 
-                                      bgrid.nov: hit_cvs}, self.steps)
-                    self.exclmgr.add(vk2.kname, None) # IL2024-11-23a
-                    new_vk1 = vk2.clone("NewVk", [rb], node) # R prefix, drop rb
-                    self.add_bblocker(new_vk1.bit, new_vk1.val, node,
-                                    {vk2.kname: f"R{vk2.nov}-{bgrid.nov}/{rb}"})
-    # end of def add_snode_root(self, bgrid):
     
     def insert_vk2(self, vk2):
         name = vk2.kname
@@ -78,7 +40,6 @@ class VKRepoitory:
         self.vk2dic[name] = vk2
 
     def add_bblocker(self, bit, val, node, srcdic):
-        # BitBlocker(bit, self)
         bb_dic = self.bdic1.setdefault(bit, {})
         flip_val = flip(val)
         if flip_val in bb_dic:

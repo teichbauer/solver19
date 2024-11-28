@@ -3,8 +3,8 @@ from center import Center
 from utils.tools import sort_length_list
 from collections import OrderedDict
 from sat_path import SatPath
-from vkrepo import VKRepoitory
-from pathfinder import PathFinder
+from vkrepo import VKRepository
+from path import Path
 
 class SatNode:
     def __init__(self, parent, sh, vkm):
@@ -21,7 +21,7 @@ class SatNode:
         # choice[0]: chvals, [1]: vk3s, [2]: touchd 2 bits, [3]: touched 1 bit
         self.choice = vkm.make_choice(self.nov) # (vals, bits, t2s, t1s)
         self.bgrid = BitGrid(self)
-        self.repo = VKRepoitory({self.nov:self})
+        self.repo = VKRepository(self)
         self.fill_repo()
         Center.slice(self)
         self.next = None
@@ -61,14 +61,14 @@ class SatNode:
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
             print(f"NOV:{self.nov}")
-            pathfinder = PathFinder(Center.snodes[60])
+            path = Path(Center.snodes[60])
             # pathrepo = Center.snodes[60].repo.clone()
-            pathfinder.grow(Center.snodes[57])
+            path.grow(Center.snodes[57])
             # pathrepo.write_logmsg('./logs/loginfo.txt')
-            pathfinder.grow(Center.snodes[54])
-            pathfinder.grow(Center.snodes[51])
-            pathfinder.block_filter()
-            pathfinder.write_log('./logs/loginfo.txt')
+            path.grow(Center.snodes[54])
+            path.grow(Center.snodes[51])
+            path.block_filter()
+            path.write_log('./logs/loginfo.txt')
             x = 9
 
     def grow_path(self, base_nov, final_path=[], base_path=None):

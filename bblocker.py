@@ -29,6 +29,18 @@ class BitBlocker:
         ninst.srcdic = self.srcdic.copy()
         return ninst
 
+    @property
+    def steps(self):
+        if self.repo.classname == 'Path':
+            return self.repo.steps
+        return None
+
+    @property
+    def chvdict(self):
+        if self.repo.classname == 'Path':
+            return self.repo.chvdict
+        return None
+
     def fill_star(self, chvdict):
         # res = []
         for nd in self.nodes:
@@ -83,7 +95,7 @@ class BitBlocker:
             for nd in node:
                 self.add(nd, srcdic)
         elif is_single(node):
-            added = node_to_lst(node, self.nodes, self.repo.steps)
+            added = node_to_lst(node, self.nodes, self.steps)
         else:
             doit = node_seq(node)
             while not doit.done:
@@ -99,7 +111,7 @@ class BitBlocker:
     def filter_conflict(self, node):
         node_delta = []
         for nd in self.nodes:
-            cmm = node_intersect(nd, node, self.repo.steps)
+            cmm = node_intersect(nd, node, self.steps)
             if cmm != None and len(cmm) > 0:
                 self.repo.blckmgr.add_block(cmm)
                 node_delta.append(cmm)
@@ -145,13 +157,13 @@ class BitBlocker:
     
     def contains(self, node):
         for nd in self.nodes:
-            if node1_C_node2(nd, node, self.repo.steps): return True
+            if node1_C_node2(nd, node, self.steps): return True
         return False
 
     def intersect(self, node):
         res = []
         for nd in self.nodes:
-            cmm = node_intersect(nd, node, self.repo.steps)
+            cmm = node_intersect(nd, node, self.steps)
             if cmm: res.append(cmm)
         return res
 

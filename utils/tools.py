@@ -1,65 +1,49 @@
 from utils.basics import *
 import copy
 
-def outputlog(repo, vk1dic):
+def outputlog(path):
     from datetime import datetime
     now = datetime.now()
     ts = now.isoformat().split('.')[0] # cutoff more precision than sec.
     msg = f"{ts}: vkrepo log\n" + "="*80 + "\n"
     msg += f"bdic1:\n----------------------------------------------------\n"
-    bitlst = sorted(set(repo.bdic1))  # all bits in sorted order
+    bitlst = sorted(set(path.bdic1))  # all bits in sorted order
     for bit in bitlst:
         msg += f"{bit}: ["
-        for kn in repo.bdic1[bit]:
+        for kn in path.bdic1[bit]:
             msg += f"{kn}  "
         msg += "]\n"
     msg += f"----------------------------------------------------\n\n"
     msg += f"bdic2:\n----------------------------------------------------\n"
-    bitlst = sorted(set(repo.bdic2))  # all bits in sorted order
+    bitlst = sorted(set(path.bdic2))  # all bits in sorted order
     for bit in bitlst:
         msg += f"{bit}: ["
-        for kn in repo.bdic2[bit]:
+        for kn in path.bdic2[bit]:
             msg += f"{kn}  "
         msg += "]\n"
     msg += f"----------------------------------------------------\n\n"
     msg += f"vk1s:\n----------------------------------------------------\n"
-    k1ns = sorted(repo.k1ns)
+    k1ns = sorted(path.k1ns)
     for kn in k1ns:
         msg += vk1dic[kn].po() +'\n'
     msg += f"----------------------------------------------------\n\n"
     msg += f"vk2s:\n----------------------------------------------------\n"
-    k2ns = sorted(repo.vk2dic)
+    k2ns = sorted(path.vk2dic)
     for kn in k2ns:
-        vk2 = repo.vk2dic[kn]
+        vk2 = path.vk2dic[kn]
         msg += vk2.po() +'\n'
     msg += f"----------------------------------------------------\n\n"
-    msg += repo.blckmgr.showall(True)
+    msg += path.blckmgr.showall(True)
     msg += f"----------------------------------------------------\n\n"
     msg += f"excls:\n----------------------------------------------------\n"
-    kns = sorted(repo.excls)
+    kns = sorted(path.excls)
     for kn in kns:
         msg += f"{kn}:\n"
-        lst = repo.excls[kn]
+        lst = path.excls[kn]
         for excl in lst:
             msg += f"    {pd(excl)}\n"
         msg += "\n"
     return msg
-
-def path_iterator(base): # base:[(10,20),(3,4),(a,b)]
-    # -> (10,3,a),(10,3,b), (10,4,a),(10,4,b), (20,3,a),(20,3,b), ...
-    res = []
-    for i in range(len(base)):
-        for s60 in base[0]:
-            res.append(s60)
-            for s57 in base[1]:
-                res.append(s57)
-                for s54 in base[2]:
-                    res.append(s54)
-                    yield tuple(res)
-                    res.pop()
-                res.pop()
-            res.pop()
-# -------------------------------
 
 def sort_length_list(lst):
     # [(...),(.......),(.)] => [(.),(...),(.......)]
@@ -115,6 +99,8 @@ def handle_vk2pair(vkx, vky):
             if vkx.dic[b1] != vky.dic[b1]:
                 new_vk1 = vkx.clone("NewVk", [b1], node)
     return new_vk1
+
+flip = lambda val: (val + 1) % 2
 
 def print_vk2dic(vk2dic):
     for vk in vk2dic.values():

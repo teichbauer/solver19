@@ -1,3 +1,12 @@
+### 2024-11-27
+```
+path.grow(S60 + S57) <-S54: path has a bit-blocker(19-0) and S54 has 
+root[20-1 19-0 7-0]. [19-0] will have hit-cvs:(015), no-hit-cvs:(2367)
+bb.node ^ 54:(015) will generate block, where bb(19-0) will be covered,
+and on [19-1](2367) bb(19-0) will not be hit. This means, bb(19-0)
+can be removed. If there is bb(19-1), this would generated a block
+(added to blckmgr) and bb(19-1) will then be removed.
+```
 ### 2024-11-23a
 ```
 when merging S57 into S60, 60:C0120[53-0 28-0](467) touches 

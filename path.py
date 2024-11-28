@@ -20,13 +20,16 @@ class Path(VKRepository):
     def add_sn_root(self, sn_bgrid):
         bdic1_rbits = sorted(set(self.bdic1).intersection(sn_bgrid.bits))
         for rb1 in bdic1_rbits:
-            for bb in self.bdic1[rb1].values():
-                hit_cvs, mis_cvs = sn_bgrid.cvs_subset(bb.bit, bb.val)
+            bb_dic = self.bdic1[rb1]
+            for bv, bb in bb_dic:
+                hit_cvs, mis_cvs = sn_bgrid.cvs_subset(bb.bit, bv)
                 for node in bb.nodes:
                     bl = copy.deepcopy(node)    # making a new block
                     bl.update({sn_bgrid.nov: hit_cvs}) # and add it to blckmgr
                     self.blckmgr.add_block(bl)
-                    node[sn_bgrid.nov] = mis_cvs # in stead of (2367), {*} okay
+                del bb_dic[bv]      # IL2024-11-27 on the reason
+            if len(bb_dic) == 0:    # why it is to be removed. 
+                del self.bdic1[rb1]
         # handle vk2s bouncing with bgrid.bits
         cmm_rbits = sorted(set(self.bdic2).intersection(sn_bgrid.bits))
         for rb in cmm_rbits:

@@ -80,7 +80,7 @@ class VKRepository:
     def add_vk2(self, vk2, new_bits):
         bits = set(self.bdic1).intersection(vk2.bits)
         if len(bits) > 0:
-            vk2_node = fill_star({vk2.nov: vk2.cvs}, self.steps)
+            vk2_node = expand_star({vk2.nov: vk2.cvs}, self.chvdict)
             for bit in bits:
                 bb_dic = self.bdic1[bit]
                 for v in bb_dic:
@@ -116,3 +116,11 @@ class VKRepository:
                     vk1.bit, vk1.val,vk1.cvs,
                     {vk2.kname:f'D{vk2.nov}',_vk2.kname:f'D{_vk2.nov}'})
         x = 0
+
+    def remove_vk2(self, vk2):
+        for bit in vk2.bits:
+            if vk2.kname in self.bdic2[bit]:
+                self.bdic2[bit].remove(vk2.kname)
+                if len(self.bdic2[bit]) == 0:
+                    del self.bdic2[bit]
+        del self.vk2dic[vk2.kname]

@@ -41,17 +41,9 @@ class BitBlocker:
             return self.repo.chvdict
         return None
 
-    def fill_star(self, chvdict):
-        # res = []
-        for nd in self.nodes:
-            for nv in chvdict:
-                if (nv not in nd) or nd[nv] == {'*'}:
-                    nd[nv] = chvdict[nv]
-        # self.nodes = res
-
     def merge(self, bb):
         nds = []
-        bb.fill_star(self.repo.chvdict)
+        bb.expand_nodes()
         for node in bb.nodes:
             node_it = Sequencer(node)
             while not node_it.done:
@@ -63,21 +55,21 @@ class BitBlocker:
             self.nodes.append(nd)
 
     def spousal_conflict(self, spouse):
+        spouse.expand_nodes()
         sindex = 0
         while sindex < len(spouse.nodes):
-            snode = spouse.nodes[sindex]
-            deleted = self.filter_conflict(snode)
+            deleted = self.filter_conflict(spouse.nodes[sindex])
             if deleted: 
                 del spouse.nodes[sindex]
-            else: 
+            else:
                 sindex += 1
         x = 0
 
     def subtr_node(self, delta_node, srcnodes=None):
         if srcnodes == None:
             srcnodes = self.nodes
-        expand_star(delta_node, self.repo.chvdict)
-        expand_star(srcnodes, self.repo.chvdict)
+        expand_star(delta_node, self.chvdict)
+        expand_star(srcnodes, self.chvdict)
         if type(srcnodes) == list:
             res_nodes = []
             for node in srcnodes:
@@ -160,10 +152,23 @@ class BitBlocker:
             if node1_C_node2(nd, node, self.steps): return True
         return False
 
-    def intersect(self, node):
-        res = []
+    def intersect(self, node, res=None):
+        self.expand_nodes()
+        if res==None: res = []
+        if type(node) == BitBlocker:
+            for nd in node.nodes:
+                self.intersect(nd, res)
         for nd in self.nodes:
-            cmm = node_intersect(nd, node, self.steps)
+            cmm = node_intersect(nd, node)
             if cmm: res.append(cmm)
         return res
 
+    def expand_nodes(self):
+        if self.repo.classname == 'Path':
+            expand_star(self.nodes, self.chvdict)
+        return self
+
+
+
+    # def iter_node(self):
+    #     return (for y in self.expand_nodes().nodes)

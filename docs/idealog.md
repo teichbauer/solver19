@@ -1,3 +1,9 @@
+### 2024-11-28
+```
+when vk2 hit 1 bit of root bits of a sn, this vk2 should be totally
+removed from vk2dic of path(Now that I have path, but not vkrepo)
+the reason: for hit_cvs: vk2->vk1->bb, for mis_cvs, it is obsolete anyway
+```
 ### 2024-11-27
 ```
 path.grow(S60 + S57) <-S54: path has a bit-blocker(19-0) and S54 has 

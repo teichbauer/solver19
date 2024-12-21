@@ -65,11 +65,11 @@ class Sequencer:
         # self.base: [[1,2,3,4],[0,1],[2,3],[0]]
         self.base = tuple([tuple(sorted(node[nv])) for nv in self.nvs])
         self.leng = len(self.nvs)
-        self.itrs = []
         self.reset()
 
     def reset(self): # after reset, iterator will start from the first pthrd
         self.done = False
+        self.itrs = []
         for ind, lst in enumerate(self.base):
             if ind == 0:
                 self.itrs.append(ItorHost(lst, ind, False))
@@ -112,11 +112,20 @@ def test(data):
         # f"{count:>2}" - right-align occupy 2 spaces. < would be left-align
         print(f"{count:>4}: {sq.get_next()}")
     print('-'*80)
+    sq.reset()
+    print(f"{data = }\n" + '-'*80)
+    # ---- testing reset
+    sq = Sequencer(data)
+    count = 0
+    while not sq.done:
+        count += 1
+        # f"{count:>2}" - right-align occupy 2 spaces. < would be left-align
+        print(f"{count:>4}: {sq.get_next()}")
+    print('-'*80)
 
 if __name__ == '__main__':
     # test({60:set((1,2,3)),57:set((11,22,33)), 54:set((111,222,333))})
-    test( { 60:{1,2,3}, 57:{0,1}, 54:{1,5,7} } )
-    x = 1
+    test( { 60:{1,2,3}, 57:{0}, 54:{1,5,7} } )
 
 
 

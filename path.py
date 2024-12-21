@@ -33,26 +33,28 @@ class Path(VKRepository):
         # handle vk2s bouncing with bgrid.bits
         cmm_rbits = sorted(set(self.bdic2).intersection(sn_bgrid.bits))
         for rb in cmm_rbits:
-            for k2n in self.bdic2[rb]:
+            kns = self.bdic2[rb]
+            while len(kns) > 0:
+                k2n = kns.pop(0)
                 vk2 = self.vk2dic[k2n]
                 if set(vk2.bits).issubset(sn_bgrid.bits):
                     hit_cvs = sn_bgrid.vk2_hits(vk2)
                     m = f"{k2n} inside {sn_bgrid.nov}-root, blocking {hit_cvs}"
                     print(m)
-                    block = fill_star({vk2.nov:vk2.cvs.copy(), 
-                                       sn_bgrid.nov: hit_cvs}, self.steps)
+                    block = expand_star({vk2.nov:vk2.cvs.copy(), 
+                                       sn_bgrid.nov: hit_cvs}, self.chvdict)
                     block_added = self.blckmgr.add_block(block)
                 else:# vk1.cvs is compound  caused by overlapping 
                     hit_cvs, mis_cvs = sn_bgrid.cvs_subset(rb, vk2.dic[rb])
-                    node = fill_star({vk2.nov: vk2.cvs.copy(), 
-                                      sn_bgrid.nov: hit_cvs}, self.steps)
-                    self.exclmgr.add(vk2.kname, None) # IL2024-11-23a
+                    node = expand_star({vk2.nov: vk2.cvs.copy(), 
+                                      sn_bgrid.nov: hit_cvs}, self.chvdict)
                     new_vk1 = vk2.clone("NewVk", [rb], node) # R prefix, drop rb
                     self.add_bblocker(
                         new_vk1.bit, 
                         new_vk1.val, node,
                         {vk2.kname: f"R{vk2.nov}-{sn_bgrid.nov}/{rb}"}
                     )
+                self.remove_vk2(vk2)  # IL2024-11-23a + IL2024-11-28
     # end of add_sn_root
 
     def grow(self, sn):

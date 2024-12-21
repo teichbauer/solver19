@@ -38,18 +38,6 @@ def is_single(node):
 def node_seq(node):
     return Sequencer(node) # return a generator
 
-def fill_star(node, nvs): # node can be a dict, or a BitBlocker-inst
-    if type(node) == dict:
-        for nv in nvs:
-            if nv not in node:
-                node[nv] = {'*'}
-        return node
-    # node is of class BitBlocker
-    bb = node
-    for nd in bb.nodes:
-        nd = fill_star(nd, nvs)
-    return bb
-
 def missing_nv2star(node1, node2, steps):
     if len(steps) == len(node1) and len(steps)  == len(node2): 
         return
@@ -74,9 +62,7 @@ def node1_C_node2(n1, n2, steps):
             return False
     return True
 
-def node_intersect(n1, n2, steps):
-    if steps:
-        missing_nv2star(n1, n2, steps)
+def node_intersect(n1, n2):
     dic = {}
     for nv in n1:
         intrsct = cvs1_intersect_cvs2(n1[nv], n2[nv])
@@ -100,13 +86,13 @@ def expand_star(node, chvdict):
             expand_star(node[ind], chvdict)
             ind += 1
     elif type(node) == dict:
-        for nv in node:
-            if node[nv] == {'*'}:
+        for nv in chvdict:
+            if (nv not in node) or (node[nv] == {'*'}):
                 node[nv] = chvdict[nv]
 
-def subtract_delta_node(node, delta_node, steps=None):
+def subtract_delta_node(node, delta_node):
     if node == delta_node: return {}
-    cmm = node_intersect(node, delta_node, steps)
+    cmm = node_intersect(node, delta_node)
     if not cmm: return node
     res = []
     seq1 = Sequencer(cmm)

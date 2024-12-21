@@ -1,3 +1,6 @@
+2024-12-20->19.397
+- new: pathnode - effort to wrap self.nodes
+- fixes: path, vkrepo, bblocker, sequencer, cvsnodetools
 2024-11-27->19.396
 - path.grow(S60 + S57) <-S54: path has a bit-blocker(19-0) and S54 has 
   root[20-1 19-0 7-0]. [19-0] will have hit-cvs:(015), no-hit-cvs:(2367)

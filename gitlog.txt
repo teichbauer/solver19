@@ -1,3 +1,5 @@
+2024-12-25->19.398
+- refactor vkrepo/ path constructors, del vkrepo.clone
 2024-12-20->19.397
 - new: pathnode - effort to wrap self.nodes
 - fixes: path, vkrepo, bblocker, sequencer, cvsnodetools

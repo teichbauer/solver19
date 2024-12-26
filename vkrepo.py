@@ -5,30 +5,28 @@ from utils.tools import *
 from blockmgr import BlockMgr
 from bblocker import BitBlocker
 from exclmgr import ExclMgr
-import copy
 
 class VKRepository:
-    def __init__(self, snode):
-        self.bdic1 = {}     # {bit: bblocker, bit:bblocker, ..}
-        self.bdic2 = {}     # {bit: [k2n, k2n,..], bit:[], ..}
-        self.vk2dic = {}    # {k2n:vk2, k2n: vk2,...}
-        cn = 'VKRepository'
+    def __init__(self, snode, cn='VKRepository'):
         self.classname = cn
-        self.blckmgr = [None, BlockMgr(self)][cn == 'VKRepository']
-        self.exclmgr = [None, ExclMgr(self) ][cn == 'VKRepository']
-        self.snode = snode  # related snode
-        self.inflog = {}    # {key:[info,info,..], key:[], ...}
-
-    def clone(self):
-        xrepo = VKRepository(self.snode)
-        xrepo.bdic1 = {b:{v: bb.clone(self) for v, bb in bbdic.items()} 
-                       for b, bbdic in self.bdic1.items()}
-        xrepo.bdic2 = {b: lst[:] for b, lst in self.bdic2.items()}
-        xrepo.vk2dic = {kn:vk2 for kn, vk2 in self.vk2dic.items()}
-        xrepo.blckmgr  = self.blckmgr.clone(xrepo)
-        xrepo.exclmgr = self.exclmgr.clone(xrepo)
-        xrepo.inflog = self.inflog.copy()
-        return xrepo
+        if cn == 'VKRepository':
+            self.snode   = snode  # related snode
+            self.inflog  = {}   # {key:[info,info,..], key:[], ...}
+            self.bdic1   = {}   # {bit: bblocker, bit:bblocker, ..}
+            self.bdic2   = {}   # {bit: [k2n, k2n,..], bit:[], ..}
+            self.vk2dic  = {}   # {k2n:vk2, k2n: vk2,...}
+            self.blckmgr = BlockMgr(self)
+            self.exclmgr = ExclMgr(self)
+        else:
+            self.bdic1 = {
+                b:{v: bb.clone(self) for v, bb in bbdic.items()} 
+                for b, bbdic in snode.repo.bdic1.items()
+            }
+            self.bdic2   = {b: lst[:] for b, lst in snode.repo.bdic2.items()}
+            self.vk2dic  = {kn:vk2 for kn, vk2 in snode.repo.vk2dic.items()}
+            self.inflog  = snode.repo.inflog.copy()
+            self.blckmgr = snode.repo.blckmgr.clone(self)
+            self.exclmgr = snode.repo.exclmgr.clone(self)
     
     def insert_vk2(self, vk2):
         name = vk2.kname

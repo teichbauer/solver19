@@ -4,17 +4,7 @@ from vkrepo import VKRepository
 
 class Path(VKRepository):
     def __init__(self, snode):
-        VKRepository.__init__(self, snode)
-        self.bdic1 = {
-            b:{v: bb.clone(self) for v, bb in bbdic.items()} 
-            for b, bbdic in snode.repo.bdic1.items()
-        }
-        self.classname = 'Path'
-        self.bdic2      = {b: lst[:] for b, lst in snode.repo.bdic2.items()}
-        self.vk2dic     = {kn:vk2 for kn, vk2 in snode.repo.vk2dic.items()}
-        self.blckmgr    = self.blckmgr.clone(self)
-        self.exclmgr    = self.exclmgr.clone(self)
-        self.inflog     = snode.repo.inflog.copy()
+        VKRepository.__init__(self, snode, 'Path')
         self.snode_dic  = {snode.nov: snode} # starting-snode as the first
 
     def add_sn_root(self, sn_bgrid):

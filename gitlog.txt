@@ -1,3 +1,6 @@
+2024-12-26->19.399
+- get rid of pathfinder (path now is doing the works)
+- minor fix in cvsnodetools/expand_star
 2024-12-25->19.398
 - refactor vkrepo/ path constructors, del vkrepo.clone
 2024-12-20->19.397

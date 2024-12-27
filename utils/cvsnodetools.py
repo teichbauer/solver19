@@ -89,6 +89,7 @@ def expand_star(node, chvdict):
         for nv in chvdict:
             if (nv not in node) or (node[nv] == {'*'}):
                 node[nv] = chvdict[nv]
+    return node
 
 def subtract_delta_node(node, delta_node):
     if node == delta_node: return {}

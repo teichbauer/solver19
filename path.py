@@ -30,13 +30,13 @@ class Path(VKRepository):
                     hit_cvs = sn_bgrid.vk2_hits(vk2)
                     m =f"{vk2.kname} in {sn_bgrid.nov}-root, blocking {hit_cvs}"
                     print(m)
-                    block = expand_star({vk2.nov:vk2.cvs.copy(), 
-                                       sn_bgrid.nov: hit_cvs}, self.chvdict)
+                    block = self.expand_node({vk2.nov:vk2.cvs.copy(), 
+                                              sn_bgrid.nov: hit_cvs})
                     block_added = self.blckmgr.add_block(block)
                 else:# vk1.cvs is compound  caused by overlapping 
                     hit_cvs, mis_cvs = sn_bgrid.cvs_subset(rb, vk2.dic[rb])
-                    node = expand_star({vk2.nov: vk2.cvs.copy(), 
-                                      sn_bgrid.nov: hit_cvs}, self.chvdict)
+                    node = self.expand_node(
+                        {vk2.nov: vk2.cvs.copy(), sn_bgrid.nov: hit_cvs})
                     new_vk1 = vk2.clone("NewVk", [rb], node) # R prefix, drop rb
                     self.add_bblocker( new_vk1.bit, new_vk1.val, node,
                         {vk2.kname: f"R{vk2.nov}-{sn_bgrid.nov}/{rb}"} )
@@ -71,6 +71,36 @@ class Path(VKRepository):
         ofile.write(msg)
         ofile.close()
 
+    def expand_node(self, node):
+        if type(node) == list:
+            for nd in node:
+                self.expand_node(nd)
+        elif type(node) == dict:
+            for nv in self.chvdict:
+                if (nv not in node) or (node[nv] == {'*'}):
+                    node[nv] = self.chvdict[nv]
+        return node
+
+    def add_vk2(self, vk2, new_bits):
+        bits = set(self.bdic1).intersection(vk2.bits)
+        if len(bits) > 0:
+            vk2_node = self.expand_node({vk2.nov: vk2.cvs})
+            for bit in bits:
+                bb_dic = self.bdic1[bit]
+                for v in bb_dic:
+                    cmm = bb_dic[v].intersect(vk2_node)
+                    if len(cmm) == 0: continue
+                    self.exclmgr.add(vk2.kname, cmm)
+                    if v != vk2.dic[bit]:
+                        vk1 = vk2.clone("NewVk", [bit], cmm)
+                        self.add_bblocker(vk1.bit, vk1.val, cmm,
+                                        {vk2.kname: f'U{vk2.nov}'})
+                        new_bits.add(vk1.bit)
+        self.insert_vk2(vk2)
+        # handle case of 2 overlapping bits with existing vk2
+        self.proc_vk2pair(vk2, new_bits) # if vk2 has a twin in vk2dic
+        return new_bits
+    
     @property
     def steps(self):
         return sorted(self.snode_dic, reverse=True) # [60, 57, 54, ...]

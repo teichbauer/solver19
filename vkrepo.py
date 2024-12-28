@@ -75,25 +75,6 @@ class VKRepository:
             bbp_index += 1
         x = 9
 
-    def add_vk2(self, vk2, new_bits):
-        bits = set(self.bdic1).intersection(vk2.bits)
-        if len(bits) > 0:
-            vk2_node = expand_star({vk2.nov: vk2.cvs}, self.chvdict)
-            for bit in bits:
-                bb_dic = self.bdic1[bit]
-                for v in bb_dic:
-                    cmm = bb_dic[v].intersect(vk2_node)
-                    if len(cmm) == 0: continue
-                    self.exclmgr.add(vk2.kname, cmm)
-                    if v != vk2.dic[bit]:
-                        vk1 = vk2.clone("NewVk", [bit], cmm)
-                        self.add_bblocker(vk1.bit, vk1.val, cmm,
-                                        {vk2.kname: f'U{vk2.nov}'})
-                        new_bits.add(vk1.bit)
-        self.insert_vk2(vk2)
-        # handle case of 2 overlapping bits with existing vk2
-        self.proc_vk2pair(vk2, new_bits) # if vk2 has a twin in vk2dic
-        return new_bits
 
     def proc_vk2pair(self, vk2, new_bits=None):
         # check if vk2 share its 2 bits with an existing vk2, if yes

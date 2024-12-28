@@ -92,17 +92,6 @@ def remove_vk1(vk1, vkdic, bdic, kns):
             kns.remove(name)
         return vkdic.pop(name)
     
-def add_vk2(vk2, vkdic, bdic, kns):
-    name = vk2.kname
-    for bit in vk2.bits:
-        lst = bdic.setdefault(bit, [])
-        if name not in lst:
-            lst.append(name)
-    if kns != None and name not in kns:
-        kns.append(name)
-    if vkdic != None:
-        vkdic[name] = vk2
-
 def remove_vk2(vk2, vkdic, bdic, kns):
     if type(vk2) == str:
         name = vk2

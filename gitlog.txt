@@ -1,3 +1,7 @@
+2024-12-27->19.340
+- get rid of utils/basics/add_vk2 - this is only in path.add_vk2
+- path: moved add_vk2 from vkrepo to here. Add expand_node replacing 
+  cvsnodetools/expand_star. Use it in add_sn_root
 2024-12-26->19.399
 - get rid of pathfinder (path now is doing the works)
 - minor fix in cvsnodetools/expand_star

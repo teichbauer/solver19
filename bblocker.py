@@ -165,7 +165,7 @@ class BitBlocker:
 
     def expand_nodes(self):
         if self.repo.classname == 'Path':
-            expand_star(self.nodes, self.chvdict)
+            self.repo.expand_node(self.nodes)
         return self
 
 

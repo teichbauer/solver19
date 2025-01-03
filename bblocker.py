@@ -1,32 +1,25 @@
 from utils.cvsnodetools import *
-
-class BBUT: # bit-blocker-update-tester
-    def __init__(self, initial_bb):
-        self.bb_bit = initial_bb.bit
-        self.bb_val = initial_bb.val
-        self.init_node_count = len(initial_bb.nodes)
-        self.init_node_sig = signature(initial_bb.nodes)
-
-    def test_update(self, bb):
-        assert(bb.bit == self.bb_bit), "BBUT usage wrong"
-        assert(bb.val == self.bb_val), "BBUT usage wrong"
-        if self.init_node_count == 0: return False
-        new_sig = signature(bb.nodes)
-        return new_sig != self.init_node_sig
+from pathnode import PathNode
 
 class BitBlocker:
     # on a bit in repo.bdic1: {bit: {0: BitBlocker(), 1:BitBlocker()}}
     def __init__(self, bit, val, repo):
         self.bit = bit
         self.val = val
-        self.nodes = [] # list of nodes
-        self.repo = repo
+        # self.nodes = [] # list of nodes
+        self.noder = PathNode(repo)
+        self.repo = repo    # can be VKRepository or Path
+        self.repo.bbpool[(bit, val)] = self
         self.srcdic = {}
 
     def clone(self, repo):
         ninst = BitBlocker(self.bit, self.val, repo)
-        ninst.nodes = [copy.deepcopy(n) for n in self.nodes]
+        # ninst.nodes = [copy.deepcopy(n) for n in self.nodes]
+        ninst.noder = self.noder.clone()
         ninst.srcdic = self.srcdic.copy()
+        bbpool_key = (ninst.bit, ninst.val)
+        if bbpool_key not in repo.bbpool:
+            repo.bbpool[bbpool_key] = ninst
         return ninst
 
     @property
@@ -41,18 +34,18 @@ class BitBlocker:
             return self.repo.chvdict
         return None
 
-    def merge(self, bb):
+    def merge(self, other_bb):
         nds = []
-        bb.expand_nodes()
-        for node in bb.nodes:
-            node_it = Sequencer(node)
-            while not node_it.done:
-                bb_node = node_it.get_next()
-                if self.contains(bb_node): 
+        other_bb.expand()
+        for node in other_bb.noder.nodes:
+            node_iter = Sequencer(node)
+            while not node_iter.done:
+                bb_node = node_iter.get_next() # bb_node: a single-cvs-dict
+                if self.contains_single(bb_node): 
                     continue
                 nds.append(bb_node)
         for nd in nds:
-            self.nodes.append(nd)
+            self.noder.nodes.append(nd)
 
     def spousal_conflict(self, spouse):
         spouse.expand_nodes()
@@ -81,24 +74,12 @@ class BitBlocker:
                         res_nodes.append(nd)
             return res_nodes
         return subtract_delta_node(srcnodes, delta_node)
-
-    def add(self, node, srcdic):
-        if type(node) == list:
-            for nd in node:
-                self.add(nd, srcdic)
-        elif is_single(node):
-            added = node_to_lst(node, self.nodes, self.steps)
-        else:
-            doit = node_seq(node)
-            while not doit.done:
-                nd = doit.get_next()
-                self.add(nd, srcdic)
-        while len(srcdic) > 0: 
-            kname, msg = srcdic.popitem()
-            if added:
-                self.srcdic[kname] = msg
-            else:
-                self.srcdic[kname] = False
+    
+    def add_node(self, node, srcdic):
+        init_node_sig = signature(self.noder.nodes)
+        self.noder.add_node(node, srcdic)
+        new_node_sig = signature(self.noder.nodes)
+        return init_node_sig != new_node_sig
 
     def filter_conflict(self, node):
         node_delta = []
@@ -118,7 +99,7 @@ class BitBlocker:
         node = {vk2.nov: set()}
         if new_vk1:
             vk1 = vk2.clone('NewVk', [self.bit], node)
-        for nd in self.nodes:
+        for nd in self.noder.nodes:
             assert(vk2.nov in nd), f"node has no nov: {vk2.nov}"
             if is_local: # number of entries in nd is 1
                 # this happens when snode-local S-bb causing a T-bb
@@ -140,14 +121,12 @@ class BitBlocker:
             bb_dic = self.repo.bdic1.setdefault(vk1.bit, {})
             bb = bb_dic.setdefault(vk1.val, 
                                    BitBlocker(vk1.bit, vk1.val, self.repo))
-            bbut = BBUT(bb)
-            bb.add(vk1.cvs, {vk2.kname: f'U{vk2.nov}'})
-            bb_updated = bbut.test_update(bb)
+            bb_updated = bb.add_node(vk1.cvs, {vk2.kname: f'U{vk2.nov}'})
             check_spouse(bb_dic)
             return (vk1.bit, vk1.val), bb_updated
         return None
     
-    def contains(self, node):
+    def contains_single(self, node):
         for nd in self.nodes:
             if node1_C_node2(nd, node, self.steps): return True
         return False
@@ -163,9 +142,9 @@ class BitBlocker:
             if cmm: res.append(cmm)
         return res
 
-    def expand_nodes(self):
+    def expand(self, new_nov=None):
         if self.repo.classname == 'Path':
-            self.repo.expand_node(self.nodes)
+            self.noder.expand(new_nov)
         return self
 
 

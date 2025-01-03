@@ -9,6 +9,7 @@ from exclmgr import ExclMgr
 class VKRepository:
     def __init__(self, snode, cn='VKRepository'):
         self.classname = cn
+        self.bbpool = {} # {{<bit>,<bval): <bit-blocker>}}
         if cn == 'VKRepository':
             self.snode   = snode  # related snode
             self.inflog  = {}   # {key:[info,info,..], key:[], ...}
@@ -43,7 +44,8 @@ class VKRepository:
         if flip_val in bb_dic:
             bb_dic[flip_val].filter_conflict(node)
         bb = bb_dic.setdefault(val, BitBlocker(bit, val, self))
-        bb.add(node, srcdic)
+        # bb.add(node, srcdic)
+        bb.add_node(node, srcdic)
         check_spouse(bb_dic)
 
     def filter_vk2s(self, bb_pairs, local=False):

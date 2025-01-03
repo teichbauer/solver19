@@ -46,7 +46,8 @@ class Path(VKRepository):
 
     def grow(self, sn):
         self.snode_dic[sn.nov] = sn
-        # self.repo.blckmgr.expand()
+        for bb in self.bbpool.values():
+            bb.expand(sn.nov)
         self.add_sn_root(sn.bgrid)
         for bit, bbdic in sn.repo.bdic1.items():
             dic = self.bdic1.setdefault(bit, {}) # sn.repo-bbdic add to here

@@ -1,3 +1,8 @@
+2025-01-02->19.341
+- in bblocker: get rid of BBUT. In stead of that, bbloceker.add_node will
+  check if a new node has been added. Return True if yes, if not False
+  refactored clone, and merge
+- porgress in PathNode
 2024-12-27->19.340
 - get rid of utils/basics/add_vk2 - this is only in path.add_vk2
 - path: moved add_vk2 from vkrepo to here. Add expand_node replacing 

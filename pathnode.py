@@ -1,6 +1,7 @@
 
 import copy
 from utils.sequencer import Sequencer
+from utils.cvsnodetools import *
 
 def _is_single(node):
     for nv in node:
@@ -51,25 +52,64 @@ def _node_subtract(src, delta):
     return res
 
 class PathNode:
-    def __init__(self, path):
+    def __init__(self, path, nodes=None):
         self.path = path
-        self.nodes = [] #
+        if nodes: 
+            self.nodes = [copy.deepcopy(n) for n in nodes]
+        else:
+            self.nodes = [] #
+        self.srcdic = {}
 
-    def expand(self, new_nov): # after path.grow updated snode-dic
+    def clone(self):
+        ninst = PathNode(self.path, self.nodes)
+        ninst.srcdic = copy.deepcopy(self.srcdic)
+        return ninst
+
+    def expand(self, new_nov=None): # after path.grow updated snode-dic
         for node in self.nodes:
-            node[new_nov] = self.path.chvdict[new_nov]
+            if new_nov:
+                node[new_nov] = self.path.chvdict[new_nov]
+            else:
+                for nv in self.path.snode_dic: # sonde-nov
+                    if nv not in node:
+                        node[nv] = self.path.chvdict[nv]
+
+    def _contains_single(self, single_node):
+        for nd in self.nodes:
+            if node1_C_node2(nd, single_node, self.steps): return True
+        return False    
+
 
     def _fill(self, node):
+        if self.path.classname != 'Path': return node
         nd = copy.deepcopy(node)
         for nv, cvs in self.path.chvdict:
             if nv not in node:
                 nd[nv] = cvs
         return nd
 
-    def add_node(self, node):
-        nd = self._fill(node)
-        if nd not in self.nodes:
-            self.nodes.append(nd)
+    def add_node(self, node, srcdic=None):
+        added = False
+        if type(node) == list:
+            for nd in node:
+                added = added or self.add_node(nd, srcdic)
+            return added
+        elif is_single(node):
+            expand_steps = None
+            if self.path.classname=='Path': self.path.steps
+            return node_to_lst(self._fill(node), self.nodes, expand_steps)
+        else:
+            doit = node_seq(node)
+            while not doit.done:
+                nd = doit.get_next()
+                added = added or self.add_node(nd, srcdic)
+        # if added; input srcdic
+        while len(srcdic) > 0:
+            key, msg = srcdic.popitem()
+            if added:
+                self.srcdic[key] = msg
+            else:
+                self.srcdic[key] = False
 
     def _subtract_single(self, ind, sngl):
         # self.nodes[ind] - sngl

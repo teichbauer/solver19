@@ -1,3 +1,7 @@
+2025-01-04->19.342
+- progress in PathNode
+- bit-blocker: spouse_conflict now uses 
+- refactor pathnode.py
 2025-01-02->19.341
 - in bblocker: get rid of BBUT. In stead of that, bbloceker.add_node will
   check if a new node has been added. Return True if yes, if not False

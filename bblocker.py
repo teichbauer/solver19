@@ -49,14 +49,11 @@ class BitBlocker:
 
     def spousal_conflict(self, spouse):
         spouse.expand_nodes()
-        sindex = 0
-        while sindex < len(spouse.nodes):
-            deleted = self.filter_conflict(spouse.nodes[sindex])
-            if deleted: 
-                del spouse.nodes[sindex]
-            else:
-                sindex += 1
-        x = 0
+        lst = self.intersct(spouse, only_intersects=True)
+        if not lst: return False
+        self.subtract_singles(lst)
+        spouse.subtract_singles(lst)
+        return lst
 
     def subtr_node(self, delta_node, srcnodes=None):
         if srcnodes == None:
@@ -80,18 +77,6 @@ class BitBlocker:
         self.noder.add_node(node, srcdic)
         new_node_sig = signature(self.noder.nodes)
         return init_node_sig != new_node_sig
-
-    def filter_conflict(self, node):
-        node_delta = []
-        for nd in self.nodes:
-            cmm = node_intersect(nd, node, self.steps)
-            if cmm != None and len(cmm) > 0:
-                self.repo.blckmgr.add_block(cmm)
-                node_delta.append(cmm)
-        for delta in node_delta:
-            node = self.subtr_node(delta, node)
-            self.nodes = self.subtr_node(delta)
-        return len(node) == 0
             
     def filter_vk2(self, vk2, # the vk2 touching self.bit
                    new_vk1,   # vk2 can generate vk1 or not: (T/F)
@@ -126,28 +111,14 @@ class BitBlocker:
             return (vk1.bit, vk1.val), bb_updated
         return None
     
-    def contains_single(self, node):
-        for nd in self.nodes:
-            if node1_C_node2(nd, node, self.steps): return True
-        return False
-
     def intersect(self, node, res=None):
         self.expand_nodes()
         if res==None: res = []
         if type(node) == BitBlocker:
-            for nd in node.nodes:
-                self.intersect(nd, res)
-        for nd in self.nodes:
-            cmm = node_intersect(nd, node)
-            if cmm: res.append(cmm)
-        return res
+            return self.noder.intersect(node, True)
+        return self.noder.node_intersect(node, True)
 
     def expand(self, new_nov=None):
         if self.repo.classname == 'Path':
             self.noder.expand(new_nov)
         return self
-
-
-
-    # def iter_node(self):
-    #     return (for y in self.expand_nodes().nodes)

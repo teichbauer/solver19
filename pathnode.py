@@ -8,28 +8,29 @@ def _is_single(node):
         if len(node[nv]) != 1: return False
     return True
 
-def _split_single(node, sngl): # node: single or compound. sngl: sure single
-    # return True: node is single, and node == sngl
-    # return [..]: node is compound. After subtract sngl from it
-    #              returned list of single-nds: the rest of node
-    # return : False - node and sngl don't touch
-    if _is_single(node):
-        return node == sngl
-    # node is not single - 
-    res = []
-    seq = Sequencer(node)
-    is_subset = False
-    while not seq.done:
-        nd = seq.get_next()
-        if nd == sngl:
-            is_subset = True
-        else:
-            res.append(nd)
-    if is_subset: return res
-    return False
+# def _split_single(node, sngl): # node: single or compound. sngl: sure single
+#     # return True: node is single, and node == sngl
+#     # return [..]: node is compound. After subtract sngl from it
+#     #              returned list of single-nds: the rest of node
+#     # return : False - node and sngl don't touch
+#     if _is_single(node):
+#         return node == sngl
+#     # node is not single - 
+#     res = []
+#     seq = Sequencer(node)
+#     is_subset = False
+#     while not seq.done:
+#         nd = seq.get_next()
+#         if nd == sngl:
+#             is_subset = True
+#         else:
+#             res.append(nd)
+#     if is_subset: return res
+#     return False
 
 def _node_intersect(n1, n2): # both n1 and n2 can be compound or single
     # n1 and n2 must have the same novs
+    # returning a list of single-nodes, that are intersections of n1/n2
     lst = []
     n1seq = Sequencer(n1)
     n2seq = Sequencer(n2)
@@ -43,12 +44,15 @@ def _node_intersect(n1, n2): # both n1 and n2 can be compound or single
             n2seq.reset()
     return lst  # list of single nds that are the intersection-nodes
 
-def _node_subtract(src, delta): 
-    # delta is a subset of src, subtract it from src
-    # both drlta/src are dict: k/v - nov/cvs(set)
+def _node_subtract_single(src,           # src-node: single or compound
+                          single_delta): # single-node
+    # single_delta is a subset of src, subtract it from src
+    # if src is single too: return None, otherwise return rest of src
+    if _is_single(src): return None
     res = {}
     for nv in src:
-        res[nv] = src[nv] - delta[nv]
+        res[nv] = src[nv] - single_delta[nv]
+        if len(res[nv]) == 0: return None # ??
     return res
 
 class PathNode:
@@ -74,10 +78,10 @@ class PathNode:
                     if nv not in node:
                         node[nv] = self.path.chvdict[nv]
 
-    def _contains_single(self, single_node):
+    def containing_single(self, single_node):
         for nd in self.nodes:
             if node1_C_node2(nd, single_node, self.steps): return True
-        return False    
+        return False   
 
 
     def _fill(self, node):
@@ -111,47 +115,54 @@ class PathNode:
             else:
                 self.srcdic[key] = False
 
-    def _subtract_single(self, ind, sngl):
-        # self.nodes[ind] - sngl
-        node = self.nodes[ind]
-        res = _split_single(node, sngl)
-        # False means: sngl doesn't intersect with self.nodes[ind]
-        if res == False: return # not modified: self.nodes not changed
-        if res == True:         # self.nodes[ind] is single, and == sngl
-            del self.nodes[ind] # delete it from self.nodes
-        else: # sngl is subset of self.nodes[ind]
-            # res is list of dicts that are rest of node after subtract sngl
-            for e in res: # adding these dicts in place of ind
-                self.nodes.insert(ind, e)
+    def node_intersect(self, node, only_intersects=False):
+        # intersect between self(PathNode) and a node (single or not). return:
+        # self(node,True): [<single-node>,..]
+        # self(node): [(my-index, single-node), ...]
+        lst = []
+        for ind, nd in enumerate(self.nodes):
+            tlst = _node_intersect(nd, node)
+            for e in tlst:
+                if e not in lst:
+                    if only_intersects:
+                        lst.append(e)
+                    else:
+                        lst.append((ind, e))
+        return lst
 
     def intersect(self, other, only_intersects=False):
+        # intersect between 2 PathNodes. return:
+        # self(node,True): [<single-node>,..]
+        # self(node): [(my-index, other-index, single-node), ...]
         lst = []
-        for index, mynode in enumerate(self.nodes):
-            for oind, other_node in enumerate(other.nodes):
-                intscts = _node_intersect(mynode, other_node)
-                if len(intscts) > 0:
-                    # @self.nodes[index] ^ other.nodes[oind] -> [nd, nd, ..]
-                    # each nd is a single intersect-dict node
-                    lst.append((index, oind, intscts))
-        if len(lst) > 0:
-            if only_intersects:
-                res = []
-                for three in res:
-                    for e in three[-1]:
-                        res.append(e)
-                return res
-            # only_intersects == False
+        for oind, ond in enumerate(other.nodes):
+            tlst = self.node_intersect(ond, only_intersects) 
+            for e in tlst:
+                if only_intersects:
+                    lst.append(e)
+                else:
+                    lst.append((e[0], oind, e[1]))
+        if len(lst):
             return lst
         return None
+    
+    def subtract_singles(self, singles): # singles: [<single-node>,...]
+        # every single-node in the list, is contained in self.nodes
+        for sng in singles:
+            ind = 0
+            while ind < len(self.nodes):
+                rest = _node_subtract_single(self.nodes[ind], sng)
+                if rest: 
+                    self.nodes[ind] = rest
+                    ind += 1
+                else:
+                    del self.nodes[ind]
 
     def subtract(self, other):
-        inter_res = self.intersect(other)
+        inter_res = self.intersect(other, only_intersects=True)
         if not inter_res: return None
-        while len(inter_res) > 0:
-            ele = inter_res.pop()   # from behind, so that ind remains valid
-            ind, _, intersects = ele
-            for sngl in intersects:
-                self._subtract_single(ind, sngl)
+        self.subtract_singles(inter_res)
+        return True
             
 
 def test_node_intersect():

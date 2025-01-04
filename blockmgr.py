@@ -2,6 +2,7 @@ from utils.basics import pd, verify_sat
 from utils.cvsnodetools import *
 from utils.sequencer import Sequencer
 from utils.knowns import GRIDSATS
+from pathnode import PathNode
 import copy
 
 
@@ -9,10 +10,12 @@ class BlockMgr:
     def __init__(self, repo):
         self.repo = repo
         self.blocks = []
+        self.blocker = PathNode(repo) # block-mgr: PathNode-inst
 
     def clone(self, new_repo):
         newinst = BlockMgr(new_repo)
         newinst.blocks = [copy.deepcopy(node) for node in self.blocks]
+        newinst.blocker = self.blocker.clone()
         return newinst
     
     def verify_pth(self, pth): # pth: (7,1,4) or (2,1,5,2)

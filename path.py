@@ -47,11 +47,12 @@ class Path(VKRepository):
     def grow(self, sn):
         self.snode_dic[sn.nov] = sn
         for bb in self.bbpool.values():
-            bb.expand(sn.nov)
+            bb.noder.expand(self.chvdict)
         self.add_sn_root(sn.bgrid)
         for bit, bbdic in sn.repo.bdic1.items():
             dic = self.bdic1.setdefault(bit, {}) # sn.repo-bbdic add to here
             for v, bb in bbdic.items():
+                bb.noder.expand(self.chvdict)
                 if v in dic:
                     dic[v].merge(bb)
                 else:

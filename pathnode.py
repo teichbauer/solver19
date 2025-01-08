@@ -69,14 +69,11 @@ class PathNode:
         ninst.srcdic = copy.deepcopy(self.srcdic)
         return ninst
 
-    def expand(self, new_nov=None): # after path.grow updated snode-dic
+    def expand(self, chvdict): # after path.grow updated snode-dic
         for node in self.nodes:
-            if new_nov:
-                node[new_nov] = self.path.chvdict[new_nov]
-            else:
-                for nv in self.path.snode_dic: # sonde-nov
-                    if nv not in node:
-                        node[nv] = self.path.chvdict[nv]
+            for nv, chv in chvdict.items(): # sonde-nov
+                if nv not in node:
+                    node[nv] = chv
 
     def containing_single(self, single_node):
         for nd in self.nodes:
@@ -87,7 +84,7 @@ class PathNode:
     def _fill(self, node):
         if self.path.classname != 'Path': return node
         nd = copy.deepcopy(node)
-        for nv, cvs in self.path.chvdict:
+        for nv, cvs in self.path.chvdict.items():
             if nv not in node:
                 nd[nv] = cvs
         return nd
@@ -114,6 +111,7 @@ class PathNode:
                 self.srcdic[key] = msg
             else:
                 self.srcdic[key] = False
+        return added
 
     def node_intersect(self, node, only_intersects=False):
         # intersect between self(PathNode) and a node (single or not). return:

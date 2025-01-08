@@ -22,21 +22,8 @@ class BitBlocker:
             repo.bbpool[bbpool_key] = ninst
         return ninst
 
-    @property
-    def steps(self):
-        if self.repo.classname == 'Path':
-            return self.repo.steps
-        return None
-
-    @property
-    def chvdict(self):
-        if self.repo.classname == 'Path':
-            return self.repo.chvdict
-        return None
-
     def merge(self, other_bb):
         nds = []
-        other_bb.expand()
         for node in other_bb.noder.nodes:
             node_iter = Sequencer(node)
             while not node_iter.done:
@@ -58,8 +45,8 @@ class BitBlocker:
     def subtr_node(self, delta_node, srcnodes=None):
         if srcnodes == None:
             srcnodes = self.nodes
-        expand_star(delta_node, self.chvdict)
-        expand_star(srcnodes, self.chvdict)
+        expand_star(delta_node, self.repo.chvdict)
+        expand_star(srcnodes, self.repo.chvdict)
         if type(srcnodes) == list:
             res_nodes = []
             for node in srcnodes:
@@ -73,10 +60,10 @@ class BitBlocker:
         return subtract_delta_node(srcnodes, delta_node)
     
     def add_node(self, node, srcdic):
-        init_node_sig = signature(self.noder.nodes)
-        self.noder.add_node(node, srcdic)
-        new_node_sig = signature(self.noder.nodes)
-        return init_node_sig != new_node_sig
+        # init_node_sig = signature(self.noder.nodes)
+        return self.noder.add_node(node, srcdic)
+        # new_node_sig = signature(self.noder.nodes)
+        # return init_node_sig != new_node_sig
             
     def filter_vk2(self, vk2, # the vk2 touching self.bit
                    new_vk1,   # vk2 can generate vk1 or not: (T/F)
@@ -117,8 +104,3 @@ class BitBlocker:
         if type(node) == BitBlocker:
             return self.noder.intersect(node, True)
         return self.noder.node_intersect(node, True)
-
-    def expand(self, new_nov=None):
-        if self.repo.classname == 'Path':
-            self.noder.expand(new_nov)
-        return self

@@ -2,7 +2,7 @@ from utils.basics import pd, verify_sat
 from utils.cvsnodetools import *
 from utils.sequencer import Sequencer
 from utils.knowns import GRIDSATS
-from pathnode import PathNode
+from nodemanager import NodeManager
 import copy
 
 
@@ -10,7 +10,7 @@ class BlockMgr:
     def __init__(self, repo):
         self.repo = repo
         self.blocks = []
-        self.blocker = PathNode(repo) # block-mgr: PathNode-inst
+        self.blocker = NodeManager(repo) # block-mgr: NodeManager-inst
 
     def clone(self, new_repo):
         newinst = BlockMgr(new_repo)

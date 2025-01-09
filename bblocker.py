@@ -1,5 +1,5 @@
 from utils.cvsnodetools import *
-from pathnode import PathNode
+from nodemanager import NodeManager
 
 class BitBlocker:
     # on a bit in repo.bdic1: {bit: {0: BitBlocker(), 1:BitBlocker()}}
@@ -7,7 +7,7 @@ class BitBlocker:
         self.bit = bit
         self.val = val
         # self.nodes = [] # list of nodes
-        self.noder = PathNode(repo)
+        self.noder = NodeManager(repo)
         self.repo = repo    # can be VKRepository or Path
         self.repo.bbpool[(bit, val)] = self
         self.srcdic = {}
@@ -28,15 +28,13 @@ class BitBlocker:
             node_iter = Sequencer(node)
             while not node_iter.done:
                 bb_node = node_iter.get_next() # bb_node: a single-cvs-dict
-                if self.contains_single(bb_node): 
+                if self.noder.containing_single(bb_node): 
                     continue
                 nds.append(bb_node)
-        for nd in nds:
-            self.noder.nodes.append(nd)
+        self.noder.add_node(nds)
 
     def spousal_conflict(self, spouse):
-        spouse.expand_nodes()
-        lst = self.intersct(spouse, only_intersects=True)
+        lst = self.noder.intersect(spouse.noder, only_intersects=True)
         if not lst: return False
         self.subtract_singles(lst)
         spouse.subtract_singles(lst)
@@ -99,7 +97,7 @@ class BitBlocker:
         return None
     
     def intersect(self, node, res=None):
-        self.expand_nodes()
+        self.noder.expand(self.repo.chvdict)
         if res==None: res = []
         if type(node) == BitBlocker:
             return self.noder.intersect(node, True)

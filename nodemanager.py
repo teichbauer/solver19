@@ -55,7 +55,7 @@ def _node_subtract_single(src,           # src-node: single or compound
         if len(res[nv]) == 0: return None # ??
     return res
 
-class PathNode:
+class NodeManager:
     def __init__(self, path, nodes=None):
         self.path = path
         if nodes: 
@@ -65,7 +65,7 @@ class PathNode:
         self.srcdic = {}
 
     def clone(self):
-        ninst = PathNode(self.path, self.nodes)
+        ninst = NodeManager(self.path, self.nodes)
         ninst.srcdic = copy.deepcopy(self.srcdic)
         return ninst
 
@@ -77,7 +77,7 @@ class PathNode:
 
     def containing_single(self, single_node):
         for nd in self.nodes:
-            if node1_C_node2(nd, single_node, self.steps): return True
+            if node1_C_node2(nd, single_node, self.path.steps): return True
         return False   
 
 
@@ -93,11 +93,13 @@ class PathNode:
         added = False
         if type(node) == list:
             for nd in node:
-                added = added or self.add_node(nd, srcdic)
+                res = self.add_node(nd, srcdic)
+                added = added or res
             return added
         elif is_single(node):
             expand_steps = None
-            if self.path.classname=='Path': self.path.steps
+            if self.path.classname=='Path':
+                expand_steps = self.path.steps
             return node_to_lst(self._fill(node), self.nodes, expand_steps)
         else:
             doit = node_seq(node)
@@ -114,7 +116,7 @@ class PathNode:
         return added
 
     def node_intersect(self, node, only_intersects=False):
-        # intersect between self(PathNode) and a node (single or not). return:
+        # intersect between self(NodeManager) and a node (single or not). return:
         # self(node,True): [<single-node>,..]
         # self(node): [(my-index, single-node), ...]
         lst = []
@@ -129,7 +131,7 @@ class PathNode:
         return lst
 
     def intersect(self, other, only_intersects=False):
-        # intersect between 2 PathNodes. return:
+        # intersect between 2 NodeManagers. return:
         # self(node,True): [<single-node>,..]
         # self(node): [(my-index, other-index, single-node), ...]
         lst = []

@@ -1,3 +1,5 @@
+2025-01-09->19.345
+- exclmgr.py/EXclMgr.dic:{<kn>:<NodeManager>} no more use class EXcl
 2025-01-08->19.344
 - rename PathNode to NodeManager
 2025-01-08->19.343

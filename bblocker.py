@@ -10,13 +10,11 @@ class BitBlocker:
         self.noder = NodeManager(repo)
         self.repo = repo    # can be VKRepository or Path
         self.repo.bbpool[(bit, val)] = self
-        self.srcdic = {}
 
     def clone(self, repo):
         ninst = BitBlocker(self.bit, self.val, repo)
         # ninst.nodes = [copy.deepcopy(n) for n in self.nodes]
         ninst.noder = self.noder.clone()
-        ninst.srcdic = self.srcdic.copy()
         bbpool_key = (ninst.bit, ninst.val)
         if bbpool_key not in repo.bbpool:
             repo.bbpool[bbpool_key] = ninst
@@ -58,10 +56,7 @@ class BitBlocker:
         return subtract_delta_node(srcnodes, delta_node)
     
     def add_node(self, node, srcdic):
-        # init_node_sig = signature(self.noder.nodes)
         return self.noder.add_node(node, srcdic)
-        # new_node_sig = signature(self.noder.nodes)
-        # return init_node_sig != new_node_sig
             
     def filter_vk2(self, vk2, # the vk2 touching self.bit
                    new_vk1,   # vk2 can generate vk1 or not: (T/F)

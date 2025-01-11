@@ -42,9 +42,9 @@ class VKRepository:
         bb_dic = self.bdic1.setdefault(bit, {})
         flip_val = flip(val)
         if flip_val in bb_dic:
-            bb_dic[flip_val].filter_conflict(node)
+            conflicts = bb_dic[flip_val].node_intersect(node, True)
+            x = 9 # TBD
         bb = bb_dic.setdefault(val, BitBlocker(bit, val, self))
-        # bb.add(node, srcdic)
         bb.add_node(node, srcdic)
         check_spouse(bb_dic)
 
@@ -62,7 +62,8 @@ class VKRepository:
             for kn in k2ns:
                 vk2 = self.vk2dic[kn]
                 val = vk2.dic[bb_bit]
-                if vk2.kname in bb.srcdic: continue
+                if vk2.kname in bb.noder.srcdic: 
+                    continue
                 result =  bb.filter_vk2(vk2, bb_val != val, local)
                 if result:
                     new_bbp, bb_updated = result

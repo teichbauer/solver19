@@ -110,6 +110,8 @@ class NodeManager:
         while len(srcdic) > 0:
             key, msg = srcdic.popitem()
             if added:
+                # should srcdic be single k/v or a list?
+                assert(key not in self.srcdic), 'srcdic was not empty!'
                 self.srcdic[key] = msg
             else:
                 self.srcdic[key] = False

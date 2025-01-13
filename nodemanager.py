@@ -93,8 +93,7 @@ class NodeManager:
         added = False
         if type(node) == list:
             for nd in node:
-                res = self.add_node(nd, srcdic)
-                added = added or res
+                added = self.add_node(nd, srcdic) or added
             return added
         elif is_single(node):
             expand_steps = None
@@ -105,8 +104,8 @@ class NodeManager:
             doit = node_seq(node)
             while not doit.done:
                 nd = doit.get_next()
-                if self.add_node(nd, srcdic):
-                    if not added: added = True
+                # the order is important: make sure func-call happens
+                added = self.add_node(nd, srcdic) or added
         # if added; input srcdic
         while len(srcdic) > 0:
             key, msg = srcdic.popitem()

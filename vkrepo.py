@@ -48,35 +48,30 @@ class VKRepository:
         bb.add_node(node, srcdic)
         check_spouse(bb_dic)
 
-    def filter_vk2s(self, bb_pairs, local=False):
-        # in local-mode (inside snode, no merge across snodes)
-        # check vk2s against bit-blockers: if vk2.cvs get cut, or
-        # new bit-blocker generated from b-t-blocker<->vk2
-        bbp_index = 0
-        # bb_pairs can grow here: not for-loop
-        while bbp_index < len(bb_pairs): 
-            bb_bit, bb_val = bb_pairs[bbp_index]
-            bb = self.bdic1[bb_bit][bb_val]
-            # bb_dic = self.bdic1[b]
-            k2ns = self.bdic2[bb_bit]
+    def filter_vk2s(self, local=False):
+        bbkeys = sorted(self.bbpool)
+        bbkindex = 0
+        while bbkindex < len(bbkeys):
+            bb = self.bbpool[bbkeys[bbkindex]]
+            k2ns = self.bdic2.get(bb.bit, [])
             for kn in k2ns:
                 vk2 = self.vk2dic[kn]
-                val = vk2.dic[bb_bit]
+                val = vk2.dic[bb.bit]
                 if vk2.kname in bb.noder.srcdic: 
                     continue
-                result =  bb.filter_vk2(vk2, bb_val != val, local)
+                result =  bb.filter_vk2(vk2, bb.val != val, local)
                 if result:
                     new_bbp, bb_updated = result
-                    if new_bbp not in bb_pairs:
-                        bb_pairs.append(new_bbp)
-                    elif bb_pairs.index(new_bbp) < bbp_index and bb_updated:
-                        # bb_pairs.index(new_bbp) cannot == bb_index, and
+                    if new_bbp not in bbkeys:
+                        bbkeys.append(new_bbp)
+                    elif bbkeys.index(new_bbp) < bbkindex and bb_updated:
+                        # bbkeys.index(new_bbp) cannot == bbkeys, and
                         # if it is behind bb_index: no need to be added.
                         # only when new_bbp has been processed and now it is
                         # updated, then it needs to be added/proc-again.
-                        bb_pairs.append(new_bbp)
-            bbp_index += 1
-        x = 9
+                        bbkeys.append(new_bbp)
+            bbkindex += 1
+
 
 
     def proc_vk2pair(self, vk2, new_bits=None):

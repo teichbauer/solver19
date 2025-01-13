@@ -58,17 +58,17 @@ class BitBlocker:
     def add_node(self, node, srcdic):
         return self.noder.add_node(node, srcdic)
             
-    def filter_vk2(self, vk2, # the vk2 touching self.bit
-                   new_vk1,   # vk2 can generate vk1 or not: (T/F)
-                   is_local): # witin a snode(T) or across snodes(F)
-        node = {vk2.nov: set()}
+    def filter_vk2(self, vk2,   # the vk2 touching self.bit
+                   new_vk1,     # vk2 can generate vk1 or not: (T/F)
+                   is_local):   # witin a snode(T) or across snodes(F)
+        node = {vk2.nov: set()} # vk2.cvs's intersection with this bb
         if new_vk1:
             vk1 = vk2.clone('NewVk', [self.bit], node)
         for nd in self.noder.nodes:
             assert(vk2.nov in nd), f"node has no nov: {vk2.nov}"
-            if is_local: # number of entries in nd is 1
-                # this happens when snode-local S-bb causing a T-bb
-                cmm = nd[vk2.nov].intersection(vk2.cvs)
+            if is_local: # vk2 & bb has the same nov(repo is VKRepository)
+                # if vk2.cvs intersects with bb
+                cmm = nd[vk2.nov].intersection(vk2.cvs) # vk2.cvs vs. bb.nodes
                 if len(cmm) == 0: continue
                 vk2.cvs -= cmm  # vk2.cvs be reduced
                 node[vk2.nov].update(cmm)
@@ -80,7 +80,7 @@ class BitBlocker:
                     if nv == vk2.nov: node[nv].update(cmm)
                     else:             node.setdefault(nv,set()).update(nd[nv])
         # any nv in node empty-> invalid
-        if not node_valid(node): return None
+        if not node_valid(node): return None # vk2. not touching any node in bb
         if not is_local: self.repo.exclmgr.add(vk2.kname, copy.deepcopy(node))
         if new_vk1:
             bb_dic = self.repo.bdic1.setdefault(vk1.bit, {})

@@ -1,3 +1,9 @@
+2025-01-13->19.348
+- fixes in nodemanager.py: the order of calling B = B1 or B2 is very crucial
+- refactored vkrepo/filter_vk2s
+- a fix for old (deeply hidden) bug in satnode.py/fill_repo: 
+  repo.proc_vk2pair(vk12) should be done after all other stuff is done.
+  otherwise this has caused bb(18-0).noder.nodes to be set to []
 2025-01-12->19.347
 - fixed a bug in NodeManager.add_node
 2025-01-10-》19.346

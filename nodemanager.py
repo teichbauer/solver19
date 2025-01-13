@@ -105,7 +105,8 @@ class NodeManager:
             doit = node_seq(node)
             while not doit.done:
                 nd = doit.get_next()
-                added = added or self.add_node(nd, srcdic)
+                if self.add_node(nd, srcdic):
+                    if not added: added = True
         # if added; input srcdic
         while len(srcdic) > 0:
             key, msg = srcdic.popitem()

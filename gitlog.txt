@@ -1,3 +1,5 @@
+2025-01-12->19.347
+- fixed a bug in NodeManager.add_node
 2025-01-10-》19.346
 - minor refactor
 2025-01-09->19.345

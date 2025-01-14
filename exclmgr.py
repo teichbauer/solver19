@@ -22,4 +22,6 @@ class ExclMgr:
                 self.excluded_vkns.append(vkname)
             return
         # if vkname in self.excls: return #??
-        self.dic.setdefault(vkname, NodeManager(self.repo)).add_node(node)
+        if vkname not in self.dic:
+            self.dic[vkname] = NodeManager(self.repo)
+        self.dic[vkname].add_node(node)

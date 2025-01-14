@@ -84,13 +84,14 @@ class BitBlocker:
         if not is_local: self.repo.exclmgr.add(vk2.kname, copy.deepcopy(node))
         if new_vk1:
             bb_dic = self.repo.bdic1.setdefault(vk1.bit, {})
-            bb = bb_dic.setdefault(vk1.val, 
-                                   BitBlocker(vk1.bit, vk1.val, self.repo))
+            if vk1.val not in bb_dic:
+                bb_dic[vk1.val] = BitBlocker(vk1.bit, vk1.val, self.repo)
             # in case bb was there already, and add_node has not modified
             # it, then bb_updated will be False: if this bb has been processed
             # then it should not be added back for processing.
             # see repo.filter_vk2s
-            bb_updated = bb.add_node(vk1.cvs, {vk2.kname: f'U{vk2.nov}'})
+            bb_updated = bb_dic[vk1.val].add_node(
+                vk1.cvs, {vk2.kname: f'U{vk2.nov}'})
             check_spouse(bb_dic)
             return (vk1.bit, vk1.val), bb_updated
         return None

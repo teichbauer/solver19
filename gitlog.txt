@@ -1,3 +1,19 @@
+2025-01-14->19.350
+- found a bug in Python:
+    class A:
+      def __init__(self):
+          print('A-constructor called')
+        self.names = []
+      def add_name(self, name):
+        self.names.append(name)
+  a = A()
+  a.add_name('name-a')
+  d = {'A': a}
+  a1 = d.setdefault('A',A())  # this trggered call of constructor
+  a2 = d.get('A',A())         # this trggered call of constructor
+  --------
+  This caused trouble for me in BitBlocker.filter_vk2: modified it. And also
+  modified 2 other places in vkrepo.py and exclmgr.
 2025-01-14->19.349
 - added more comment/info in vkrepo, satnote.py, bblocker.py
 - minor fix in nodemanager/add_node

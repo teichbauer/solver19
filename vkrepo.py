@@ -44,8 +44,9 @@ class VKRepository:
         if flip_val in bb_dic:
             conflicts = bb_dic[flip_val].node_intersect(node, True)
             x = 9 # TBD
-        bb = bb_dic.setdefault(val, BitBlocker(bit, val, self))
-        bb.add_node(node, srcdic)
+        if val not in bb_dic:
+            bb_dic[val] = BitBlocker(bit, val, self)
+        bb_dic[val].add_node(node, srcdic)
         check_spouse(bb_dic)
 
     def filter_vk2s(self, local=False):

@@ -99,7 +99,7 @@ class NodeManager:
             expand_steps = None
             if self.path.classname=='Path':
                 expand_steps = self.path.steps
-            return node_to_lst(self._fill(node), self.nodes, expand_steps)
+            added = node_to_lst(self._fill(node), self.nodes, expand_steps)
         else:
             doit = node_seq(node)
             while not doit.done:

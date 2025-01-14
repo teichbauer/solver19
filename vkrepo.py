@@ -66,28 +66,30 @@ class VKRepository:
                         bbkeys.append(new_bbp)
                     elif bbkeys.index(new_bbp) < bbkindex and bb_updated:
                         # bbkeys.index(new_bbp) cannot == bbkeys, and
-                        # if it is behind bb_index: no need to be added.
-                        # only when new_bbp has been processed and now it is
-                        # updated, then it needs to be added/proc-again.
+                        # if it is behind bb_index: no need to add to bbkeys.
+                        # only when new_bbp has been processed(new_bbp)
+                        # and now it is now updated, then it needs at the end, 
+                        # to be added/proc-again.
                         bbkeys.append(new_bbp)
             bbkindex += 1
 
 
 
-    def proc_vk2pair(self, vk2, new_bits=None):
-        # check if vk2 share its 2 bits with an existing vk2, if yes
-        # and if both vals on the same bit are the same, and the vals on
-        # the bit are diff, then a new vk1 is generated. 
+    def proc_vk2pair(self, vk2,  # if vk2 has a(or >1) twin in bdic2
+            new_bits=None): # list collecting bits of new vk1s. if local:None
+        # check condition: if vk2 share its 2 bits with another vk2, if yes
+        # and if both vals on hte bit-1 are the same, and the vals on
+        # the bit-2 are diff, then a new vk1 is generated. 
         # This is based on the fact: (a + b)( a + not_b) == a
         b1, b2 = vk2.bits
-        kns1 = self.bdic2[b1]
-        kns2 = self.bdic2[b2]
-        xkns = set(kns1).intersection(kns2)
-        xkns.remove(vk2.kname)
-        while len(xkns) > 0:
-            _vk2 = self.vk2dic[xkns.pop()]
-            vk1 = handle_vk2pair(vk2, _vk2)
-            if vk1: 
+        kns1 = self.bdic2[b1] # list of knames on bit-1
+        kns2 = self.bdic2[b2] # list of knames on bit-2
+        xkns = set(kns1).intersection(kns2) # kname(s) appearing in both lists
+        xkns.remove(vk2.kname) # vk2.kname is for sure in there: pop it out
+        while len(xkns) > 0:   # kname(s) remaining?
+            _vk2 = self.vk2dic[xkns.pop()]  # _vk2 that shares 2 bits with vk2
+            vk1 = handle_vk2pair(vk2, _vk2) # check condition described above
+            if vk1: # a new vk1 resulted?
                 if new_bits: new_bits.add(vk1.bit)
                 self.add_bblocker(
                     vk1.bit, vk1.val,vk1.cvs,

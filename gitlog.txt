@@ -1,3 +1,6 @@
+2025-01-14->19.349
+- added more comment/info in vkrepo, satnote.py, bblocker.py
+- minor fix in nodemanager/add_node
 2025-01-13->19.348
 - fixes in nodemanager.py: the order of calling B = B1 or B2 is very crucial
 - refactored vkrepo/filter_vk2s

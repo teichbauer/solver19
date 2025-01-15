@@ -45,13 +45,13 @@ class SatNode:
                 else:
                     # blindly add vk2, handle colition with bdic1 llater
                     repo.insert_vk2(vk12) 
-        # handle when a vk2 touches bit-blocker bits in repo.bbpool: it may
-        # generate new b-t-blocker - handle all that in filter_vk2s here
-        repo.filter_vk2s(local=True) # repo.classname=='VKRepository'
         # loop thru all vk2, if twin vk2s exist, if yes if resulting in new 
         # bit-blocker(s), here in proc_vk2pair
         for vk12 in repo.vk2dic.values():
             repo.proc_vk2pair(vk12)
+        # handle when a vk2 touches bit-blocker bits in repo.bbpool: it may
+        # generate new b-t-blocker - handle all that in filter_vk2s here
+        repo.filter_vk2s(local=True) # repo.classname=='VKRepository'
 
     def spawn(self):
         if len(self.vkm.vkdic) > 0:  # there exist vk3 in vkm.vkdic, make next

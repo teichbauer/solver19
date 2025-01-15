@@ -46,8 +46,9 @@ class VKRepository:
             x = 9 # TBD
         if val not in bb_dic:
             bb_dic[val] = BitBlocker(bit, val, self)
-        bb_dic[val].add_node(node, srcdic)
-        check_spouse(bb_dic)
+        if bb_dic[val].add_node(node, srcdic):
+            if len(bb_dic) > 1:
+                check_spouse(bb_dic)
 
     def filter_vk2s(self, local=False):
         bbkeys = sorted(self.bbpool)

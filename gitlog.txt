@@ -1,3 +1,8 @@
+2025-01-16->19.352
+- refactored bblocker.py. When handle spousal_conflict, add to path.blckmgr
+- blockmgr: refactored: not use nodemanager, but this may need different way.
+- refactored vkrepo.
+- add docs/2025-01-15.txt to denote merging path records - for analysis purpose.
 2025-01-15->19.351
 - in satnode.py/fill_repo: call filter_vk2s as last, after process proc_vk2pair
 2025-01-14->19.350

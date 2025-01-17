@@ -8,26 +8,6 @@ def _is_single(node):
         if len(node[nv]) != 1: return False
     return True
 
-# def _split_single(node, sngl): # node: single or compound. sngl: sure single
-#     # return True: node is single, and node == sngl
-#     # return [..]: node is compound. After subtract sngl from it
-#     #              returned list of single-nds: the rest of node
-#     # return : False - node and sngl don't touch
-#     if _is_single(node):
-#         return node == sngl
-#     # node is not single - 
-#     res = []
-#     seq = Sequencer(node)
-#     is_subset = False
-#     while not seq.done:
-#         nd = seq.get_next()
-#         if nd == sngl:
-#             is_subset = True
-#         else:
-#             res.append(nd)
-#     if is_subset: return res
-#     return False
-
 def _node_intersect(n1, n2): # both n1 and n2 can be compound or single
     # n1 and n2 must have the same novs
     # returning a list of single-nodes, that are intersections of n1/n2
@@ -48,11 +28,15 @@ def _node_subtract_single(src,           # src-node: single or compound
                           single_delta): # single-node
     # single_delta is a subset of src, subtract it from src
     # if src is single too: return None, otherwise return rest of src
-    if _is_single(src): return None
-    res = {}
-    for nv in src:
-        res[nv] = src[nv] - single_delta[nv]
-        if len(res[nv]) == 0: return None # ??
+    if _is_single(src):
+        if src == single_delta: return None
+        else: return False
+    res = []
+    itr = Sequencer(src)
+    while not itr.done:
+        nd = itr.get_next()
+        if single_delta != nd:
+            res.append(nd)
     return res
 
 class NodeManager:
@@ -144,21 +128,27 @@ class NodeManager:
                     lst.append(e)
                 else:
                     lst.append((e[0], oind, e[1]))
-        if len(lst):
+        if len(lst) > 0:
             return lst
         return None
     
     def subtract_singles(self, singles): # singles: [<single-node>,...]
         # every single-node in the list, is contained in self.nodes
-        for sng in singles:
-            ind = 0
-            while ind < len(self.nodes):
-                rest = _node_subtract_single(self.nodes[ind], sng)
-                if rest: 
-                    self.nodes[ind] = rest
+        ind = 0
+        while ind < len(self.nodes):
+            mynode = self.nodes[ind]
+            for sng in singles:    
+                rest = _node_subtract_single(mynode, sng)
+                if rest == False:  continue
+                else: break
+            if rest == False: ind += 1
+            elif rest == None:
+                del self.nodes[ind]
+            elif type(rest) == list:  # rest is a dict
+                del self.nodes[ind]
+                for e in rest:
+                    self.nodes.insert(ind, e)
                     ind += 1
-                else:
-                    del self.nodes[ind]
 
     def subtract(self, other):
         inter_res = self.intersect(other, only_intersects=True)

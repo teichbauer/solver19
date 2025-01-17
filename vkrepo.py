@@ -46,7 +46,7 @@ class VKRepository:
             x = 9 # TBD
         if val not in bb_dic:
             bb_dic[val] = BitBlocker(bit, val, self)
-        if bb_dic[val].add_node(node, srcdic):
+        if bb_dic[val].noder.add_node(node, srcdic):
             if len(bb_dic) > 1:
                 check_spouse(bb_dic)
 

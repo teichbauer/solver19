@@ -20,7 +20,7 @@ class Path(VKRepository):
                 del bb_dic[bv]      # IL2024-11-27 on the reason
             if len(bb_dic) == 0:    # why it is to be removed. 
                 del self.bdic1[rb1]
-        # handle vk2s bouncing with bgrid.bits
+        # handle vk2s from path.bdic2 in touch with sn.bgrid.bits
         cmm_rbits = sorted(set(self.bdic2).intersection(sn_bgrid.bits))
         for rb in cmm_rbits:
             kns = self.bdic2[rb]
@@ -40,7 +40,8 @@ class Path(VKRepository):
                     new_vk1 = vk2.clone("NewVk", [rb], node) # R prefix, drop rb
                     self.add_bblocker( new_vk1.bit, new_vk1.val, node,
                         {vk2.kname: f"R{vk2.nov}-{sn_bgrid.nov}/{rb}"} )
-                # for {<mis_cvs>}, vk2 should be out: so in path vk2 is out
+                # for {<mis_cvs>}, vk2 -> bit-blocker, 
+                # for mis_cvs vk2 cannot hit. So vk2 will be out
                 self.remove_vk2(vk2)  # IL2024-11-23a + IL2024-11-28
     # end of add_sn_root
 
@@ -56,7 +57,7 @@ class Path(VKRepository):
                 if v in dic:
                     dic[v].merge(bb)
                 else:
-                    dic[v] = bb.clone(self)
+                    dic[v] = bb.clone(self)  # cloning also put into bbpool
             check_spouse(dic)
         new_bits = set()
         for vk2 in sn.repo.vk2dic.values():

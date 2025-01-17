@@ -34,9 +34,9 @@ class BitBlocker:
     def spousal_conflict(self, spouse):
         lst = self.noder.intersect(spouse.noder, only_intersects=True)
         if not lst: return False
-        self.subtract_singles(lst)
-        spouse.subtract_singles(lst)
-        return lst
+        self.noder.subtract_singles(lst)
+        spouse.noder.subtract_singles(lst)
+        self.repo.blckmgr.add_block(lst)
 
     def subtr_node(self, delta_node, srcnodes=None):
         if srcnodes == None:
@@ -54,10 +54,7 @@ class BitBlocker:
                         res_nodes.append(nd)
             return res_nodes
         return subtract_delta_node(srcnodes, delta_node)
-    
-    def add_node(self, node, srcdic):
-        return self.noder.add_node(node, srcdic)
-            
+                
     def filter_vk2(self, vk2,   # the vk2 touching self.bit
                    new_vk1,     # vk2 can generate vk1 or not: (T/F)
                    is_local):   # witin a snode(T) or across snodes(F)
@@ -90,7 +87,7 @@ class BitBlocker:
             # it, then bb_updated will be False: if this bb has been processed
             # then it should not be added back for processing.
             # see repo.filter_vk2s
-            bb_updated = bb_dic[vk1.val].add_node(
+            bb_updated = bb_dic[vk1.val].noder.add_node(
                 vk1.cvs, {vk2.kname: f'U{vk2.nov}'})
             check_spouse(bb_dic)
             return (vk1.bit, vk1.val), bb_updated

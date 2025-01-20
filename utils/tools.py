@@ -100,8 +100,6 @@ def handle_vk2pair(vkx, vky):
                 new_vk1 = vkx.clone("NewVk", [b1], node)
     return new_vk1
 
-flip = lambda val: (val + 1) % 2
-
 def print_vk2dic(vk2dic):
     for vk in vk2dic.values():
         print(vk.po())

@@ -106,9 +106,5 @@ def subtract_delta_node(node, delta_node):
                 res.append(n2)
     return res
 
-def check_spouse(bb_dic):
-    if len(bb_dic) > 1:
-        bb_dic[0].spouse = bb_dic[1]
-        bb_dic[1].spouse = bb_dic[0]
-        bb_dic[0].spousal_conflict(bb_dic[1])
+flip = lambda val: (val + 1) % 2
 

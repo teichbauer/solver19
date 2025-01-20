@@ -33,10 +33,11 @@ class BitBlocker:
 
     def spousal_conflict(self, spouse):
         lst = self.noder.intersect(spouse.noder, only_intersects=True)
-        if not lst: return False
+        if not lst: return False # no spouse-modified
         self.noder.subtract_singles(lst)
         spouse.noder.subtract_singles(lst)
         self.repo.blckmgr.add_block(lst)
+        return True # spouse-existed, and has been modified
 
     def subtr_node(self, delta_node, srcnodes=None):
         if srcnodes == None:
@@ -89,7 +90,7 @@ class BitBlocker:
             # see repo.filter_vk2s
             bb_updated = bb_dic[vk1.val].noder.add_node(
                 vk1.cvs, {vk2.kname: f'U{vk2.nov}'})
-            check_spouse(bb_dic)
+            spouse_modified = self.check_spouse()
             return (vk1.bit, vk1.val), bb_updated
         return None
     
@@ -99,3 +100,17 @@ class BitBlocker:
         if type(node) == BitBlocker:
             return self.noder.intersect(node, True)
         return self.noder.node_intersect(node, True)
+
+    def check_spouse(self, spouse=None):
+        spouse = self.spouse
+        if spouse: 
+            return self.spousal_conflict(spouse)
+        return None
+    
+    @property
+    def key(self):
+        return (self.bit, self.val)
+
+    @property
+    def spouse(self):
+        return self.repo.bdic1[self.bit].get(flip(self.val), None)

@@ -91,7 +91,7 @@ class NodeManager:
                 # the order is important: make sure func-call happens
                 added = self.add_node(nd, srcdic) or added
         # if added; input srcdic
-        while len(srcdic) > 0:
+        while srcdic and len(srcdic) > 0:
             key, msg = srcdic.popitem()
             if added:
                 # should srcdic be single k/v or a list?

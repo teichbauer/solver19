@@ -58,15 +58,11 @@ class Path(VKRepository):
                     dic[v].merge(bb)
                 else:
                     dic[v] = bb.clone(self)  # cloning also put into bbpool
-            check_spouse(dic)
+            dic[v].check_spouse()
         new_bits = set()
         for vk2 in sn.repo.vk2dic.values():
             self.add_vk2(vk2, new_bits)
-        bb_pairs = [] # [(<bb-bit>,<bb-val>),..]
-        for b in sorted(new_bits):
-            for v in self.bdic1[b]:
-                bb_pairs.append((b,v))
-        self.filter_vk2s(bb_pairs)
+        self.filter_vk2s()
 
     def write_log(self, outfile_name):
         ofile = open(outfile_name, 'w')

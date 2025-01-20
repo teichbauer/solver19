@@ -1,3 +1,11 @@
+2025-01-19->19.353
+- cvsnodetools/check_spouse(bb_dic) removed. Moved to bit-blocker.check_spouse
+- utils/tools/flip moved to cvsnodetools
+- in BitBlocker.filter_vk2s use bb.check_spouse for spouse_updated (use:TBD)
+  add property: key, spouse
+- minor fix in nodemanager.add_node
+- path.grow refactored / fixed.
+use bb.check_spouse in vkrepo/add_blocker
 2025-01-16->19.352
 - refactored bblocker.py. When handle spousal_conflict, add to path.blckmgr
 - blockmgr: refactored: not use nodemanager, but this may need different way.

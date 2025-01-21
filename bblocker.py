@@ -90,7 +90,7 @@ class BitBlocker:
             # see repo.filter_vk2s
             bb_updated = bb_dic[vk1.val].noder.add_node(
                 vk1.cvs, {vk2.kname: f'U{vk2.nov}'})
-            spouse_modified = self.check_spouse()
+            spouse_modified = bb_dic[vk1.val].check_spouse()
             return (vk1.bit, vk1.val), bb_updated
         return None
     

@@ -1,3 +1,6 @@
+2025-01-21->19.355
+- splitting bb/filter_vk2 to proce_local_vk2 and proc_path_vk2. TB finished.
+- refactor vkrepo accordingly.
 2025-01-21->19.354
 - fix a bug in bit-block/filter_vk2
 2025-01-19->19.353

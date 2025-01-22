@@ -52,11 +52,12 @@ class VKRepository:
             bb = self.bbpool[bbkeys[bbkindex]]
             k2ns = self.bdic2.get(bb.bit, [])
             for kn in k2ns:
+                if kn in bb.noder.srcdic: 
+                    continue
                 vk2 = self.vk2dic[kn]
                 val = vk2.dic[bb.bit]
-                if vk2.kname in bb.noder.srcdic: 
-                    continue
-                result =  bb.filter_vk2(vk2, bb.val != val, local)
+                proc_vk2 = [bb.proc_path_vk2, bb.proc_local_vk2][local]
+                result =  proc_vk2(vk2, bb.val != val)
                 if result:
                     new_bbp, bb_updated = result
                     if new_bbp not in bbkeys:
@@ -69,8 +70,6 @@ class VKRepository:
                         # to be added/proc-again.
                         bbkeys.append(new_bbp)
             bbkindex += 1
-
-
 
     def proc_vk2pair(self, vk2,  # if vk2 has a(or >1) twin in bdic2
             new_bits=None): # list collecting bits of new vk1s. if local:None

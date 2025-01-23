@@ -1,3 +1,11 @@
+2025-01-23->19.356
+- sequencer.py: refactored/fixed. add new method serialize_2_singles
+- vkause.py: add new method other_bv
+- bblocker.py/filter_vk2 removed. refactored proce_local_vk1 and proce_path_vk2
+- BlockMgr add new method blocked(single-dict)
+- nodemanager: recoded subtract_singles. other refactorings
+- refactored vkrepo.py
+- 2025-01-15.txt: recording path.grow: S60 + S67. not yet finished.
 2025-01-21->19.355
 - splitting bb/filter_vk2 to proce_local_vk2 and proc_path_vk2. TB finished.
 - refactor vkrepo accordingly.

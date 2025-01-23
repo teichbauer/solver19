@@ -93,15 +93,17 @@ class Sequencer:
             else: break
         return res
 
-    def reduce_node(self, nodes):
-        # return a list of pthrds not contained in node
-        return self.reduce_from_iter(nodes, [])
-
-    def reduce_from_iter(self, nodes, not_contained_pts):
+    def serialize_2_singles(self):
+        outputs = []
         while not self.done:
-            pt = self.get_next()
-            pt_in_nodes(pt, nodes, not_contained_pts)
-        return not_contained_pts
+            outputs.append(self.get_next())
+        return outputs
+
+def test_serialize_2_singles(data):
+    sq = Sequencer(data)
+    result = sq.serialize_2_singles()
+    for ind, e in enumerate(result):
+        print(f"{ind}: {e}")
 
 def test(data):
     print(f"{data = }\n" + '-'*80)
@@ -124,10 +126,11 @@ def test(data):
     print('-'*80)
 
 if __name__ == '__main__':
-    # test({60:set((1,2,3)),57:set((11,22,33)), 54:set((111,222,333))})
-    test( { 60:{1,2,3}, 57:{0}, 54:{1,5,7} } )
-    #
-    #
+    data = { 60:{1,2,3}, 57:{0,21}, 54:{1,5,7} }
+    test_serialize_2_singles(data)
+
+
+    # test(data)
     ### output:
     #
     # data = {60: {1, 2, 3}, 57: {0}, 54: {1, 5, 7}}

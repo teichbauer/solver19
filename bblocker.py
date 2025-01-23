@@ -56,86 +56,47 @@ class BitBlocker:
             return res_nodes
         return subtract_delta_node(srcnodes, delta_node)
 
-    def proc_local_vk2(self, vk2, new_vk1):
+    def proc_local_vk2(self, vk2, 
+                       bb_bit, bb_val): # bb_bit/bb_val None/None or both not
         node = {vk2.nov: set()}
-        if new_vk1:
-            vk1 = vk2.clone('NewVk', [self.bit], node)
         for nd in self.noder.nodes:
             cmm = nd[vk2.nov].intersection(vk2.cvs) # vk2.cvs vs. bb.nodes
             if len(cmm) == 0: continue
             vk2.cvs -= cmm  # vk2.cvs be reduced
             node[vk2.nov].update(cmm)
         if not node_valid(node): return None # vk2. not touching any node in bb
-        if new_vk1:
-            bb_dic = self.repo.bdic1.setdefault(vk1.bit, {})
-            if vk1.val not in bb_dic:
-                bb_dic[vk1.val] = BitBlocker(vk1.bit, vk1.val, self.repo)
-            bb_updated = bb_dic[vk1.val].noder.add_node(
-                vk1.cvs, {vk2.kname: f'U{vk2.nov}'})
-            spouse_modified = bb_dic[vk1.val].check_spouse()
-            return (vk1.bit, vk1.val), bb_updated
+        if bb_bit: # both bb_bit/bb_val not None
+            bb_dic = self.repo.bdic1.setdefault(bb_bit, {})
+            if bb_val not in bb_dic:
+                bb_dic[bb_val] = BitBlocker(bb_bit, bb_val, self.repo)
+            bb_updated = bb_dic[bb_val].noder.add_node(
+                node, {vk2.kname: f'U{vk2.nov}'})
+            spouse_modified = bb_dic[bb_val].check_spouse()
+            return (bb_bit, bb_val), bb_updated
         return None
 
-    def proc_path_vk2(self, vk2, new_vk1):
-        node = {vk2.nov: set()}
-        if new_vk1:
-            vk1 = vk2.clone('NewVk', [self.bit], node)
+    def proc_path_vk2(self, vk2,  
+                      bb_bit, bb_val): # bb_bit/bb_val None/None or both not
+        nodes = []
         for nd in self.noder.nodes:
             assert(vk2.nov in nd), f"node has no nov: {vk2.nov}"
-            # nd has >1 entry(multiple nvs): This happens across snodes
             cmm = nd[vk2.nov].intersection(vk2.cvs)
             if len(cmm) == 0: continue
+            node = {}
             for nv in nd:
-                if nv == vk2.nov: node[nv].update(cmm)
+                if nv == vk2.nov: node.setdefault(nv,set()).update(cmm)
                 else:             node.setdefault(nv,set()).update(nd[nv])
-        if not node_valid(node): return None # vk2. not touching any node in bb
-        self.repo.exclmgr.add(vk2.kname, copy.deepcopy(node))
-        if new_vk1:
-            bb_dic = self.repo.bdic1.setdefault(vk1.bit, {})
-            if vk1.val not in bb_dic:
-                bb_dic[vk1.val] = BitBlocker(vk1.bit, vk1.val, self.repo)
-            bb_updated = bb_dic[vk1.val].noder.add_node(
-                vk1.cvs, {vk2.kname: f'U{vk2.nov}'})
-            spouse_modified = bb_dic[vk1.val].check_spouse()
-            return (vk1.bit, vk1.val), bb_updated
-        return None
-
-    def filter_vk2(self, vk2,   # the vk2 touching self.bit
-                   new_vk1,     # vk2 can generate vk1 or not: (T/F)
-                   is_local):   # witin a snode(T) or across snodes(F)
-        node = {vk2.nov: set()} # vk2.cvs's intersection with this bb
-        if new_vk1:
-            vk1 = vk2.clone('NewVk', [self.bit], node)
-        for nd in self.noder.nodes:
-            assert(vk2.nov in nd), f"node has no nov: {vk2.nov}"
-            if is_local: # vk2 & bb has the same nov(repo is VKRepository)
-                # if vk2.cvs intersects with bb
-                cmm = nd[vk2.nov].intersection(vk2.cvs) # vk2.cvs vs. bb.nodes
-                if len(cmm) == 0: continue
-                vk2.cvs -= cmm  # vk2.cvs be reduced
-                node[vk2.nov].update(cmm)
-            else: 
-                # nd has >1 entry(multiple nvs): This happens across snodes
-                cmm = nd[vk2.nov].intersection(vk2.cvs)
-                if len(cmm) == 0: continue
-                for nv in nd:
-                    if nv == vk2.nov: node[nv].update(cmm)
-                    else:             node.setdefault(nv,set()).update(nd[nv])
-        # any nv in node empty-> invalid
-        if not node_valid(node): return None # vk2. not touching any node in bb
-        if not is_local: self.repo.exclmgr.add(vk2.kname, copy.deepcopy(node))
-        if new_vk1:
-            bb_dic = self.repo.bdic1.setdefault(vk1.bit, {})
-            if vk1.val not in bb_dic:
-                bb_dic[vk1.val] = BitBlocker(vk1.bit, vk1.val, self.repo)
-            # in case bb was there already, and add_node has not modified
-            # it, then bb_updated will be False: if this bb has been processed
-            # then it should not be added back for processing.
-            # see repo.filter_vk2s
-            bb_updated = bb_dic[vk1.val].noder.add_node(
-                vk1.cvs, {vk2.kname: f'U{vk2.nov}'})
-            spouse_modified = bb_dic[vk1.val].check_spouse()
-            return (vk1.bit, vk1.val), bb_updated
+            nodes.append(node)
+        if len(nodes) == 0: return None # vk2. not touching any node in bb
+        self.repo.exclmgr.add(vk2.kname, copy.deepcopy(nodes))
+        if bb_bit: # both bb_bit/bb_val not None
+            bb_dic = self.repo.bdic1.setdefault(bb_bit, {})
+            if bb_val not in bb_dic:
+                bb_dic[bb_val] = BitBlocker(bb_bit, bb_val, self.repo)
+            bb_updated = bb_dic[bb_val].noder.add_node(
+                nodes, {vk2.kname: f'U{vk2.nov}'})
+            spouse_modified = bb_dic[bb_val].check_spouse()
+            return (bb_bit, bb_val), bb_updated
         return None
     
     def intersect(self, node, res=None):

@@ -44,6 +44,11 @@ class VKlause:
         self.bits.remove(bit)
         self.nob -= 1
 
+    def other_bv(self, dump_bit):  # for vk2: returnL {<other-bit>: other-val}
+        d = self.dic.copy()        # E.G.: d: {11:1, 12:0}, dump_bit:12
+        d.pop(dump_bit)            # d is now {11:1}
+        return tuple(d.items())[0] # return: (11,1)
+
     def clone(self, 
               new_kname=None,       # new kname, if None, use self.kname
               bits2b_dropped=None,  # bits to be dropped, if this is given:

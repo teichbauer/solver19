@@ -81,9 +81,10 @@ class NodeManager:
             return added
         elif is_single(node):
             expand_steps = None
+            if self.path.blckmgr.blocked(node): return False
             if self.path.classname=='Path':
                 expand_steps = self.path.steps
-            added = node_to_lst(self._fill(node), self.nodes, expand_steps)
+            return node_to_lst(self._fill(node), self.nodes, expand_steps)
         else:
             doit = node_seq(node)
             while not doit.done:
@@ -95,7 +96,8 @@ class NodeManager:
             key, msg = srcdic.popitem()
             if added:
                 # should srcdic be single k/v or a list?
-                assert(key not in self.srcdic), 'srcdic was not empty!'
+                if key in self.srcdic:
+                    print(f'srcdic{key}/{msg} was in already!')
                 self.srcdic[key] = msg
             else:
                 self.srcdic[key] = False
@@ -133,22 +135,16 @@ class NodeManager:
         return None
     
     def subtract_singles(self, singles): # singles: [<single-node>,...]
-        # every single-node in the list, is contained in self.nodes
-        ind = 0
-        while ind < len(self.nodes):
-            mynode = self.nodes[ind]
-            for sng in singles:    
-                rest = _node_subtract_single(mynode, sng)
-                if rest == False:  continue
-                else: break
-            if rest == False: ind += 1
-            elif rest == None:
-                del self.nodes[ind]
-            elif type(rest) == list:  # rest is a dict
-                del self.nodes[ind]
-                for e in rest:
-                    self.nodes.insert(ind, e)
-                    ind += 1
+        # first serialize all into alist of singles
+        lst = []
+        for node in self.nodes:
+            sq = Sequencer(node)
+            lst += sq.serialize_2_singles()
+        res = []
+        for broken in lst:
+            if broken in singles: continue
+            res.append(broken)
+        self.nodes = res
 
     def subtract(self, other):
         inter_res = self.intersect(other, only_intersects=True)

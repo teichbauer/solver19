@@ -26,6 +26,9 @@ class BlockMgr:
             if newblock not in self.blockers[leng]:
                 self.blockers[leng].append(newblock)
     
+    def blocked(self, single): # test if a single-thrd-dict-node is blockers
+        return single in self.blockers[len(single)]
+
     def test_block(self, block=None): # block==None: test all
         if block==None:
             for bl in self.block:

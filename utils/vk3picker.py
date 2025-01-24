@@ -1,8 +1,9 @@
 class Vk3Picker:
     # What is MPK most popular v3-klause:
     # the vk3(s) touching the most other vk3s
-    # vk3 with 3 touching bits (with other vk3) ranked highst
-    # vk3 with 2 touching bits (with other vk3) ranked 2nd, 1-touch the thirs
+    # vk3 with 3 touching bits (with other vk3)/MPK-3 ranked highst
+    # vk3 with 2 touching bits (with other vk3)/MPK-2 ranked 2nd, 
+    # MPK-1 ranks the thirs
     # --------------------------------------
     # pick MPK will reduce the whole nov - 3. So , case of 60 variables:
     # rootvks: {60: [vk3,..], 57:[], 54:[], ..} 
@@ -50,59 +51,65 @@ class Vk3Picker:
                         noshared_bits = len(vk.dic.keys() & vkx.dic.keys())
                         tdic[kn].setdefault(noshared_bits,set([])).add(knx)
                         lst = chdic.setdefault(noshared_bits, []) # .append(kn)
-                        if vk not in lst:
-                            lst.append(vk)
+                        if kn not in lst:
+                            lst.append(kn)
             x = 0
         self.tdic = tdic
         self.chdic = chdic
     
     def biggest_choice(self, nobits):
         td = self.tdic
-        max_vk = None
-        for vk in self.chdic[nobits]:
-            if not max_vk:
-                max_vk = vk
+        max_kn = None
+        kns = self.chdic[nobits]
+        for kn in kns:
+            if not max_kn: max_kn = kn
             else:
-                if len(td[vk.kname][nobits]) > len(td[max_vk.kname][nobits]):
-                    max_vk = vk
-        self.chdic[nobits].remove(max_vk)
+               if len(td[kn][nobits]) > len(td[max_kn][nobits]): 
+                   max_kn = kn
+
+        self.chdic[nobits].remove(max_kn)
         if len(self.chdic[nobits]) == 0:
             self.chdic.pop(nobits)
-        return max_vk
+        return self.vkdic[max_kn]
 
     def pickt3(self, vals, nov):
         # self.chdic has touch-3 choice. Take one
         # original chck_vals: [0..7], after choice, at least one removed
-        lst = self.chdic[3]
-        vk3 = lst.pop(0)
+        kn_lst = self.chdic[3]
+        kname = kn_lst.pop(0)
+        vk3 = self.vkdic[kname]
         vk3.nov = nov
         vk3s = [vk3]
         v = vk3.cmprssd_value()
         if v in vals:
             vals.remove(v)
         self.vkm.pop_vk(vk3)
+        if kname in self.chdic[2]: self.chdic[2].remove(kname)
+        if kname in self.chdic[1]: self.chdic[1].remove(kname)
+        t2s = sorted(self.tdic[kname].get(2,set()))
+        t1s = sorted(self.tdic[kname].get(1,set()))
         ind3 = 0
-        while ind3 < len(lst):
-            if lst[ind3].bits == vk3.bits:
-                vk3x = lst.pop(ind3)
+        while ind3 < len(self.chdic[3]):
+            knx = kn_lst.pop(ind3)
+            vk3x = self.vkdic[knx]
+            if vk3x.bits == vk3.bits:
                 vk3x.nov = nov
                 vk3s.append(vk3x)
                 v = vk3x.cmprssd_value()
                 if v in vals:
                     vals.remove(v)
                 self.vkm.pop_vk(vk3x)
+                if knx in self.chdic[2]: self.chdic[2].remove(knx)
+                if knx in self.chdic[1]: self.chdic[1].remove(knx)
             else:
                 ind3 += 1
-        if len(lst) == 0:
+        if len(kn_lst) == 0:
             self.chdic.pop(3)
         self.rootvks[nov] = vk3s
-        return (vals, 
-                vk3s, 
-                list(self.tdic[vk3.kname].get(2,[])),
-                list(self.tdic[vk3.kname].get(1,[])))
+        return (vals, vk3s, t2s, t1s)
 
     def pickt2(self, vals, nov):
-        # self.chdic has no touch-3, but touch-2 choice. Take one
+        # take the kn in chdic[2] with the most touch-count
         vk3 = self.biggest_choice(2)
         self.rootvks[nov] = [vk3]
         vk3.nov = nov
@@ -110,13 +117,12 @@ class Vk3Picker:
         if v in vals:
             vals.remove(v)
         self.vkm.pop_vk(vk3)
-        return (vals, 
-                [vk3], 
-                list(self.tdic[vk3.kname].get(2,[])),
-                list(self.tdic[vk3.kname].get(1,[])))
+        return (vals, [vk3], 
+                sorted(self.tdic[vk3.kname].get(2,set())),
+                sorted(self.tdic[vk3.kname].get(1,set())))
 
     def pickt1(self, vals, nov):
-        # self.chdic has no touch-3/-2 choice. Take one touch-1
+        # take the kn in chdic[1] with the most touch-count
         vk3 = self.biggest_choice(1)
         vk3.nov = nov
         self.rootvks[nov] = [vk3]
@@ -124,10 +130,9 @@ class Vk3Picker:
         if v in vals:
             vals.remove(v)
         self.vkm.pop_vk(vk3)
-        return (vals, 
-                [vk3], 
-                list(self.tdic[vk3.kname].get(2,[])),
-                list(self.tdic[vk3.kname].get(1,[])))
+        return (vals, [vk3], 
+                sorted(self.tdic[vk3.kname].get(2,set())),
+                sorted(self.tdic[vk3.kname].get(1,set())))
 
     def pick(self, check_values, nov):
         # if chdic has 3-list, pick from that, else
@@ -141,18 +146,18 @@ class Vk3Picker:
             return self.pickt1(check_values, nov)
 
     def drop_choice(self, vk):
-        vks = self.chdic.get(2,[])
-        if vk in vks:
+        kns = self.chdic.get(2,[])
+        if vk.kname in kns:
             # print(f'dropping {vk.kname} from choice[2]')
-            self.chdic[2].remove(vk)
+            self.chdic[2].remove(vk.kname)
             if len(self.chdic[2]) == 0:
                 self.choice.pop(2)
             
-        vks = self.chdic.get(1,[])
+        kns = self.chdic.get(1,[])
         # if vk in self.chdic[1]:
-        if vk in vks:
+        if vk.kname in kns:
             # print(f'dropping {vk.kname} from choice[1]')
-            self.chdic[1].remove(vk)
+            self.chdic[1].remove(vk.kname)
             if len(self.chdic[1]) == 0:
                 self.choice.pop(1)
         self.clean_choice(vk)

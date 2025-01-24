@@ -1,3 +1,6 @@
+2025-01-24->19.358
+- refactored vk3picker: .chdic contains knames(vks before). More documentation.
+- vkm: pop_vk now only take vk, no more kname as input. More documentation.
 2025-01-24->19.357
 - clean up/refactoring: utils/basics.py, vkmgr.py, utils.cvsnodetools.py
 - restructure/clean up in solver19.py

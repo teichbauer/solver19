@@ -2,6 +2,7 @@ from utils.vk3picker import Vk3Picker
 from center import Center
 
 class VKManager:
+    # A wrapper class around vkdic, with some facilitating/helper tools
     def __init__(self, vkdic, initial=False):
         self.vkdic = vkdic
         if initial:
@@ -9,16 +10,23 @@ class VKManager:
             self.bdic = self.make_bdic()
             self.picker = Vk3Picker(self, Center.rootvks)
     
-    def make_choice(self, nov):
-        vals = [0,1,2,3,4,5,6,7]
+    def make_choice(self, nov): # nov: layer-label of choice made
+        # --- what is a layer-label:
+        # if the starting number of vars: 60, after picked the first 
+        # root-vks, the 3 bits these root-vks sit on will get cut. 
+        # So when making next choice of MPKs, there are then 57
+        # and next: 54, 51, 48,.. till vkdic is exhausted (length=0)
+        # ---------------------------------------------------------
+        vals = [0,1,2,3,4,5,6,7] # all 8 possible children-vals
+        # --- results from picker.pick() call: 
+        # chvals: the remaining ch-vals that are not sit upon by vk3s
+        # vk3s: list of vk3 picked as root vks
+        # t2s: list of knames of vks touching 2 bits of root-vks
+        # t21: list of knames of vks touching 1 bits of root-vks
+        # ------------------------------
         chvals, vk3s, t2s, t1s = self.picker.pick(vals, nov)
-        t2s.sort()
-        t1s.sort()
         return chvals, vk3s, t2s, t1s
     
-    def clone_vkdic(self):
-        return {kn: vk.clone() for kn, vk in self.vkdic.items()}
-
     def clone(self):
         vkdic = {kn: vk.clone() for kn, vk in self.vkdic.items()}
         vkm = VKManager(vkdic)
@@ -26,7 +34,7 @@ class VKManager:
         return vkm
 
     def pop_vk(self, vk): # vk can be kname(str), or VKlause-inst
-        kname = [vk.kname, vk][type(vk) == str]
+        kname = vk.kname
         if kname not in self.vkdic: return None
         vkx = self.vkdic.pop(kname)
         # also drop from choice inside picker.chdic

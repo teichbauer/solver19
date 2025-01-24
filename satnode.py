@@ -18,7 +18,9 @@ class SatNode:
         else:
             self.nov = parent.nov - 3
         Center.snodes[self.nov] = self
-        # choice[0]: chvals, [1]: vk3s, [2]: touchd 2 bits, [3]: touched 1 bit
+        # self.choice is an array:
+        # choice[0]: chvals, the children of this layer headed with an int-val
+        # [1]: vk3s, [2]: touchd 2 bits, [3]: touched 1 bit
         self.choice = vkm.make_choice(self.nov) # (vals, bits, t2s, t1s)
         self.bgrid = BitGrid(self)
         self.repo = VKRepository(self)
@@ -35,7 +37,8 @@ class SatNode:
         repo = self.repo
         for kn in self.choice[2] + self.choice[3]: 
             if kn in self.vkm.vkdic:
-                vk = self.vkm.pop_vk(kn)
+                vk = self.vkm.vkdic[kn]
+                self.vkm.pop_vk(vk)
                 vk.nov = self.nov
                 vk12 = self.bgrid.reduce_vk(vk)
                 if vk12.nob == 1:

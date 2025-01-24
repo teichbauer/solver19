@@ -86,11 +86,11 @@ class Center:
     @classmethod
     def set_maxnov(cls, nov):
         cls.maxnov = nov
-        cls.bits = set(range(nov))
+        cls.bits = set(range(nov)) # bits: {0,1,..59}
 
     @classmethod
-    def set_init(cls, vkm):
-        cls.orig_vkdic = vkm.clone_vkdic() # vkm.clone()
+    def set_init(cls, vkdic):
+        cls.orig_vkdic = {kn: vk.clone() for kn, vk in vkdic.items()}
         for kn, vk in cls.orig_vkdic.items():
             for b in vk.bits:
                 cls.orig_bdic.setdefault(b, set([])).add(kn)

@@ -35,9 +35,6 @@ def is_single(node):
         if len(cvs) > 1: return False
     return True
 
-def node_seq(node):
-    return Sequencer(node) # return a generator
-
 def missing_nv2star(node1, node2, steps):
     if len(steps) == len(node1) and len(steps)  == len(node2): 
         return
@@ -78,33 +75,6 @@ def node_to_lst(node, lst, steps=None):
             return False 
     lst.append(node) # node not contained in any of self.nodes: add it
     return True
-
-def expand_star(node, chvdict):
-    if type(node) == list:
-        ind = 0
-        while ind < len(node):
-            expand_star(node[ind], chvdict)
-            ind += 1
-    elif type(node) == dict:
-        for nv in chvdict:
-            if (nv not in node) or (node[nv] == {'*'}):
-                node[nv] = chvdict[nv]
-    return node
-
-def subtract_delta_node(node, delta_node):
-    if node == delta_node: return {}
-    cmm = node_intersect(node, delta_node)
-    if not cmm: return node
-    res = []
-    seq1 = Sequencer(cmm)
-    seq2 = Sequencer(node)
-    while not seq1.done:
-        n1 = seq1.get_next()
-        while not seq2.done:
-            n2 = seq2.get_next()
-            if n1 != n2:
-                res.append(n2)
-    return res
 
 flip = lambda val: (val + 1) % 2
 

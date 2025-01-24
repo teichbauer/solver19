@@ -3,11 +3,6 @@ import copy
 from utils.sequencer import Sequencer
 from utils.cvsnodetools import *
 
-def _is_single(node):
-    for nv in node:
-        if len(node[nv]) != 1: return False
-    return True
-
 def _node_intersect(n1, n2): # both n1 and n2 can be compound or single
     # n1 and n2 must have the same novs
     # returning a list of single-nodes, that are intersections of n1/n2
@@ -23,21 +18,6 @@ def _node_intersect(n1, n2): # both n1 and n2 can be compound or single
         else:
             n2seq.reset()
     return lst  # list of single nds that are the intersection-nodes
-
-def _node_subtract_single(src,           # src-node: single or compound
-                          single_delta): # single-node
-    # single_delta is a subset of src, subtract it from src
-    # if src is single too: return None, otherwise return rest of src
-    if _is_single(src):
-        if src == single_delta: return None
-        else: return False
-    res = []
-    itr = Sequencer(src)
-    while not itr.done:
-        nd = itr.get_next()
-        if single_delta != nd:
-            res.append(nd)
-    return res
 
 class NodeManager:
     def __init__(self, path, nodes=None):
@@ -86,7 +66,7 @@ class NodeManager:
                 expand_steps = self.path.steps
             return node_to_lst(self._fill(node), self.nodes, expand_steps)
         else:
-            doit = node_seq(node)
+            doit = Sequencer(node)
             while not doit.done:
                 nd = doit.get_next()
                 # the order is important: make sure func-call happens

@@ -39,23 +39,6 @@ class BitBlocker:
         self.repo.blckmgr.add_block(lst)
         return True # spouse-existed, and has been modified
 
-    def subtr_node(self, delta_node, srcnodes=None):
-        if srcnodes == None:
-            srcnodes = self.nodes
-        expand_star(delta_node, self.repo.chvdict)
-        expand_star(srcnodes, self.repo.chvdict)
-        if type(srcnodes) == list:
-            res_nodes = []
-            for node in srcnodes:
-                node = subtract_delta_node(node, delta_node)
-                if type(node) == dict and len(node) > 0: 
-                    res_nodes.append(node)
-                elif type(node) == list:
-                    for nd in node:
-                        res_nodes.append(nd)
-            return res_nodes
-        return subtract_delta_node(srcnodes, delta_node)
-
     def proc_local_vk2(self, vk2, 
                        bb_bit, bb_val): # bb_bit/bb_val None/None or both not
         node = {vk2.nov: set()}

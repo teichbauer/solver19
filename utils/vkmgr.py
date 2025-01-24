@@ -5,8 +5,9 @@ class VKManager:
     def __init__(self, vkdic, initial=False):
         self.vkdic = vkdic
         if initial:
+            # bdic:{<bit>: <set of all knames that has this bit>}
             self.bdic = self.make_bdic()
-            self.picker = Vk3Picker(self, Center)
+            self.picker = Vk3Picker(self, Center.rootvks)
     
     def make_choice(self, nov):
         vals = [0,1,2,3,4,5,6,7]
@@ -25,40 +26,19 @@ class VKManager:
         return vkm
 
     def pop_vk(self, vk): # vk can be kname(str), or VKlause-inst
-        if type(vk) == str: # vk is kname
-            if vk in self.vkdic:
-                vkx = self.vkdic.pop(vk)
-            else:
-                return None
-        else:  # vk is VKlause instance
-            if vk.kname in self.vkdic:
-                vkx = self.vkdic.pop(vk.kname)
-            else:
-                return None
+        kname = [vk.kname, vk][type(vk) == str]
+        if kname not in self.vkdic: return None
+        vkx = self.vkdic.pop(kname)
         # also drop from choice inside picker.chdic
         self.picker.drop_choice(vkx)
         for bit in vkx.bits:
-            if vkx.kname in self.bdic[bit]:
-                self.bdic[bit].remove(vkx.kname)
+            if kname in self.bdic[bit]:
+                self.bdic[bit].remove(kname)
                 if len(self.bdic[bit]) == 0:
                     self.bdic.pop(bit)
             else:
-                raise Exception(f"pop {vkx.kname} failed")
+                raise Exception(f"pop {kname} failed")
         return vkx
-
-    def drop_bits(self, bits, kns, vks):
-        for bit in bits:
-            self.bdic.pop(bit)
-        for vk in vks:
-            self.vkdic.pop(vk.kname)
-        for kn in kns:
-            if kn in self.vkdic:
-                vk = self.vkdic.pop(kn)
-                # vk.clone(bits) will return a clone with dropped bits
-                # the original vk will not be modified
-                self.vkdic[kn] = vk.clone(bits)
-            else:
-                x = 1
 
     def make_bdic(self):
         # make a bit-dict:

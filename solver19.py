@@ -1,44 +1,38 @@
-import sys
+import sys, copy
 import time
-from utils.basics import get_sdic, ordered_dic_string, verify_sat, display_vkdic
+from utils.basics import ordered_dic_string, verify_sat, display_vkdic
 from center import Center
 from utils.satholder import SatHolder
 from satnode import SatNode
 from utils.vkmgr import VKManager
 from utils.vklause import VKlause
 
-
-def make_vkdic(kdic):
+def get_vkdic_from_cfg(cfgfile):
+    # file_path: a json file:
+    #  { 'kdic': { 'C0001':{7: 1, 14: 0, 30: 0},.. },  ## 266 3-sat clauses
+    #    'nov': 60,                                    ## 60 variables
+    #  }
+    file_path = "./configs/" + cfgfile
+    sdic = eval(open(file_path).read()) # {'kdic:.., 'nov':60}}
+    Center.set_maxnov(sdic["nov"]) # Center.maxnov=60, .bits: {0,1,..59}
     vkdic = {}
-    for kn, klause in kdic.items():
+    for kn, klause in sdic['kdic'].items():
         vkdic[kn] = VKlause(kn, klause)
     return vkdic
 
-
-def make_vkm(cnf_fname):
-    vkdic = get_vkdic_from_cfg(cnf_fname)
-    vkm = VKManager(vkdic, True) # initial: True
-    Center.set_init(vkm)
-    return vkm
-
-
 def process(cnfname):
-    vkm = make_vkm(cnfname)
-    satslots = list(range(Center.maxnov))
-    sh = SatHolder(satslots)
-    sn = SatNode(None, sh, vkm)  # parent: None
+    vkdic = get_vkdic_from_cfg(cnfname)
+    Center.set_init(vkdic)  # make copy into Center.origin_vkdic
+    # VKMgr is a wrapper of vkdic, with some tools
+    vkm = VKManager(vkdic, True) # initial: True
+    satslots = list(range(Center.maxnov)) # [0,1,2,..59]
+    sat_holder = SatHolder(satslots)
+    sn = SatNode(None, sat_holder, vkm)  # parent: None
     return sn.spawn()
-
-
-def get_vkdic_from_cfg(cfgfile):
-    sdic = get_sdic(cfgfile)
-    Center.set_maxnov(sdic["nov"])
-    vkdic = make_vkdic(sdic["kdic"])
-    return vkdic
-
 
 def work(configfilename, verify=True):
     start_time = time.time()
+    # generating sats - the major task
     sats = process(configfilename)
     now_time = time.time()
     time_used = now_time - start_time

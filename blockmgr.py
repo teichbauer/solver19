@@ -34,7 +34,7 @@ class BlockMgr:
             for bl in self.block:
                 res = self.test_block(bl)
         else:
-            doit = node_seq(block)
+            doit = Sequencer(block)
             if doit == True: # block is a single
                 if self.test_pthrd(block):
                     print(f"{block} passed.")

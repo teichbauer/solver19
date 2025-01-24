@@ -1,3 +1,7 @@
+2025-01-24->19.357
+- clean up/refactoring: utils/basics.py, vkmgr.py, utils.cvsnodetools.py
+- restructure/clean up in solver19.py
+- documentation/refactoring vk3picker on going.
 2025-01-23->19.356
 - sequencer.py: refactored/fixed. add new method serialize_2_singles
 - vkause.py: add new method other_bv

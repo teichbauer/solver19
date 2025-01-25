@@ -145,6 +145,8 @@ class Vk3Picker:
         if 1 in self.chdic:
             return self.pickt1(check_values, nov)
 
+
+
     def drop_choice(self, vk):
         kns = self.chdic.get(2,[])
         if vk.kname in kns:
@@ -159,17 +161,13 @@ class Vk3Picker:
             # print(f'dropping {vk.kname} from choice[1]')
             self.chdic[1].remove(vk.kname)
             if len(self.chdic[1]) == 0:
-                self.choice.pop(1)
+                self.chdic.pop(1)
         self.clean_choice(vk)
 
     def clean_choice(self, vk):
-        if type(vk) == type([]):
-            for vkx in vk:
-                self.clean_choice(vkx)
-            return
-        # vk has been removed from choice[1|2]
-        # here, remove it also from all other vkxs's t2s or t1s
-        # remove vk from all these
+        # for kn in tdic[vk.kname][2]
+        # remove vk.kname from tdic[kn][2],
+        #  if tdic[kn][2] empty: drop tdic[kn][2], and chdic[2].remove(kn)
         # -------------------------------------------
         # any nk in tdic[vk.kname][2] or [1], will still be in vkdic
         candkns = self.tdic[vk.kname].get(2,set([]))
@@ -179,12 +177,10 @@ class Vk3Picker:
             if knx in self.tdic and vk.kname in self.tdic[knx][2]:
                 self.tdic[knx][2].remove(vk.kname)
                 if len(self.tdic[knx][2]) == 0:
-                    if knx in self.vkdic:
-                        vkx = self.vkdic[knx]
-                        if vkx in self.chdic[2]:
-                            self.chdic[2].remove(vkx)
-                            if len(self.chdic[2]) == 0:
-                                self.chdic.pop(2)
+                    if knx in self.chdic[2]:
+                        self.chdic[2].remove(knx)
+                        if len(self.chdic[2]) == 0:
+                            self.chdic.pop(2)
 
         candkns = self.tdic[vk.kname].get(1,set([]))
         for knx in candkns:
@@ -193,10 +189,8 @@ class Vk3Picker:
             if knx in self.tdic and vk.kname in self.tdic[knx][1]:
                 self.tdic[knx][1].remove(vk.kname)
                 if len(self.tdic[knx][1]) == 0:
-                    if knx in self.vkdic:
-                        vkx = self.vkdic[knx]
-                        if vkx in self.chdic[1]:
-                            self.chdic[1].remove(vkx)
-                            if len(self.chdic[1]) == 0:
-                                self.chdic.pop(1)
+                    if knx in self.chdic[1]:
+                        self.chdic[1].remove(knx)
+                        if len(self.chdic[1]) == 0:
+                            self.chdic.pop(1)
 

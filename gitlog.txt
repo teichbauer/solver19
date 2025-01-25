@@ -1,3 +1,6 @@
+2025-01-25->19.359
+- rename satnode.py/SatNode to layer.py/Layer, path.snode_dic->lyr_dic,...
+- fix in vk2picker.py/clean_choice
 2025-01-24->19.358
 - refactored vk3picker: .chdic contains knames(vks before). More documentation.
 - vkm: pop_vk now only take vk, no more kname as input. More documentation.

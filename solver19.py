@@ -3,7 +3,7 @@ import time
 from utils.basics import ordered_dic_string, verify_sat, display_vkdic
 from center import Center
 from utils.satholder import SatHolder
-from satnode import SatNode
+from layer import Layer
 from utils.vkmgr import VKManager
 from utils.vklause import VKlause
 
@@ -27,7 +27,7 @@ def process(cnfname):
     vkm = VKManager(vkdic, True) # initial: True
     satslots = list(range(Center.maxnov)) # [0,1,2,..59]
     sat_holder = SatHolder(satslots)
-    sn = SatNode(None, sat_holder, vkm)  # parent: None
+    sn = Layer(None, sat_holder, vkm)  # parent: None
     return sn.spawn()
 
 def work(configfilename, verify=True):

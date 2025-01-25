@@ -6,7 +6,7 @@ from sat_path import SatPath
 from vkrepo import VKRepository
 from path import Path
 
-class SatNode:
+class Layer:
     def __init__(self, parent, sh, vkm):
         self.parent = parent
         self.sh = sh
@@ -58,7 +58,7 @@ class SatNode:
 
     def spawn(self):
         if len(self.vkm.vkdic) > 0:  # there exist vk3 in vkm.vkdic, make next
-            self.next = SatNode(self, self.next_sh.clone(), self.vkm)
+            self.next = Layer(self, self.next_sh.clone(), self.vkm)
             return self.next.spawn()
         else:  # when there is no more vk3
             Center.last_nov = self.nov

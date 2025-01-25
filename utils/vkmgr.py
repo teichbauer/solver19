@@ -16,6 +16,14 @@ class VKManager:
         # root-vks, the 3 bits these root-vks sit on will get cut. 
         # So when making next choice of MPKs, there are then 57
         # and next: 54, 51, 48,.. till vkdic is exhausted (length=0)
+        # the int-numbers 60, 57, 54, 51, 48, .. are the layer-labels
+        # all vks on this layer will have <vk>.nov assigned:
+        # the root-vks assigned in picker, t-1/2 vks assigned in 
+        # Layer.fill_repo, where t2s>bblockers, t1s>vk2s in satnode
+        # ---------------------------------------------------------
+        # there root-vk(s)'s 3 bit can have 8 values(2^3). taken away 
+        # the values of the root-vks, minus root-vk's cmprssd_value
+        # (see vklause.py/VKlause.cmprssd_value), are the children-vals.
         # ---------------------------------------------------------
         vals = [0,1,2,3,4,5,6,7] # all 8 possible children-vals
         # --- results from picker.pick() call: 

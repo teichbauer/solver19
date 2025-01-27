@@ -6,13 +6,13 @@ from nodemanager import NodeManager
 import copy
 
 
-class BlockMgr:
+class AbsoluteBlocker:
     def __init__(self, repo):
         self.repo = repo
         self.blockers = {1:[], 2:[], 3:[]}
     
     def clone(self, newrepo):
-        inst = BlockMgr(newrepo)
+        inst = AbsoluteBlocker(newrepo)
         for n, lst in self.blockers.items():
             inst.blockers[n] = self.blockers[n][:]
         return inst

@@ -14,10 +14,10 @@ class Layer:
         self.Center = Center
         if parent == None:
             self.nov = Center.maxnov
-            Center.root_snode = self
+            Center.root_layer = self
         else:
             self.nov = parent.nov - 3
-        Center.snodes[self.nov] = self
+        Center.layers[self.nov] = self
         # self.choice is an array:
         # choice[0]: chvals, the children of this layer headed with an int-val
         # [1]: vk3s, [2]: touchd 2 bits, [3]: touched 1 bit
@@ -64,12 +64,12 @@ class Layer:
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
             print(f"NOV:{self.nov}")
-            path = Path(Center.snodes[60])
-            # pathrepo = Center.snodes[60].repo.clone()
-            path.grow(Center.snodes[57])
+            path = Path(Center.layers[60])
+            # pathrepo = Center.layers[60].repo.clone()
+            path.grow(Center.layers[57])
             # pathrepo.write_logmsg('./logs/loginfo.txt')
-            path.grow(Center.snodes[54])
-            path.grow(Center.snodes[51])
+            path.grow(Center.layers[54])
+            path.grow(Center.layers[51])
             path.block_filter()
             path.write_log('./logs/loginfo.txt')
             x = 9

@@ -36,7 +36,7 @@ class BitBlocker:
         if not lst: return False # no spouse-modified
         self.noder.subtract_singles(lst)
         spouse.noder.subtract_singles(lst)
-        self.repo.blckmgr.add_block(lst)
+        self.repo.ablocker.add_block(lst)
         return True # spouse-existed, and has been modified
 
     def proc_local_vk2(self, vk2, 
@@ -95,6 +95,12 @@ class BitBlocker:
             return self.spousal_conflict(spouse)
         return None
     
+    def output(self):
+        msg = str(self.key) + '\n'
+        for nd in self.noder.nodes:
+            msg += str(nd) + '\n'
+        return msg
+
     @property
     def key(self):
         return (self.bit, self.val)

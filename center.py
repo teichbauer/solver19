@@ -68,10 +68,10 @@ known_sats = [
 
 class Center:
     maxnov = 0
-    satbitdic = {}  # every snode has 3x <sat-bit>:<snode> in here
+    satbitdic = {}  # every layer has 3x <sat-bit>:<layer> in here
     bits = set([])
     sats = []
-    snodes = {}
+    layers = {}
     rootvks = {}
     vk1dic = {}
     vk1info = {}  # {<nov>: [k1n, k1n, ..], <nov>:[...]}
@@ -97,15 +97,15 @@ class Center:
         cls.rest_kns = list(Center.orig_vkdic.keys())
 
     @classmethod
-    def slice(cls, snode):
-        cls.vknames[snode.nov] = []
-        for vk in snode.choice[1]: # vk3s
+    def slice(cls, lyr):
+        cls.vknames[lyr.nov] = []
+        for vk in lyr.choice[1]: # vk3s
             myvk = cls.orig_vkdic[vk.kname]
-            cls.remove_kn(snode.nov, vk.kname, 'root')
-        for kn in snode.choice[2]: # vk1(2bits touch)-knames
-            cls.remove_kn(snode.nov, kn, '2bit')
-        for kn in snode.choice[3]: # vk2(1bit-touch)-knames)
-            cls.remove_kn(snode.nov, kn, '1bit')
+            cls.remove_kn(lyr.nov, vk.kname, 'root')
+        for kn in lyr.choice[2]: # vk1(2bits touch)-knames
+            cls.remove_kn(lyr.nov, kn, '2bit')
+        for kn in lyr.choice[3]: # vk2(1bit-touch)-knames)
+            cls.remove_kn(lyr.nov, kn, '1bit')
         x = 0
     
     @classmethod
@@ -132,7 +132,7 @@ class Center:
                     return True
         else:
             kns = cls.vknames[nov]
-            sn = cls.snodes[nov]
+            sn = cls.layers[nov]
             sats = []
             vals = list(sn.bgrid.chvals)
             for chv in vals:
@@ -151,24 +151,24 @@ class Center:
 
     # @classmethod
     # def set_xkeys(cls): # build bit-crossing dic
-    #     for nov, snode in cls.snodes.items():
-    #         snode.vecmgr.down_intersec_vecdic(nov)
-    #         snode.vecmgr.up_intersec_vecdic(nov)
+    #     for nov, layer in cls.layers.items():
+    #         layer.vecmgr.down_intersec_vecdic(nov)
+    #         layer.vecmgr.up_intersec_vecdic(nov)
     #     x = 0
 
         
     @classmethod
     def set_satbits(cls):
-        """ called only after snode(last_nov) is done.
-            1: unify bits from every snode's 3 sat-bits into cls.satbits
-            2: group front-kns in every snode's child-vk12m
+        """ called only after layer(last_nov) is done.
+            1: unify bits from every layer's 3 sat-bits into cls.satbits
+            2: group front-kns in every layer's child-vk12m
             """
         cls.satbits = set(cls.satbitdic)
         cls.tailbits = cls.bits - cls.satbits
         nov = cls.maxnov
         while nov > cls.last_nov:
-            snode = cls.snodes[cls.maxnov]
-            for ch, vkm in snode.vk12mdic.items():
+            layer = cls.layers[cls.maxnov]
+            for ch, vkm in layer.vk12mdic.items():
                 all_kns = set(vkm.vkdic)
                 kns = set([])
                 vkm.tail_kns = set([])  # vk with both bits in tail

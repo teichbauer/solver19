@@ -1,6 +1,7 @@
 2024-10-02
 ==============
-S60 + S57. In merge_down, after find_Rvk1, during grow. going thru bdic1 ^ bdic2
+S60 + S57. In merge_down, after find_Rvk1, during grow. going thru 
+bdic1 ^ bdic2
 ----------[3, 9, 17, 18, 21, 24, 27, 29, 34, 44, 53, 54, 55]-------------
             vk1
 3           57:S0203[3-0](23)

@@ -1,18 +1,25 @@
+
+### 2025-01-27
+```
+on path.py:line(20) in path(L60+L57).grow(L54)/self.add_lyr_root
+-------------------------------------------------------------------
+path has a bit-blocker(19-0) and S54 has 
+root[20-1 19-0 7-0]. [19-0] will have hit-cvs:(015), no-hit-cvs:(2367)
+There existed a bit-blocker on a node:{54(*) 57(1) 60(23)} this node
+means: when node is hit, bit-blocker(19-0) will fire: making the top level
+F hit. And this (19-0) is on Layer54(015) -- meaning, for
+ {54(015) 57(1) 60(23)} (intersection of L54(015) with node), it is a A-block.
+and on (19-1) == L54(2367) bit-blocker will not matter. So this means,
+bit-blocker(19-0){node} should not exist. The actions to be taken here:
+add a ABlock{54(015) 57(1) 60(23)} to Ablocker, and remove bb(19-0)
+Also if bb(19-1) exists, also remove that and generate/add a Ablock.
+```
+
 ### 2024-11-28
 ```
 when vk2 hit 1 bit of root bits of a sn, this vk2 should be totally
 removed from vk2dic of path(Now that I have path, but not vkrepo)
 the reason: for hit_cvs: vk2->vk1->bb, for mis_cvs, it is obsolete anyway
-```
-
-### 2024-11-27
-```
-path.grow(S60 + S57) <-S54: path has a bit-blocker(19-0) and S54 has 
-root[20-1 19-0 7-0]. [19-0] will have hit-cvs:(015), no-hit-cvs:(2367)
-bb.node ^ 54:(015) will generate block, where bb(19-0) will be covered,
-and on [19-1](2367) bb(19-0) will not be hit. This means, bb(19-0)
-can be removed. If there is bb(19-1), this would generated a block
-(added to blckmgr) and bb(19-1) will then be removed.
 ```
 ### 2024-11-23a
 ```

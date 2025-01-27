@@ -24,8 +24,8 @@ def outputlog(path):
     msg += f"----------------------------------------------------\n\n"
     msg += f"vk1s:\n----------------------------------------------------\n"
     k1ns = sorted(path.k1ns)
-    for kn in k1ns:
-        msg += vk1dic[kn].po() +'\n'
+    for bb in path.bbpool.values():
+        msg += bb.output() +'\n'
     msg += f"----------------------------------------------------\n\n"
     msg += f"vk2s:\n----------------------------------------------------\n"
     k2ns = sorted(path.vk2dic)
@@ -33,7 +33,7 @@ def outputlog(path):
         vk2 = path.vk2dic[kn]
         msg += vk2.po() +'\n'
     msg += f"----------------------------------------------------\n\n"
-    msg += path.blckmgr.showall(True)
+    msg += path.ablocker.showall(True)
     msg += f"----------------------------------------------------\n\n"
     msg += f"excls:\n----------------------------------------------------\n"
     kns = sorted(path.excls)

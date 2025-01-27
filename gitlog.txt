@@ -1,3 +1,8 @@
+2025-01-27->19.360
+- rename blckmgr.py/BlockMgr -> absoluteblocker.py/AbsoluteBlocker, 
+  and inst-name: blckmgr->ablocker
+- recoded path.add_lyr_root/process bdic2 ^ root-bits(see IL2025-01-27)
+-  start recode bit-block not-expanding Layer-n(*).
 2025-01-25->19.359
 - rename satnode.py/SatNode to layer.py/Layer, path.snode_dic->lyr_dic,...
 - fix in vk2picker.py/clean_choice
@@ -12,7 +17,7 @@
 - sequencer.py: refactored/fixed. add new method serialize_2_singles
 - vkause.py: add new method other_bv
 - bblocker.py/filter_vk2 removed. refactored proce_local_vk1 and proce_path_vk2
-- BlockMgr add new method blocked(single-dict)
+- AbsoluteBlocker add new method blocked(single-dict)
 - nodemanager: recoded subtract_singles. other refactorings
 - refactored vkrepo.py
 - 2025-01-15.txt: recording path.grow: S60 + S67. not yet finished.
@@ -30,7 +35,7 @@
 - path.grow refactored / fixed.
 use bb.check_spouse in vkrepo/add_blocker
 2025-01-16->19.352
-- refactored bblocker.py. When handle spousal_conflict, add to path.blckmgr
+- refactored bblocker.py. When handle spousal_conflict, add to path.ablocker
 - blockmgr: refactored: not use nodemanager, but this may need different way.
 - refactored vkrepo.
 - add docs/2025-01-15.txt to denote merging path records - for analysis purpose.
@@ -99,7 +104,7 @@ use bb.check_spouse in vkrepo/add_blocker
   bb.node ^ 54:(015) will generate block, where bb(19-0) will be covered,
   and on [19-1](2367) bb(19-0) will not be hit. This means, bb(19-0)
   can be removed. If there is bb(19-1), this would generated a block
-  (added to blckmgr) and bb(19-1) will then be removed.
+  (added to ablocker) and bb(19-1) will then be removed.
 2024-11-27->19.395
 - new class Path(VKRepository): Path will have more stuff than vkrepo: TBD
 - modify bblocker, satnode, vkrepository accordingly.
@@ -186,12 +191,12 @@ bblocker/filter_vk2: also call repo.exclmgr.add(node). Test pending.
 - sequencer.py/Sequencer replacing pathsequence.py
 - blockmgr simplified using Sequencer
 2024-11-02->19.372
-- minor refactor in BlockMgr
+- minor refactor in AbsoluteBlocker
 - getting tools ready: PathSequence/docs/testg1.py/testg2.py
 2024-11-01->19.371
-- fixes in BlockMgr
+- fixes in AbsoluteBlocker
 2024-10-31->19.370
-- new: blockmgr.py/BlockMgr to encapsulate block-stuff, replace repo.blocks
+- new: blockmgr.py/AbsoluteBlocker to encapsulate block-stuff, replace repo.blocks
 - minor fix in bitgrid
 - basics/print_node renamed to be pd for shorter name, VKlause.print_out-> po
 2024-10-30->19.369

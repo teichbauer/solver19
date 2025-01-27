@@ -61,7 +61,7 @@ class NodeManager:
             return added
         elif is_single(node):
             expand_steps = None
-            if self.path.blckmgr.blocked(node): return False
+            if self.path.ablocker.blocked(node): return False
             if self.path.classname=='Path':
                 expand_steps = self.path.steps
             return node_to_lst(self._fill(node), self.nodes, expand_steps)

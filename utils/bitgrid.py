@@ -14,17 +14,17 @@ class BitGrid:
         7: {2: 1, 1: 1, 0: 1},
     }
 
-    def __init__(self, snode): #bits, chvals, nov):  #
+    def __init__(self, layer): #bits, chvals, nov):  #
         # in example of two anchor-vks: 
         # C0141{16:0,6:0,1:0} and C0234{16:1,6:0,1:1}  (000,101)/(0,5)
         # 6 children-vals: [1,2,3,4,6,7]
         # grid-bits: high -> low, descending order
-        self.ancvk3s = snode.choice[1]
+        self.ancvk3s = layer.choice[1]
         self.bits = self.ancvk3s[0].bits[:]  # bits [16, 6, 1]
         self.bits.reverse()             # [1, 6, 16]
         self.bitset = set(self.bits)
-        self.nov = snode.nov
-        self.chvals = snode.choice[0] # [1,2,3,4,6,7]
+        self.nov = layer.nov
+        self.chvals = layer.choice[0] # [1,2,3,4,6,7]
 
     def cvs_subset(self, b, v):
         '''# example snode57: bits: [49, 36, 28] (root-val: 5)

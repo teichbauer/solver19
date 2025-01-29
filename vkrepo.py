@@ -45,7 +45,7 @@ class VKRepository:
         if bb_dic[val].noder.add_node(node, srcdic):
             bb_dic[val].check_spouse()
 
-    def filter_vk2s(self, local=False):
+    def filter_vk2s(self, local):
         bbkeys = sorted(self.bbpool)
         bbkindex = 0
         while bbkindex < len(bbkeys):
@@ -73,8 +73,7 @@ class VKRepository:
                         bbkeys.append(new_bbp)
             bbkindex += 1
 
-    def proc_vk2pair(self, vk2,  # if vk2 has a(or >1) twin in bdic2
-            new_bits=None): # list collecting bits of new vk1s. if local:None
+    def proc_vk2pair(self, vk2): # if vk2 has a(or >1) twin in bdic2
         # check condition: if vk2 share its 2 bits with another vk2, if yes
         # and if both vals on hte bit-1 are the same, and the vals on
         # the bit-2 are diff, then a new vk1 is generated. 
@@ -88,7 +87,6 @@ class VKRepository:
             _vk2 = self.vk2dic[xkns.pop()]  # _vk2 that shares 2 bits with vk2
             vk1 = handle_vk2pair(vk2, _vk2) # check condition described above
             if vk1: # a new vk1 resulted?
-                if new_bits: new_bits.add(vk1.bit)
                 self.add_bblocker(
                     vk1.bit, vk1.val,vk1.cvs,
                     {vk2.kname:f'D{vk2.nov}',_vk2.kname:f'D{_vk2.nov}'})

@@ -1,3 +1,5 @@
+2025-01-29->19.362
+- path.add_vk2 no more collect new_bits, since .filter_vk2s doesn't need it
 2025-01-29->19.361
 - minor refactorings while going thru path(L60 + L57) + L54
 2025-01-27->19.360

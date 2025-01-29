@@ -56,9 +56,8 @@ class Path(VKRepository):
                     # cloning also put into bbpool
                     path_dic[v] = bb.clone(self)  
             conflicts_existed = path_dic[v].check_spouse()
-        new_bits = set()
         for vk2 in lyr.repo.vk2dic.values():
-            self.add_vk2(vk2, new_bits)
+            self.add_vk2(vk2)
         self.filter_vk2s(local=False)
         x = 0
 
@@ -78,7 +77,7 @@ class Path(VKRepository):
                     node[nv] = self.chvdict[nv]
         return node
 
-    def add_vk2(self, vk2, new_bits):
+    def add_vk2(self, vk2):
         bits = set(self.bdic1).intersection(vk2.bits)
         if len(bits) > 0:
             vk2_node = self.expand_node({vk2.nov: vk2.cvs})
@@ -89,14 +88,12 @@ class Path(VKRepository):
                     if len(cmm) == 0: continue
                     self.exclmgr.add(vk2.kname, cmm)
                     if v != vk2.dic[bit]:
-                        vk1 = vk2.clone("NewVk", [bit], cmm)
-                        self.add_bblocker(vk1.bit, vk1.val, cmm,
+                        new_bit, new_val = vk2.other_bv(bit)
+                        self.add_bblocker(new_bit,  new_val, cmm,
                                         {vk2.kname: f'U{vk2.nov}'})
-                        new_bits.add(vk1.bit)
         self.insert_vk2(vk2)
         # handle case of 2 overlapping bits with existing vk2
-        self.proc_vk2pair(vk2, new_bits) # if vk2 has a twin in vk2dic
-        return new_bits
+        self.proc_vk2pair(vk2) # if vk2 has a twin in vk2dic
     
     @property
     def steps(self):

@@ -51,7 +51,7 @@ def node_valid(node):
         if len(v) == 0: return False
     return True
 
-def node1_C_node2(n1, n2, steps):
+def node1_C_node2(n1, n2, steps=None):
     if steps:
         missing_nv2star(n1, n2, steps)
     for nv, cvs in n1.items():

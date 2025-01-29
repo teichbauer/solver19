@@ -41,7 +41,7 @@ class NodeManager:
 
     def containing_single(self, single_node):
         for nd in self.nodes:
-            if node1_C_node2(nd, single_node, self.path.steps): return True
+            if node1_C_node2(nd, single_node): return True
         return False   
 
 

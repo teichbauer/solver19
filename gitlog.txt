@@ -1,3 +1,5 @@
+2025-01-29->19.361
+- minor refactorings while going thru path(L60 + L57) + L54
 2025-01-27->19.360
 - rename blckmgr.py/BlockMgr -> absoluteblocker.py/AbsoluteBlocker, 
   and inst-name: blckmgr->ablocker

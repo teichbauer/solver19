@@ -31,7 +31,8 @@ class Path(VKRepository):
                     block_added = self.ablocker.add_block(block)
                 else: 
                     hit_cvs, _ = bgrid.cvs_subset(rb, vk2.dic[rb]) # _: mis_cvs
-                    node = {vk2.nov: vk2.cvs.copy(), bgrid.nov: hit_cvs}
+                    node = self.expand_node(
+                        {vk2.nov: vk2.cvs.copy(), bgrid.nov: hit_cvs})
                     bit, val = vk2.other_bv(rb)
                     self.add_bblocker( bit, val, node,
                         {vk2.kname: f"R{vk2.nov}-{bgrid.nov}/{rb}"} )
@@ -42,22 +43,23 @@ class Path(VKRepository):
 
     def grow(self, lyr): # grow on next layer-node
         self.lyr_dic[lyr.nov] = lyr
-        for bb in self.bbpool.values():
-            bb.noder.expand(self.chvdict)
+        for path_bb in self.bbpool.values():
+            path_bb.noder.expand(self.chvdict)
         self.add_lyr_root(lyr.bgrid)
-        for bit, bbdic in lyr.repo.bdic1.items():
-            dic = self.bdic1.setdefault(bit, {}) # sn.repo-bbdic add to here
-            for v, bb in bbdic.items():
+        for bit, lyr_dic in lyr.repo.bdic1.items():
+            path_dic = self.bdic1.setdefault(bit, {})
+            for v, bb in lyr_dic.items():
                 bb.noder.expand(self.chvdict)
-                if v in dic:
-                    dic[v].merge(bb)
+                if v in path_dic:
+                    path_dic[v].merge(bb)
                 else:
-                    dic[v] = bb.clone(self)  # cloning also put into bbpool
-            conflicts_existed = dic[v].check_spouse()
+                    # cloning also put into bbpool
+                    path_dic[v] = bb.clone(self)  
+            conflicts_existed = path_dic[v].check_spouse()
         new_bits = set()
         for vk2 in lyr.repo.vk2dic.values():
             self.add_vk2(vk2, new_bits)
-        self.filter_vk2s()
+        self.filter_vk2s(local=False)
         x = 0
 
     def write_log(self, outfile_name):

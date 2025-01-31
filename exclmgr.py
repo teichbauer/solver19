@@ -1,10 +1,10 @@
 from utils.cvsnodetools import *
-from nodemanager import NodeManager
+from noder import Noder
 
 class ExclMgr:
     def __init__(self, repo):
         self.repo = repo
-        # dic: {kn: NodeManager} - for a vk/kn, these nodes are locations
+        # dic: {kn: Noder} - for a vk/kn, these nodes are locations
         # where this vk shouldn't be used(to be excluded)
         self.dic = {} 
         self.excluded_vkns = []
@@ -23,5 +23,5 @@ class ExclMgr:
             return
         # if vkname in self.excls: return #??
         if vkname not in self.dic:
-            self.dic[vkname] = NodeManager(self.repo)
+            self.dic[vkname] = Noder(self.repo)
         self.dic[vkname].add_node(node)

@@ -2,7 +2,7 @@ from utils.basics import pd, verify_sat
 from utils.cvsnodetools import *
 from utils.sequencer import Sequencer
 from utils.knowns import GRIDSATS
-from nodemanager import NodeManager
+from noder import Noder
 import copy
 
 

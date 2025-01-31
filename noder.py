@@ -19,7 +19,14 @@ def _node_intersect(n1, n2): # both n1 and n2 can be compound or single
             n2seq.reset()
     return lst  # list of single nds that are the intersection-nodes
 
-class NodeManager:
+class Noder:
+
+    @classmethod
+    def pout(cls, nodes):
+        nmgr = Noder(None)
+        print(nmgr.compact(nodes))
+
+
     def __init__(self, path, nodes=None):
         self.path = path
         if nodes: 
@@ -29,7 +36,7 @@ class NodeManager:
         self.srcdic = {}
 
     def clone(self):
-        ninst = NodeManager(self.path, self.nodes)
+        ninst = Noder(self.path, self.nodes)
         ninst.srcdic = copy.deepcopy(self.srcdic)
         return ninst
 
@@ -85,7 +92,7 @@ class NodeManager:
         return added
 
     def node_intersect(self, node, only_intersects=False):
-        # intersect between self(NodeManager) and a node (single or not). return:
+        # intersect between self(Noder) and a node (single or not). return:
         # self(node,True): [<single-node>,..]
         # self(node): [(my-index, single-node), ...]
         lst = []
@@ -100,7 +107,7 @@ class NodeManager:
         return lst
 
     def intersect(self, other, only_intersects=False):
-        # intersect between 2 NodeManagers. return:
+        # intersect between 2 Noders. return:
         # self(node,True): [<single-node>,..]
         # self(node): [(my-index, other-index, single-node), ...]
         lst = []
@@ -248,9 +255,17 @@ def test_compact():
         {60: {7}, 57: {4}, 54: {6}},                   # 46
         {60: {7}, 57: {4}, 54: {7}},                   # 47
     ]
-    nmgr = NodeManager(None, input)
+    nmgr = Noder(None, input)
     cmp = nmgr.compact()
-    x = 0
+    for d in cmp:
+        print(d)
+    ''' output:
+    {60: {4, 6}, 57: {0}, 54: {0, 1, 2, 3, 5, 6, 7}}
+    {60: {1, 7}, 57: {0, 1, 4}, 54: {5, 6, 7}}
+    {60: {2, 3}, 57: {0, 4}, 54: {5, 6, 7}}
+    {60: {2, 3}, 57: {1}, 54: {6, 7}}
+    {60: {4, 6}, 57: {1, 4}, 54: {5, 6, 7}}
+    '''
 
 def test():
     # test_node_intersect()

@@ -1,5 +1,5 @@
 from utils.cvsnodetools import *
-from nodemanager import NodeManager
+from noder import Noder
 
 class BitBlocker:
     # on a bit in repo.bdic1: {bit: {0: BitBlocker(), 1:BitBlocker()}}
@@ -7,7 +7,7 @@ class BitBlocker:
         self.bit = bit
         self.val = val
         # self.nodes = [] # list of nodes
-        self.noder = NodeManager(repo)
+        self.noder = Noder(repo)
         self.repo = repo    # can be VKRepository or Path
         self.repo.bbpool[(bit, val)] = self
 
@@ -95,11 +95,22 @@ class BitBlocker:
             return self.spousal_conflict(spouse)
         return None
     
-    def output(self):
-        msg = str(self.key) + '\n'
-        for nd in self.noder.nodes:
-            msg += str(nd) + '\n'
-        return msg
+    def output(self, cmp_nodes=None): # cmp_nodes: [{},{},..]
+        def calc_power(d):
+            n = 1
+            for cv in d.values():
+                n = n* len(cv)
+            return n
+        
+        msg = str(self.key) + ':\n'
+        if not cmp_nodes:
+            lst = self.noder.compact()
+            return self.output(lst)
+        elif type(cmp_nodes) == list:
+            for d in cmp_nodes:
+                cnt = calc_power(d)
+                msg += str(d) + '\t#' + f'\t{cnt}\n'
+            return msg
 
     @property
     def key(self):

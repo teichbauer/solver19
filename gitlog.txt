@@ -1,3 +1,6 @@
+2025-01-31->19.363
+- in AbsoluteBlocker, new method: trump_blocked(single)
+- in nodemanager introduced new compact method.
 2025-01-29->19.362
 - path.add_vk2 no more collect new_bits, since .filter_vk2s doesn't need it
 2025-01-29->19.361

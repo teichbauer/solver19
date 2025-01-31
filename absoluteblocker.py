@@ -25,6 +25,26 @@ class AbsoluteBlocker:
             leng = len(newblock)
             if newblock not in self.blockers[leng]:
                 self.blockers[leng].append(newblock)
+
+    def trump_blocked(self, single):
+        # if any existing block shorter than single,
+        # is contained in single, and is hit: return T
+        # ------------------------ E.G.
+        # single: {54:(0) 57(1) 60(7)} and there is a shorter blocker:
+        #   {57(1) 60(7)} -> return T
+        leng = len(single) - 1
+        while leng > 0:
+            for bl in self.blockers[leng]:
+                hit = True
+                for nv, cv in bl.items():
+                    _hit = (nv in single) and single[nv].issuperset(cv)
+                    if not _hit: 
+                        hit = False
+                        break
+                if hit: return True
+            leng -= 1
+        return False
+
     
     def blocked(self, single): # test if a single-thrd-dict-node is blockers
         return single in self.blockers[len(single)]
@@ -78,3 +98,18 @@ class AbsoluteBlocker:
     #     for i, b in enumerate(self.blocks):
     #         m += f"{i}: {pd(b, more_space)}\n"
     #     return m
+
+def test_trump():
+    abb = AbsoluteBlocker(None) # repo : None
+    abb.add_block(
+        [{60:{7} }, 
+         {60:{5}, 57:{0}}, 
+         {60:{1}, 57:{0}, 54:{1}},
+         {60:{1}, 57:{0}, 54:{2}},
+         {60:{1}, 57:{0}, 54:{3}},
+        ])
+    res = abb.trump_blocked({60:{5}, 57:{0}, 54:{5,6,7}})
+    print(f"res: {res}")
+
+if __name__ == '__main__':
+    test_trump()

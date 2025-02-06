@@ -2,17 +2,22 @@ from utils.basics import pd, verify_sat
 from utils.cvsnodetools import *
 from utils.sequencer import Sequencer
 from utils.knowns import GRIDSATS
-from noder import Noder
+from utils.noder import Noder
 import copy
 
 
-class AbsoluteBlocker:
-    def __init__(self, repo):
-        self.repo = repo
+class PathBlocker:
+    def __init__(self, path):
+        self.path = path
+        if path.classname == 'VKRepository':
+            self.novs = [path.layer.nov]
+        else:
+            self.novs = sorted(path.lyr_dic, reverse=True)
+        self.pbtree = {} # path-blocker-tree
         self.blockers = {1:[], 2:[], 3:[]}
     
-    def clone(self, newrepo):
-        inst = AbsoluteBlocker(newrepo)
+    def clone(self, newrepo): # to be removed?
+        inst = PathBlocker(newrepo)
         for n, lst in self.blockers.items():
             inst.blockers[n] = self.blockers[n][:]
         return inst
@@ -49,6 +54,14 @@ class AbsoluteBlocker:
     def blocked(self, single): # test if a single-thrd-dict-node is blockers
         return single in self.blockers[len(single)]
 
+    def output(self):
+        for lng in (1,2,3):
+            if len(self.blockers[lng]) > 0:
+                print(f'length: {lng}:\n')
+                for abl in self.blockers[lng]:
+                    print(abl)
+                print('-'*80)
+
     def test_block(self, block=None): # block==None: test all
         if block==None:
             for bl in self.block:
@@ -67,7 +80,7 @@ class AbsoluteBlocker:
 
     def collect_vk2dic(self, pthrd):
         dic = {}
-        for kn, vk2 in self.repo.vk2dic.items():
+        for kn, vk2 in self.path.vk2dic.items():
             if vk2.cvs.issuperset(pthrd[vk2.nov]):
                 dic[kn] = vk2
         return dic
@@ -77,7 +90,7 @@ class AbsoluteBlocker:
         plst = list(pth)    # make pth a list that is mutable
         lst1 = self.blocks[:]
         lst2 = []
-        nvs = self.repo.driver.steps[:]
+        nvs = self.path.driver.steps[:]
         assert(len(pth) == len(nvs)), f"path {pth} not complete."
         while len(nvs) > 0:
             nv = nvs.pop(0)  # get highst nov out
@@ -100,7 +113,7 @@ class AbsoluteBlocker:
     #     return m
 
 def test_trump():
-    abb = AbsoluteBlocker(None) # repo : None
+    abb = PathBlocker(None) # path : None
     abb.add_block(
         [{60:{7} }, 
          {60:{5}, 57:{0}}, 

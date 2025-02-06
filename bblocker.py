@@ -1,5 +1,5 @@
 from utils.cvsnodetools import *
-from noder import Noder
+from utils.noder import Noder
 
 class BitBlocker:
     # on a bit in repo.bdic1: {bit: {0: BitBlocker(), 1:BitBlocker()}}
@@ -36,7 +36,7 @@ class BitBlocker:
         if not lst: return False # no spouse-modified
         self.noder.subtract_singles(lst)
         spouse.noder.subtract_singles(lst)
-        self.repo.ablocker.add_block(lst)
+        self.repo.pblocker.add_block(lst)
         return True # spouse-existed, and has been modified
 
     def proc_local_vk2(self, vk2, 

@@ -1,5 +1,5 @@
 from utils.cvsnodetools import *
-from noder import Noder
+from utils.noder import Noder
 
 class ExclMgr:
     def __init__(self, repo):

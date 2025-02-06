@@ -20,13 +20,6 @@ def _node_intersect(n1, n2): # both n1 and n2 can be compound or single
     return lst  # list of single nds that are the intersection-nodes
 
 class Noder:
-
-    @classmethod
-    def pout(cls, nodes):
-        nmgr = Noder(None)
-        print(nmgr.compact(nodes))
-
-
     def __init__(self, path, nodes=None):
         self.path = path
         if nodes: 
@@ -68,7 +61,7 @@ class Noder:
             return added
         elif is_single(node):
             expand_steps = None
-            if self.path.ablocker.blocked(node): 
+            if self.path.pblocker.blocked(node): 
                 return False
             if self.path.classname=='Path':
                 expand_steps = self.path.steps
@@ -143,8 +136,9 @@ class Noder:
     def _merge_nodes(self, target, src, nv):
         target[nv].update(src[nv])
         return target
-
-    def mergeable(self, nd1, nd2):
+    
+    @classmethod
+    def mergeable(cls, nd1, nd2):
         # when 1) nd1 and nd2 have the same nvs, and
         # 2) only 1 nv with diff cvs, all others are the same
         # then return that nv (with diff cvs)
@@ -161,6 +155,11 @@ class Noder:
         if diff_cnt == 1:
             return key_nv
         return None
+
+    @classmethod
+    def pout(cls, nodes): # Noder.pout(nodes)
+        nd = Noder(None, nodes)
+        return nd.compact()
 
 
     def compact(self, nodes=None):

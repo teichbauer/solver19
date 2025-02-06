@@ -2,7 +2,7 @@ from center import Center
 from utils.basics import pd
 from utils.cvsnodetools import *
 from utils.tools import *
-from absoluteblocker import AbsoluteBlocker
+from pathblocker import PathBlocker
 from bblocker import BitBlocker
 from exclmgr import ExclMgr
 
@@ -16,7 +16,7 @@ class VKRepository:
             self.bdic1   = {}   # {bit: bblocker, bit:bblocker, ..}
             self.bdic2   = {}   # {bit: [k2n, k2n,..], bit:[], ..}
             self.vk2dic  = {}   # {k2n:vk2, k2n: vk2,...}
-            self.ablocker = AbsoluteBlocker(self)
+            self.pblocker = PathBlocker(self)
             self.exclmgr = ExclMgr(self)
         else:
             self.bdic1 = {
@@ -26,7 +26,8 @@ class VKRepository:
             self.bdic2   = {b: lst[:] for b, lst in layer.repo.bdic2.items()}
             self.vk2dic  = {kn:vk2 for kn, vk2 in layer.repo.vk2dic.items()}
             self.inflog  = layer.repo.inflog.copy()
-            self.ablocker = layer.repo.ablocker.clone(self)
+            self.lyr_dic = {layer.nov: layer}
+            self.pblocker = layer.repo.pblocker.clone(self)
             self.exclmgr = layer.repo.exclmgr.clone(self)
     
     def insert_vk2(self, vk2):

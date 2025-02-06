@@ -69,6 +69,7 @@ class Layer:
             path.grow(Center.layers[57])
             # pathrepo.write_logmsg('./logs/loginfo.txt')
             path.grow(Center.layers[54])
+            path.bottomup(Center.layers[18])
             path.grow(Center.layers[51])
             path.block_filter()
             path.write_log('./logs/loginfo.txt')

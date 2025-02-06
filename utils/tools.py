@@ -33,7 +33,7 @@ def outputlog(path):
         vk2 = path.vk2dic[kn]
         msg += vk2.po() +'\n'
     msg += f"----------------------------------------------------\n\n"
-    msg += path.ablocker.showall(True)
+    msg += path.pblocker.showall(True)
     msg += f"----------------------------------------------------\n\n"
     msg += f"excls:\n----------------------------------------------------\n"
     kns = sorted(path.excls)

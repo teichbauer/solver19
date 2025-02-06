@@ -1,11 +1,12 @@
 from utils.cvsnodetools import *
 from utils.tools import outputlog
 from vkrepo import VKRepository
+from utils.noder import Noder
+from center import Center
 
 class Path(VKRepository):
     def __init__(self, lyr):
         VKRepository.__init__(self, lyr, 'Path')
-        self.lyr_dic  = {lyr.nov: lyr} # starting-snode as the first
 
     def add_lyr_root(self, bgrid):
         bdic1_rbits = sorted(set(self.bdic1).intersection(bgrid.bits))
@@ -16,7 +17,7 @@ class Path(VKRepository):
                 hit_cvs, _ = bgrid.cvs_subset(bb.bit, bb.val) # _ : mis_cvs
                 for nd in bb.noder.nodes:
                     nd[bgrid.nov] = hit_cvs
-                    self.ablocker.add_block(nd)
+                    self.pblocker.add_block(nd)
         # handle vk2s from path.bdic2 in touch with sn.bgrid.bits
         cmm_rbits = sorted(set(self.bdic2).intersection(bgrid.bits))
         for rb in cmm_rbits:
@@ -28,7 +29,7 @@ class Path(VKRepository):
                     m =f"{vk2.kname} in {bgrid.nov}-root, blocking {hit_cvs}"
                     print(m)
                     block = {vk2.nov:vk2.cvs.copy(), bgrid.nov: hit_cvs}
-                    block_added = self.ablocker.add_block(block)
+                    block_added = self.pblocker.add_block(block)
                 else: 
                     hit_cvs, _ = bgrid.cvs_subset(rb, vk2.dic[rb]) # _: mis_cvs
                     node = self.expand_node(
@@ -61,6 +62,18 @@ class Path(VKRepository):
         self.filter_vk2s(local=False)
         x = 0
 
+    def _show_blocks(self):
+        self.pblocker.output()
+        bbits = sorted(self.bdic1)
+        for b in bbits:
+            for v, bb in self.bdic1[b].items():
+                print(bb.output())
+            print('-'*20)
+    
+    def bottomup(self, lyr):
+        # self._show_blocks()
+        x = 0
+
     def write_log(self, outfile_name):
         ofile = open(outfile_name, 'w')
         msg = outputlog(self)
@@ -84,8 +97,14 @@ class Path(VKRepository):
             for bit in bits:
                 bb_dic = self.bdic1[bit]
                 for v in bb_dic:
+                    # msg = bb_dic[v].output()
+                    # print(f'vk2/kname: {vk2.kname} - ',)
+                    # print(msg)
                     cmm = bb_dic[v].intersect(vk2_node)
                     if len(cmm) == 0: continue
+                    # print('cmm: ',)
+                    # msg = Noder.pout(cmm)
+                    # print(msg)
                     self.exclmgr.add(vk2.kname, cmm)
                     if v != vk2.dic[bit]:
                         new_bit, new_val = vk2.other_bv(bit)

@@ -1,5 +1,4 @@
-from utils.cvsnodetools import *
-from utils.noder import Noder
+from utils.noder import *
 
 class BitBlocker:
     # on a bit in repo.bdic1: {bit: {0: BitBlocker(), 1:BitBlocker()}}
@@ -47,7 +46,8 @@ class BitBlocker:
             if len(cmm) == 0: continue
             vk2.cvs -= cmm  # vk2.cvs be reduced
             node[vk2.nov].update(cmm)
-        if not node_valid(node): return None # vk2. not touching any node in bb
+        # vk2. not touching any node in bb
+        if Noder.invalid_node(node): return None 
         if bb_bit: # both bb_bit/bb_val not None
             bb_dic = self.repo.bdic1.setdefault(bb_bit, {})
             if bb_val not in bb_dic:

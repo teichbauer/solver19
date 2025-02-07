@@ -1,3 +1,5 @@
+2025-02-07->19.366
+- clean up/removed cvsnodetools.py, add functionalities to Noder/classmethods
 2025-02-05->19.365
 - move noder under utils, Noder.mergeable to be class method
 - rename absoluteblocker/AbsoluteBlocker -> pathblocker.py/pathblocker, and

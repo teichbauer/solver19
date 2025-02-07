@@ -1,25 +1,13 @@
-
 import copy
 from utils.sequencer import Sequencer
-from utils.cvsnodetools import *
 
-def _node_intersect(n1, n2): # both n1 and n2 can be compound or single
-    # n1 and n2 must have the same novs
-    # returning a list of single-nodes, that are intersections of n1/n2
-    lst = []
-    n1seq = Sequencer(n1)
-    n2seq = Sequencer(n2)
-    while not n1seq.done:
-        n1s = n1seq.get_next()
-        while not n2seq.done:
-            n2s = n2seq.get_next()
-            if n1s == n2s:
-                lst.append(n1s)
-        else:
-            n2seq.reset()
-    return lst  # list of single nds that are the intersection-nodes
+flip = lambda val: (val + 1) % 2
 
 class Noder:
+    ''' hold and manage a list of nodes - each of them can be single or 
+    compound dict as {60:{2}, 57:{1}, 54:{0}} / single-path-node, or
+    {60:{2,3} 57:{2,3,4,6}, 54:{0}} / compound-path-node
+    '''
     def __init__(self, path, nodes=None):
         self.path = path
         if nodes: 
@@ -27,6 +15,97 @@ class Noder:
         else:
             self.nodes = [] #
         self.srcdic = {}
+    
+    #region 
+    #---------------- BEGINNING OF class methods ---------------------
+    #    
+
+    @classmethod
+    def is_single(cls, node):
+        for cvs in node.values():
+            if len(cvs) > 1: return False
+        return True
+
+    @classmethod
+    def _node_intersect(cls, n1, n2): # both n1 and n2 can be compound or single
+        # n1 and n2 must have the same novs
+        # returning a list of single-nodes, that are intersections of n1/n2
+        lst = []
+        n1seq = Sequencer(n1)
+        n2seq = Sequencer(n2)
+        while not n1seq.done:
+            n1s = n1seq.get_next()
+            while not n2seq.done:
+                n2s = n2seq.get_next()
+                if n1s == n2s:
+                    lst.append(n1s)
+            else:
+                n2seq.reset()
+        return lst  # list of single nds that are the intersection-nodes
+
+    @classmethod
+    def mergeable(cls, nd1, nd2):
+        # when 1) nd1 and nd2 have the same nvs, and
+        # 2) only 1 nv with diff cvs, all others are the same
+        # then return that nv (with diff cvs)
+        # otherwise return None
+        nvs1 = sorted(nd1)
+        nvs2 = sorted(nd2)
+        if nvs1 != nvs2: return None
+        diff_cnt = 0
+        key_nv = None
+        for nv in nvs1:
+            if nd2[nv] != nd1[nv]:
+                diff_cnt += 1
+                key_nv = nv
+        if diff_cnt == 1:
+            return key_nv
+        return None
+    
+    @classmethod
+    def invalid_node(cls, node):
+        for v in node.values():
+            if len(v) == 0: return True
+        return False
+
+    @classmethod
+    def pout(cls, nodes): # Noder.pout(nodes)
+        nd = Noder(None, nodes)
+        return nd.compact()
+
+    @classmethod
+    def nset_contains_xset(cls, nset, xset):
+        return nset == {'*'} or nset.issuperset(xset)
+    
+    @classmethod
+    def node_contains_xnode(cls, node, xnode):
+        for nv in node:
+            if nv in xnode:
+                if not cls.nset_contains_xset(node[nv], xnode[nv]):
+                    return False
+        return True
+    
+    @classmethod
+    def merge_nodes(cls, target, src, nv):
+        target[nv].update(src[nv])
+        return target
+
+    @classmethod
+    def single_to_lst(cls, single, lst):
+        for node in lst:
+            if cls.node_contains_xnode(node, single):
+                return False
+            else:
+                merge_nv = cls.mergeable(node, single)
+                if merge_nv:
+                    cls.merge_nodes(node, single, merge_nv)
+                    return True
+        lst.append(single)
+        return True
+
+    #  
+    #---------- END OF class methods --------------------
+    #endregion
 
     def clone(self):
         ninst = Noder(self.path, self.nodes)
@@ -41,7 +120,7 @@ class Noder:
 
     def containing_single(self, single_node):
         for nd in self.nodes:
-            if node1_C_node2(nd, single_node): return True
+            if self.node_contains_xnode(nd, single_node): return True
         return False   
 
 
@@ -59,13 +138,14 @@ class Noder:
             for nd in node:
                 added = self.add_node(nd, srcdic) or added
             return added
-        elif is_single(node):
+        elif self.is_single(node):
             expand_steps = None
             if self.path.pblocker.blocked(node): 
                 return False
             if self.path.classname=='Path':
                 expand_steps = self.path.steps
-            return node_to_lst(self._fill(node), self.nodes, expand_steps)
+            return self.single_to_lst(node, self.nodes)
+            # return node_to_lst(self._fill(node), self.nodes, expand_steps)
         else:
             doit = Sequencer(node)
             while not doit.done:
@@ -90,7 +170,7 @@ class Noder:
         # self(node): [(my-index, single-node), ...]
         lst = []
         for ind, nd in enumerate(self.nodes):
-            tlst = _node_intersect(nd, node)
+            tlst = self._node_intersect(nd, node)
             for e in tlst:
                 if e not in lst:
                     if only_intersects:
@@ -133,35 +213,6 @@ class Noder:
         self.subtract_singles(inter_res)
         return True
             
-    def _merge_nodes(self, target, src, nv):
-        target[nv].update(src[nv])
-        return target
-    
-    @classmethod
-    def mergeable(cls, nd1, nd2):
-        # when 1) nd1 and nd2 have the same nvs, and
-        # 2) only 1 nv with diff cvs, all others are the same
-        # then return that nv (with diff cvs)
-        # otherwise return None
-        nvs1 = sorted(nd1)
-        nvs2 = sorted(nd2)
-        if nvs1 != nvs2: return None
-        diff_cnt = 0
-        key_nv = None
-        for nv in nvs1:
-            if nd2[nv] != nd1[nv]:
-                diff_cnt += 1
-                key_nv = nv
-        if diff_cnt == 1:
-            return key_nv
-        return None
-
-    @classmethod
-    def pout(cls, nodes): # Noder.pout(nodes)
-        nd = Noder(None, nodes)
-        return nd.compact()
-
-
     def compact(self, nodes=None):
         merge_happened = False
         if nodes: nds = nodes.copy()
@@ -175,7 +226,7 @@ class Noder:
                 key_nv = self.mergeable(d0, nds[ind])
                 if key_nv:
                     merge_happened = True
-                    self._merge_nodes(d0, nds.pop(ind), key_nv)
+                    self.merge_nodes(d0, nds.pop(ind), key_nv)
                 else:
                     ind += 1
             trgt.append(d0)
@@ -187,7 +238,7 @@ class Noder:
 def test_node_intersect():
     nd1 = {60:{1,2,3}, 57:{5,6,7}, 54:{0,1}}
     nd2 = {60:{1,3}, 57:{5,6}, 54:{0}}
-    lst = _node_intersect(nd1, nd2)
+    lst = Noder._node_intersect(nd1, nd2)
     x = 0
 
 def test_seq():

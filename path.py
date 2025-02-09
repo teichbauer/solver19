@@ -16,7 +16,7 @@ class Path(VKRepository):
                 hit_cvs, _ = bgrid.cvs_subset(bb.bit, bb.val) # _ : mis_cvs
                 for nd in bb.noder.nodes:
                     nd[bgrid.nov] = hit_cvs
-                    self.pblocker.add_block(nd)
+                    self.pblocker.add_block(nd, len(nd))
         # handle vk2s from path.bdic2 in touch with sn.bgrid.bits
         cmm_rbits = sorted(set(self.bdic2).intersection(bgrid.bits))
         for rb in cmm_rbits:

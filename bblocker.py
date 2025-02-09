@@ -18,6 +18,19 @@ class BitBlocker:
         if bbpool_key not in repo.bbpool:
             repo.bbpool[bbpool_key] = ninst
         return ninst
+    
+    def add_bb_node(self, node, srcdic):
+        added = False
+        if type(node) == list:
+            for nd in node:
+                added = self.add_bb_node(nd, srcdic) or added
+            return added
+        sq = Sequencer(node)
+        while not sq.done:
+            nd = sq.get_next()
+            if not self.repo.pblocker.single_blocked(nd):
+                added = self.noder.add_node(nd, srcdic) or added
+        return added
 
     def merge(self, other_bb):
         nds = []
@@ -28,7 +41,7 @@ class BitBlocker:
                 if self.noder.containing_single(bb_node): 
                     continue
                 nds.append(bb_node)
-        self.noder.add_node(nds)
+        self.add_bb_node(nds,{'src':'merged'})
 
     def spousal_conflict(self, spouse):
         lst = self.noder.intersect(spouse.noder, only_intersects=True)
@@ -52,7 +65,7 @@ class BitBlocker:
             bb_dic = self.repo.bdic1.setdefault(bb_bit, {})
             if bb_val not in bb_dic:
                 bb_dic[bb_val] = BitBlocker(bb_bit, bb_val, self.repo)
-            bb_updated = bb_dic[bb_val].noder.add_node(
+            bb_updated = bb_dic[bb_val].add_bb_node(
                 node, {vk2.kname: f'U{vk2.nov}'})
             spouse_modified = bb_dic[bb_val].check_spouse()
             return (bb_bit, bb_val), bb_updated
@@ -76,7 +89,7 @@ class BitBlocker:
             bb_dic = self.repo.bdic1.setdefault(bb_bit, {})
             if bb_val not in bb_dic:
                 bb_dic[bb_val] = BitBlocker(bb_bit, bb_val, self.repo)
-            bb_updated = bb_dic[bb_val].noder.add_node(
+            bb_updated = bb_dic[bb_val].add_bb_node(
                 nodes, {vk2.kname: f'U{vk2.nov}'})
             spouse_modified = bb_dic[bb_val].check_spouse()
             return (bb_bit, bb_val), bb_updated

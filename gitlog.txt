@@ -1,3 +1,10 @@
+2025-02-08->19.367
+- bblocker.py/wrapped noder.add_node with bblocker.add_bb_node(node): make sure
+  it is sequenced to be list of singles, loop it and check(*) against pblocker 
+  with each - if not hit add to bblocker.
+- path-blocker: add_block changed to add_single, where shorter trump-check is 
+  built in. Also added a method: single_blocked for checking(see * above),
+  replacing prev: blocked method.
 2025-02-07->19.366
 - clean up/removed cvsnodetools.py, add functionalities to Noder/classmethods
 2025-02-05->19.365

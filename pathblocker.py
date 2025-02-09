@@ -11,7 +11,7 @@ class PathBlocker:
         else:
             self.novs = sorted(path.lyr_dic, reverse=True)
         self.pbtree = {} # path-blocker-tree
-        self.blockers = {1:[], 2:[], 3:[]}
+        self.blockers = {}
     
     def clone(self, newrepo): # to be removed?
         inst = PathBlocker(newrepo)
@@ -19,37 +19,50 @@ class PathBlocker:
             inst.blockers[n] = self.blockers[n][:]
         return inst
     
-    def add_block(self, newblock):
+    def add_single(self, single_block, leng):
+        lind = 1
+        while lind <= leng:
+            if lind in self.blockers:
+                if lind < leng:
+                    if self.blockers[lind].containing_single(single_block):
+                        return False
+                else:
+                    return self.blockers[lind].add_node(single_block)
+            elif lind == leng:
+                self.blockers[leng] = Noder(self.path, [single_block])
+                return True
+            lind += 1
+        # not contained, not merged: append it
+        if leng not in self.blockers:
+            self.blockers[leng].append(Noder(self.path,[single_block]))
+        else:
+            self.blockers[leng].add_node(single_block)
+        return True
+
+    def add_block(self, newblock, leng=None): # leng only if newblock is dict
+        added = False
         if type(newblock) == list:
             for blck in newblock:
-                self.add_block(blck)
+                added = self.add_block(blck, len(blck)) or added
         elif type(newblock) == dict:
-            leng = len(newblock)
-            if newblock not in self.blockers[leng]:
-                self.blockers[leng].append(newblock)
-
-    def trump_blocked(self, single):
-        # if any existing block shorter than single,
-        # is contained in single, and is hit: return T
-        # ------------------------ E.G.
-        # single: {54:(0) 57(1) 60(7)} and there is a shorter blocker:
-        #   {57(1) 60(7)} -> return T
-        leng = len(single) - 1
-        while leng > 0:
-            for bl in self.blockers[leng]:
-                hit = True
-                for nv, cv in bl.items():
-                    _hit = (nv in single) and single[nv].issuperset(cv)
-                    if not _hit: 
-                        hit = False
-                        break
-                if hit: return True
-            leng -= 1
-        return False
-
+            if Noder.is_single(newblock):
+                added = self.add_single(newblock, leng) or added
+            else:
+                sq = Sequencer(newblock)
+                while not sq.done:
+                    added = self.add_block(sq.get_next(), leng) or added
+            return added
     
-    def blocked(self, single): # test if a single-thrd-dict-node is blockers
-        return single in self.blockers[len(single)]
+    def single_blocked(self, single): 
+        # test if a single-thrd-dict-node is blocked
+        ind = 1
+        while ind <= len(single):
+            if ind in self.blockers and \
+                self.blockers[ind].containing_single(single):
+                return True
+            else: 
+                ind += 1
+        return False
 
     def output(self):
         for lng in (1,2,3):
@@ -118,7 +131,7 @@ def test_trump():
          {60:{1}, 57:{0}, 54:{2}},
          {60:{1}, 57:{0}, 54:{3}},
         ])
-    res = abb.trump_blocked({60:{5}, 57:{0}, 54:{5,6,7}})
+    # res = abb.trump_blocked({60:{5}, 57:{0}, 54:{5,6,7}})
     print(f"res: {res}")
 
 if __name__ == '__main__':

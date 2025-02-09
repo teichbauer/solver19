@@ -42,7 +42,7 @@ class VKRepository:
         bb_dic = self.bdic1.setdefault(bit, {})
         if val not in bb_dic:
             bb_dic[val] = BitBlocker(bit, val, self)
-        if bb_dic[val].noder.add_node(node, srcdic):
+        if bb_dic[val].add_bb_node(node, srcdic):
             bb_dic[val].check_spouse()
 
     def filter_vk2s(self, local):

@@ -79,6 +79,7 @@ class Noder:
     
     @classmethod
     def node_contains_xnode(cls, node, xnode):
+        # if len(node) == 0: return False
         for nv in node:
             if nv in xnode:
                 if not cls.nset_contains_xset(node[nv], xnode[nv]):
@@ -139,11 +140,8 @@ class Noder:
                 added = self.add_node(nd, srcdic) or added
             return added
         elif self.is_single(node):
-            expand_steps = None
-            if self.path.pblocker.blocked(node): 
-                return False
-            if self.path.classname=='Path':
-                expand_steps = self.path.steps
+            # if self.path.pblocker.single_blocked(node): 
+            #     return False
             return self.single_to_lst(node, self.nodes)
             # return node_to_lst(self._fill(node), self.nodes, expand_steps)
         else:

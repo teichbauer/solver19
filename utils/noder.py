@@ -231,6 +231,11 @@ class Noder:
         if merge_happened:
             return self.compact(trgt)
         return trgt
+    
+    def output(self):
+        cmpct = self.compact()
+        for d in cmpct:
+            print(d)
 
 
 def test_node_intersect():

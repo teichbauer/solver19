@@ -1,7 +1,5 @@
 from utils.basics import pd, verify_sat
-from utils.knowns import GRIDSATS
 from utils.noder import *
-
 
 class PathBlocker:
     def __init__(self, path):
@@ -65,12 +63,10 @@ class PathBlocker:
         return False
 
     def output(self):
-        for lng in (1,2,3):
-            if len(self.blockers[lng]) > 0:
-                print(f'length: {lng}:\n')
-                for abl in self.blockers[lng]:
-                    print(abl)
-                print('-'*80)
+        print(f"All path-blockers:")
+        for lng in self.blockers:
+            print(f"Length: {lng}:")
+            self.blockers[lng].output()
 
     def test_block(self, block=None): # block==None: test all
         if block==None:

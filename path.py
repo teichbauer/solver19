@@ -2,10 +2,12 @@ from utils.tools import outputlog
 from vkrepo import VKRepository
 from utils.noder import *
 from center import Center
+from utils.pathfinder import PathFinder
 
 class Path(VKRepository):
     def __init__(self, lyr):
         VKRepository.__init__(self, lyr, 'Path')
+        self.finder = PathFinder(self, Center.layers)
 
     def add_lyr_root(self, bgrid):
         bdic1_rbits = sorted(set(self.bdic1).intersection(bgrid.bits))

@@ -72,7 +72,7 @@ class Center:
     bits = set([])
     sats = []
     layers = {}
-    rootvks = {}
+    rootvks = {} # {<nov>:[k2s on root bits], <nov>:[],...}
     vk1dic = {}
     vk1info = {}  # {<nov>: [k1n, k1n, ..], <nov>:[...]}
     vk2dic = {}   # {<kb>:<vk2>, ..}

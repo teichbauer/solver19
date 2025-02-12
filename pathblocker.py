@@ -24,18 +24,31 @@ class PathBlocker:
                 if lind < leng:
                     if self.blockers[lind].containing_single(single_block):
                         return False
-                else:
-                    return self.blockers[lind].add_node(single_block)
-            elif lind == leng:
+                else: # lind == leng, and self.blockers has leng in it
+                    if self.blockers[lind].add_node(single_block):
+                        self.filter_bb(single_block)
+                        return True
+            elif lind == leng: # leng was not in - here is first
+                # create new Noder inst, add it in
                 self.blockers[leng] = Noder(self.path, [single_block])
+                self.filter_bb(single_block)
                 return True
             lind += 1
-        # not contained, not merged: append it
-        if leng not in self.blockers:
-            self.blockers[leng].append(Noder(self.path,[single_block]))
-        else:
-            self.blockers[leng].add_node(single_block)
-        return True
+        # # not contained, not merged: append it
+        # if leng not in self.blockers:
+        #     self.blockers[leng].append(Noder(self.path,"PBL", [single_block]))
+        # else:
+        #     self.blockers[leng].add_node(single_block)
+        # return True
+
+    def filter_bb(self, single_pb):
+        # loop thru every bblock-noder in self.path.bbpool
+        # kick out nodes covered by this single=pblock
+        for bb in self.path.bbpool.values():
+            if bb.noder.containing_single(single_pb):
+                bb.subtract_singles(single_pb)
+            else:
+                x = 9
 
     def add_block(self, newblock, leng=None): # leng only if newblock is dict
         added = False

@@ -1,6 +1,11 @@
+2025-02-13->19.371
+- pathblocker.filter_bb returns if bb has been modified(reduced) when filtered.
+- path offers a output_all_bb for debugging
+- new: bblocker.subtract_singles(lst) wrapping noder.subtract_singles
+- update data files 2024-09-27.txt, 2025-02-11/13.bitblockers.txt
 2025-02-11->19.370
 - data: 2025-02-11-bitblockers.txt
-pathblocker.py refactor
+- pathblocker.py refactor
 2025-02-11->19.369
 - data files: 2024-09-27.txt, 2025-02-10-pathfinder-analysis.txt
 - pathfinder.py refactoring

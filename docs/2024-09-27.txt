@@ -15,7 +15,7 @@ vk2-bits: 42x
 60:C0050[59-0  4-0](137)            
 60:C0051[ 9-0  8-1](26)<-(2367) by S0239:9, no cvs overlap<-must not
 60:C0054[43-0 11-0](137)            
-60:C0073[24-1 12-1](2367)->(267) by S0212:24, no cvs-overlap
+60:C0073[24-1 12-1](267)<-(2367) by S0212:24, no cvs-overlap
 60:C0081[39-1 15-0](246)            
 60:C0095[45-1 31-0](137)            
 60:C0096[44-1  9-0](26)<-(2367) by S0239:9, no cvs. R0243>U0096[9-0]{60:(2),57:(0246)}
@@ -47,15 +47,17 @@ vk2-bits: 42x
 60:C0257[47-0 46-0](123)
 60:C0265[35-0 10-1](246)
               S     T       
-  vk1-bits:[9 24, 17 21 44 53 54]
+  bb(bit-blocker)-bits:[9 24] + [17 21 44 53 54]
   --------------------------------------
   E-A (explaination-A)
   What S0212 means:C0212{24:1 16:0 1:1}
-    when Snode60 with its 6 child-values:[1 2 3 4 6 7], 
+    when Layer60 with its 6 child-values:[1 2 3 4 6 7], 
     for child-val 1 and 3 -> [16 6 1] ->[0 0 1] and [0 1 1], namedly
     bit(16)==0, and bit(1) == 1, C0212 gets 2 b/v hit. bit(24)==1 would be the final hit
-    this means, in case of S60(13) C0212 turns into a 60:vk1[24-1](13) being called here
-    S0212[24-1](13)
+    this means, in case of L60(13) C0212 turns into a 
+    bb-blocker: [24-1]{60:(13)} from  S0212/C0212[24-1 16-0  1-1]. 
+    The same with
+    bb-blocker: [9-0]{60:(37)}} from  S0239/C0239[ 9-0  6-1  1-1]
     
   E-B
   what R0243 means: 60:C0243{44: 0 28: 0 }(123) when combined with S57(0246) where

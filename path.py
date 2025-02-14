@@ -115,6 +115,17 @@ class Path(VKRepository):
         # handle case of 2 overlapping bits with existing vk2
         self.proc_vk2pair(vk2) # if vk2 has a twin in vk2dic
     
+    def output_all_bb(self):
+        bdic1_bits = sorted(self.bdic1)
+        print(f'There are {len(bdic1_bits)} bb-bits:')
+        print(bdic1_bits)
+        print('-'*40)
+        for bit in bdic1_bits:
+            for bv in (0,1):
+                bb = self.bdic1[bit].get(bv, None)
+                if bb:
+                    print(bb.output())
+
     @property
     def steps(self):
         return sorted(self.lyr_dic, reverse=True) # [60, 57, 54, ...]

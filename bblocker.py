@@ -46,8 +46,8 @@ class BitBlocker:
     def spousal_conflict(self, spouse):
         lst = self.noder.intersect(spouse.noder, only_intersects=True)
         if not lst: return False # no spouse-modified
-        self.noder.subtract_singles(lst)
-        spouse.noder.subtract_singles(lst)
+        self.subtract_singles(lst)
+        spouse.subtract_singles(lst)
         self.repo.pblocker.add_block(lst)
         return True # spouse-existed, and has been modified
 
@@ -95,6 +95,9 @@ class BitBlocker:
             return (bb_bit, bb_val), bb_updated
         return None
     
+    def subtract_singles(self, singles):
+        return self.noder.subtract_singles(singles)
+
     def intersect(self, node, res=None):
         self.noder.expand(self.repo.chvdict)
         if res==None: res = []
@@ -109,7 +112,7 @@ class BitBlocker:
         return None
     
     def output(self, cmp_nodes=None): # cmp_nodes: [{},{},..]
-        def calc_power(d):
+        def calc_power(d):      # calculate how many combination-possibilities
             n = 1
             for cv in d.values():
                 n = n* len(cv)
@@ -118,11 +121,13 @@ class BitBlocker:
         msg = str(self.key) + ':\n'
         if not cmp_nodes:
             lst = self.noder.compact()
+            if len(lst) == 0: 
+                return msg + '[]'
             return self.output(lst)
         elif type(cmp_nodes) == list:
             for d in cmp_nodes:
                 cnt = calc_power(d)
-                msg += str(d) + '\t#' + f'\t{cnt}\n'
+                msg += str(d) + ' #' + f'\t{cnt}\n'
             return msg
 
     @property

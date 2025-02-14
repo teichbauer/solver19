@@ -193,17 +193,21 @@ class Noder:
             return lst
         return None
     
-    def subtract_singles(self, singles): # singles: [<single-node>,...]
-        # first serialize all into alist of singles
+    def subtract_singles(self, singles): 
+        # singles: [<single-block-node>,..]
+        # serialize all into list of single-node ->lst
         lst = []
         for node in self.nodes:
             sq = Sequencer(node)
             lst += sq.serialize_2_singles()
         res = []
-        for broken in lst:
-            if broken in singles: continue
-            res.append(broken)
+        # loop thru lst: if in singles(input): jump over it, 
+        # if not keep it (put in res). Then res is the new nodes-list
+        for sngl_nd in lst:
+            if sngl_nd in singles: continue
+            res.append(sngl_nd)
         self.nodes = res
+        return len(res) < len(lst)
 
     def subtract(self, other):
         inter_res = self.intersect(other, only_intersects=True)

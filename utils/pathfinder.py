@@ -11,6 +11,7 @@ class PathFinder:
         if not pth: 
             pth = self.path
         bbbits = set(pth.bdic1)
+        # self.path.output_all_bb() -> 2025-02-13-bitblockers.txt
         rblcks = []
         for layer in self.layers:
             lgrid = layer.bgrid

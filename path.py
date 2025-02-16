@@ -9,7 +9,11 @@ class Path(VKRepository):
         VKRepository.__init__(self, lyr, 'Path')
         self.finder = PathFinder(self, Center.layers)
 
-    def add_lyr_root(self, bgrid):
+    # ------------------------------------------------------------------
+    # growing path on a new layer, handle layer-root-bits touching path
+    # ------------------------------------------------------------------
+    def add_lyr_root(self, bgrid): # bgrid from new layer
+        # handle root-bits touching path bit-blocker-bits (bdic1-bits)
         bdic1_rbits = sorted(set(self.bdic1).intersection(bgrid.bits))
         for rb1 in bdic1_rbits:
             # The logic here, see IL2025-02-27 (docs/idealog.md:2025-01-27)
@@ -19,7 +23,7 @@ class Path(VKRepository):
                 for nd in bb.noder.nodes:
                     nd[bgrid.nov] = hit_cvs
                     self.pblocker.add_block(nd, len(nd))
-        # handle vk2s from path.bdic2 in touch with sn.bgrid.bits
+        # handle root-bits touching vk2s from path.bdic2 
         cmm_rbits = sorted(set(self.bdic2).intersection(bgrid.bits))
         for rb in cmm_rbits:
             kns = self.bdic2[rb][:]
@@ -30,7 +34,7 @@ class Path(VKRepository):
                     m =f"{vk2.kname} in {bgrid.nov}-root, blocking {hit_cvs}"
                     print(m)
                     block = {vk2.nov:vk2.cvs.copy(), bgrid.nov: hit_cvs}
-                    block_added = self.pblocker.add_block(block)
+                    pblock_added = self.pblocker.add_block(block)
                 else: 
                     hit_cvs, _ = bgrid.cvs_subset(rb, vk2.dic[rb]) # _: mis_cvs
                     node = self.expand_node(
@@ -38,20 +42,20 @@ class Path(VKRepository):
                     bit, val = vk2.other_bv(rb)
                     self.add_bblocker( bit, val, node,
                         {vk2.kname: f"R{vk2.nov}-{bgrid.nov}/{rb}"} )
-                # for {<hit_cvs>}, vk2 -> bit-blocker with <node> 
-                # for mis_cvs vk2 cannot hit. So vk2 will be out
+                # for hit_cvs, vk2 -> bit-blocker with <node> 
+                # for mis_cvs vk2 cannot hit. So vk2 will be removed
                 self.remove_vk2(vk2)  # IL2024-11-23a + IL2024-11-28
     # end of add_lyr_root
 
     def grow(self, lyr): # grow on next layer-node
         self.lyr_dic[lyr.nov] = lyr
-        for path_bb in self.bbpool.values():
-            path_bb.noder.expand(self.chvdict)
+        # for path_bb in self.bbpool.values():
+        #     path_bb.noder.expand(self.chvdict)
         self.add_lyr_root(lyr.bgrid)
         for bit, lyr_dic in lyr.repo.bdic1.items():
             path_dic = self.bdic1.setdefault(bit, {})
             for v, bb in lyr_dic.items():
-                bb.noder.expand(self.chvdict)
+                # bb.noder.expand(self.chvdict)
                 if v in path_dic:
                     path_dic[v].merge(bb)
                 else:

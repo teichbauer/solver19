@@ -46,8 +46,8 @@ class BitBlocker:
     def spousal_conflict(self, spouse):
         lst = self.noder.intersect(spouse.noder, only_intersects=True)
         if not lst: return False # no spouse-modified
-        self.subtract_singles(lst)
-        spouse.subtract_singles(lst)
+        me_subtracted = self.subtract_singles(lst)
+        spouse_subtracted = spouse.subtract_singles(lst)
         self.repo.pblocker.add_block(lst)
         return True # spouse-existed, and has been modified
 
@@ -75,7 +75,8 @@ class BitBlocker:
                       bb_bit, bb_val): # bb_bit/bb_val None/None or both not
         nodes = []
         for nd in self.noder.nodes:
-            assert(vk2.nov in nd), f"node has no nov: {vk2.nov}"
+            if vk2.nov not in nd: 
+                print(f"node has no nov: {vk2.nov}")
             cmm = nd[vk2.nov].intersection(vk2.cvs)
             if len(cmm) == 0: continue
             node = {}

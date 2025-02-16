@@ -1,3 +1,5 @@
+2025-02-16->19.372
+- progress on making bblocker not needing expansion.
 2025-02-13->19.371
 - pathblocker.filter_bb returns if bb has been modified(reduced) when filtered.
 - path offers a output_all_bb for debugging

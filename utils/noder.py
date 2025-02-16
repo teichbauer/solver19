@@ -33,12 +33,24 @@ class Noder:
         lst = []
         n1seq = Sequencer(n1)
         n2seq = Sequencer(n2)
+        nv1s = set(n1)
+        nv2s = set(n2)
+        cmm_nvs = nv1s.intersection(nv2s)
         while not n1seq.done:
             n1s = n1seq.get_next()
             while not n2seq.done:
                 n2s = n2seq.get_next()
-                if n1s == n2s:
-                    lst.append(n1s)
+                if nv1s == nv2s:
+                    if n1s == n2s:
+                        lst.append(n1s)
+                else:
+                    related = True
+                    for nv in cmm_nvs:
+                        related = (n2s[nv] == n1s[nv]) and related
+                    if related:
+                        for nv in nv2s - nv1s:
+                            n1s[nv] = n2[nv]
+                        lst.append(n1s)
             else:
                 n2seq.reset()
         return lst  # list of single nds that are the intersection-nodes

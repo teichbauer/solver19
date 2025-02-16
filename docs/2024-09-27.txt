@@ -49,7 +49,7 @@ vk2-bits: 42x
               S     T       
   bb(bit-blocker)-bits:[9 24] + [17 21 44 53 54]
   --------------------------------------
-  E-A (explaination-A)
+  E-a (Explaination-a)
   What S0212 means:C0212{24:1 16:0 1:1}
     when Layer60 with its 6 child-values:[1 2 3 4 6 7], 
     for child-val 1 and 3 -> [16 6 1] ->[0 0 1] and [0 1 1], namedly
@@ -59,7 +59,7 @@ vk2-bits: 42x
     The same with
     bb-blocker: [9-0]{60:(37)}} from  S0239/C0239[ 9-0  6-1  1-1]
     
-  E-B
+  E-b
   what R0243 means: 60:C0243{44: 0 28: 0 }(123) when combined with S57(0246) where
     S57 has root-vk3 [49 36 28](5) bit(28)==0 ->(0246), C0243 gets bit(28) hit, and
     it turns into vk1[44-0]. But this happend only when C0243 exists (S60:(123) and

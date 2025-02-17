@@ -1,3 +1,8 @@
+2025-02-17->19.373
+- Noder.intersect will no more return None, but a list that can be empty.
+- exclmgr.add calls noder.add_node with now input being deepcopy to not
+  update input param.
+- bblocker.proc_path_vk2 modified: TBD: test
 2025-02-16->19.372
 - progress on making bblocker not needing expansion.
 2025-02-13->19.371

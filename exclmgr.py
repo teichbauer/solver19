@@ -1,4 +1,4 @@
-from utils.noder import Noder
+from utils.noder import Noder, copy
 
 class ExclMgr:
     def __init__(self, repo):
@@ -23,4 +23,4 @@ class ExclMgr:
         # if vkname in self.excls: return #??
         if vkname not in self.dic:
             self.dic[vkname] = Noder(self.repo)
-        self.dic[vkname].add_node(node)
+        self.dic[vkname].add_node(copy.deepcopy(node))

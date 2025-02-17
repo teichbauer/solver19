@@ -58,7 +58,10 @@ class VKRepository:
                 bb_bit = bb_val = None  # possible bit-blocker (bit, val) pair
                 if vk2.dic[bb.bit] != bb.val: 
                     bb_bit, bb_val = vk2.other_bv(bb.bit)
-                proc_vk2 = [bb.proc_path_vk2, bb.proc_local_vk2][local]
+                if local:
+                    proc_vk2 = bb.proc_local_vk2 
+                else:
+                    proc_vk2 = bb.proc_path_vk2
                 result =  proc_vk2(vk2, bb_bit, bb_val)
                 if result:
                     new_bbp, bb_updated = result

@@ -45,7 +45,8 @@ class BitBlocker:
 
     def spousal_conflict(self, spouse):
         lst = self.noder.intersect(spouse.noder, only_intersects=True)
-        if not lst: return False # no spouse-modified
+        if len(lst) == 0: 
+            return False # no spouse-modified
         me_subtracted = self.subtract_singles(lst)
         spouse_subtracted = spouse.subtract_singles(lst)
         self.repo.pblocker.add_block(lst)
@@ -73,17 +74,12 @@ class BitBlocker:
 
     def proc_path_vk2(self, vk2,  
                       bb_bit, bb_val): # bb_bit/bb_val None/None or both not
+        # called by repo.filter_vk2s with local==False
         nodes = []
-        for nd in self.noder.nodes:
-            if vk2.nov not in nd: 
-                print(f"node has no nov: {vk2.nov}")
-            cmm = nd[vk2.nov].intersection(vk2.cvs)
-            if len(cmm) == 0: continue
-            node = {}
-            for nv in nd:
-                if nv == vk2.nov: node.setdefault(nv,set()).update(cmm)
-                else:             node.setdefault(nv,set()).update(nd[nv])
-            nodes.append(node)
+        cmm = self.noder.intersect({vk2.nov: vk2.cvs})
+        if len(cmm) == 0: 
+            return None
+        nodes.append(cmm)
         if len(nodes) == 0: return None # vk2. not touching any node in bb
         self.repo.exclmgr.add(vk2.kname, copy.deepcopy(nodes))
         if bb_bit: # both bb_bit/bb_val not None
@@ -100,11 +96,10 @@ class BitBlocker:
         return self.noder.subtract_singles(singles)
 
     def intersect(self, node, res=None):
-        self.noder.expand(self.repo.chvdict)
+        # self.noder.expand(self.repo.chvdict)
         if res==None: res = []
-        if type(node) == BitBlocker:
-            return self.noder.intersect(node, True)
-        return self.noder.node_intersect(node, True)
+        return self.noder.intersect(node, True)
+        # return self.noder.node_intersect(node, True)
 
     def check_spouse(self, spouse=None):
         spouse = self.spouse

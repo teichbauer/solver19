@@ -194,16 +194,20 @@ class Noder:
         # self(node,True): [<single-node>,..]
         # self(node): [(my-index, other-index, single-node), ...]
         lst = []
-        for oind, ond in enumerate(other.nodes):
+        if type(other) == Noder:
+            nodes = other.nodes
+        elif type(other) == dict:
+            nodes = [other]
+        elif type(other) == list:
+            nodes = other.nodes
+        for oind, ond in enumerate(nodes):
             tlst = self.node_intersect(ond, only_intersects) 
             for e in tlst:
                 if only_intersects:
                     lst.append(e)
                 else:
                     lst.append((e[0], oind, e[1]))
-        if len(lst) > 0:
-            return lst
-        return None
+        return lst
     
     def subtract_singles(self, singles): 
         # singles: [<single-block-node>,..]

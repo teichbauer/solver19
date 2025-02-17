@@ -49,21 +49,35 @@ class Path(VKRepository):
 
     def grow(self, lyr): # grow on next layer-node
         self.lyr_dic[lyr.nov] = lyr
-        # for path_bb in self.bbpool.values():
-        #     path_bb.noder.expand(self.chvdict)
+        # ---------------------------------
+        # handle lyr-root-bits touching path.bdic1 or bdic2(vk2s)
         self.add_lyr_root(lyr.bgrid)
+
+        #region obsorbing lyr.bdic1/bit-blockers -----------
+        # lyr.bdic1[bit] where bit-value can be 0/1 (one of 0/1 or both)
+        # lyr/bdic1[3][0]: bit-blocker for (3,0)
+        # lyr/bdic1[3][1]: bit-blocker for (3,1)
+        # endregion ----------------------------------------
         for bit, lyr_dic in lyr.repo.bdic1.items():
-            path_dic = self.bdic1.setdefault(bit, {})
-            for v, bb in lyr_dic.items():
-                # bb.noder.expand(self.chvdict)
-                if v in path_dic:
+            # path may have this bit. if it does, 0 or 1 may in it
+            path_dic = self.bdic1.setdefault(bit, {}) # path.bdic1[bit]: {..}
+            for v, bb in lyr_dic.items(): # v: bit-value, bb: bit-blocker
+                if v in path_dic:   # in case this bit-value is in: merge
                     path_dic[v].merge(bb)
-                else:
+                else:       # not in clone it from lyr into path.bdic1[bit][v]
                     # cloning also put into bbpool
                     path_dic[v] = bb.clone(self)  
             conflicts_existed = path_dic[v].check_spouse()
+
         for vk2 in lyr.repo.vk2dic.values():
             self.add_vk2(vk2)
+        #region purpose of calling self.filter_vk2s(local=False)
+        # all vk2s may have sit on 1/2 bits of bdic1 where bit-blockers are
+        # This may it may generate new bit-blocker - and this bit-blocker may 
+        # even have collide with other vk2/or with other bdic1-bits.
+        # handle all that in filter_vk2s here.
+        # Since now possiblly multi-layers are involved, local=False
+        #endregion
         self.filter_vk2s(local=False)
         x = 0
 
@@ -98,7 +112,8 @@ class Path(VKRepository):
     def add_vk2(self, vk2):
         bits = set(self.bdic1).intersection(vk2.bits)
         if len(bits) > 0:
-            vk2_node = self.expand_node({vk2.nov: vk2.cvs})
+            # vk2_node = self.expand_node({vk2.nov: vk2.cvs})
+            vk2_node = {vk2.nov: vk2.cvs}
             for bit in bits:
                 bb_dic = self.bdic1[bit]
                 for v in bb_dic:

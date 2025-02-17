@@ -46,14 +46,17 @@ class Layer:
                                       {self.nov: vk12.cvs},
                                       {vk12.kname: f'S{vk12.nov}'})
                 else:
-                    # blindly add vk2, handle colition with bdic1 llater
+                    # blindly add vk2, handle collision(s) with bdic1 later
                     repo.insert_vk2(vk12) 
         # loop thru all vk2, if twin vk2s exist, if yes if resulting in new 
         # bit-blocker(s), here in proc_vk2pair
         for vk12 in repo.vk2dic.values():
             repo.proc_vk2pair(vk12)
-        # handle when a vk2 touches bit-blocker bits in repo.bbpool: it may
-        # generate new b-t-blocker - handle all that in filter_vk2s here
+        # all vk2s may have sit on 1/2 bits of bdic1 where bit-blockers are
+        # This may it may generate new bit-blocker - and this bit-blocker may 
+        # even have collide with other vk2/or with other bdic1-bits.
+        # handle all that in filter_vk2s here.
+        # all these are still within the same layer(local=True)
         repo.filter_vk2s(local=True) # repo.classname=='VKRepository'
 
     def spawn(self):

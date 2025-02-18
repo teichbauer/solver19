@@ -75,19 +75,17 @@ class BitBlocker:
     def proc_path_vk2(self, vk2,  
                       bb_bit, bb_val): # bb_bit/bb_val None/None or both not
         # called by repo.filter_vk2s with local==False
-        nodes = []
-        cmm = self.noder.intersect({vk2.nov: vk2.cvs})
+        # cmm = self.noder.intersect({vk2.nov: vk2.cvs})
+        cmm = self.intersect({vk2.nov: vk2.cvs})
         if len(cmm) == 0: 
             return None
-        nodes.append(cmm)
-        if len(nodes) == 0: return None # vk2. not touching any node in bb
-        self.repo.exclmgr.add(vk2.kname, copy.deepcopy(nodes))
+        self.repo.exclmgr.add(vk2.kname, cmm)
         if bb_bit: # both bb_bit/bb_val not None
             bb_dic = self.repo.bdic1.setdefault(bb_bit, {})
             if bb_val not in bb_dic:
                 bb_dic[bb_val] = BitBlocker(bb_bit, bb_val, self.repo)
             bb_updated = bb_dic[bb_val].add_bb_node(
-                nodes, {vk2.kname: f'U{vk2.nov}'})
+                cmm, {vk2.kname: f'U{vk2.nov}'})
             spouse_modified = bb_dic[bb_val].check_spouse()
             return (bb_bit, bb_val), bb_updated
         return None

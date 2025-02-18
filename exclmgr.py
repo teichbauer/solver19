@@ -22,5 +22,8 @@ class ExclMgr:
             return
         # if vkname in self.excls: return #??
         if vkname not in self.dic:
-            self.dic[vkname] = Noder(self.repo)
-        self.dic[vkname].add_node(copy.deepcopy(node))
+            if type(node) == Noder:
+                self.dic[vkname] = node
+            else:
+                self.dic[vkname] = Noder(self.repo, node)
+        # self.dic[vkname].add_node(copy.deepcopy(node))

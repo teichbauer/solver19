@@ -1,3 +1,6 @@
+2025-02-18->19.374
+-refactor bb-blocker and exclmgr
+-data: 2025-02-18-bblockers.tct, 2025-02-18-path-blockers.txt
 2025-02-17->19.373
 - Noder.intersect will no more return None, but a list that can be empty.
 - exclmgr.add calls noder.add_node with now input being deepcopy to not

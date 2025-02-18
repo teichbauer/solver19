@@ -8,12 +8,12 @@ class Noder:
     compound dict as {60:{2}, 57:{1}, 54:{0}} / single-path-node, or
     {60:{2,3} 57:{2,3,4,6}, 54:{0}} / compound-path-node
     '''
-    def __init__(self, path, nodes=None):
+    def __init__(self, path, nodes=None, src=None):
         self.path = path
+        self.nodes = [] #
         if nodes: 
-            self.nodes = [copy.deepcopy(n) for n in nodes]
-        else:
-            self.nodes = [] #
+            for nd in nodes:
+                self.add_node(copy.deepcopy(nd), src)
         self.srcdic = {}
     
     #region 
@@ -150,11 +150,11 @@ class Noder:
         if type(node) == list:
             for nd in node:
                 added = self.add_node(nd, srcdic) or added
-            return added
+            # return added
         elif self.is_single(node):
             # if self.path.pblocker.single_blocked(node): 
             #     return False
-            return self.single_to_lst(node, self.nodes)
+            added = self.single_to_lst(node, self.nodes)
             # return node_to_lst(self._fill(node), self.nodes, expand_steps)
         else:
             doit = Sequencer(node)

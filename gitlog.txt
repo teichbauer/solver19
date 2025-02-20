@@ -1,3 +1,5 @@
+2025-02-20->19.376
+-refactoring/coding pathfinder/satpath-class
 2025-02-19->19.375
 - get rid of noder.exapnd/._fill
 - Path class.__init__ no more calls VKrepository constructor, but use vkrepo 

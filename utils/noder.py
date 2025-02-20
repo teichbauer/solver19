@@ -19,7 +19,6 @@ class Noder:
     #region 
     #---------------- BEGINNING OF class methods ---------------------
     #    
-
     @classmethod
     def is_single(cls, node):
         for cvs in node.values():
@@ -237,7 +236,7 @@ class Noder:
         for d in cmpct:
             print(d)
 
-
+#region local test runs
 def test_node_intersect():
     nd1 = {60:{1,2,3}, 57:{5,6,7}, 54:{0,1}}
     nd2 = {60:{1,3}, 57:{5,6}, 54:{0}}
@@ -327,3 +326,4 @@ def test():
 
 if __name__ == '__main__':
     test()
+#endregion test run

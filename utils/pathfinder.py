@@ -1,12 +1,13 @@
 from pathblocker import PathBlocker
 class SatPath:
-    def __init__(self, pfinder):
-        self.path = pfinder.pth
-        self.pfinder = pfinder
-        self.pblocker = PathBlocker(self.path)
+    def __init__(self, path):
+        self.path = path.clone()
+        self.bbbits = set(path.bdic1)
 
     def explore(self, layer):
-        rbs = 0
+        sats = []
+        self.path.grow(layer)
+        return sats
 
 
 class PathFinder:
@@ -14,9 +15,14 @@ class PathFinder:
         self.path = path
         novs = [18,21,24,27,30,33,36,39,42,45,48,51]
         self.layers = [layers[nv] for nv in novs]
-        self.rbits = set()
-        for lyr in self.layers:
-            self.rbits.update(lyr.bgrid.bits)
+
+    def find_satpath(self):
+        pindex = 0
+        layer = self.layers[pindex]
+        satpath = SatPath(self.path)
+        sats = satpath.explore(layer)
+        x = 9
+
 
     def find_rblockers(self, pth=None):
         if not pth: 

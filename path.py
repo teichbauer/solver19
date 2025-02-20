@@ -5,6 +5,7 @@ from center import Center
 from utils.pathfinder import PathFinder
 
 class Path(VKRepository):
+    # constructor can be used as a cloner
     def __init__(self, seed_repo): # seed_repo: inst of VKrepository/Path
         self.bbpool = {}
         self.bdic1 = {}
@@ -13,13 +14,19 @@ class Path(VKRepository):
             for v, bb in bbdic.items():
                 self.bdic1[b][v] = bb.clone(self)
                 self.bbpool[(b,v)] = self.bdic1[b][v]
-        self.bdic2   = {b: lst[:] for b, lst in seed_repo.bdic2.items()}
-        self.vk2dic  = {kn:vk2 for kn, vk2 in seed_repo.vk2dic.items()}
-        self.inflog  = seed_repo.inflog.copy()
-        self.lyr_dic = {'nov': seed_repo.layer.nov}
+        self.bdic2    = {b: lst[:] for b, lst in seed_repo.bdic2.items()}
+        self.vk2dic   = {kn:vk2 for kn, vk2 in seed_repo.vk2dic.items()}
+        self.inflog   = seed_repo.inflog.copy()
+        if type(seed_repo) == VKRepository:
+            self.lyr_dic = {seed_repo.layer.nov: seed_repo.layer}
+        else:
+            self.lyr_dic  = seed_repo.lyr_dic.copy()
         self.pblocker = seed_repo.pblocker.clone(self)
-        self.exclmgr = seed_repo.exclmgr.clone(self)
-        # self.finder = PathFinder(self, Center.layers)
+        self.exclmgr  = seed_repo.exclmgr.clone(self)
+        self.finder   = PathFinder(self, Center.layers)
+
+    def clone(self):
+        return Path(self)
 
     # ------------------------------------------------------------------
     # growing path on a new layer, handle layer-root-bits touching path
@@ -100,7 +107,8 @@ class Path(VKRepository):
                 print(bb.output())
             print('-'*20)
     
-    def bottomup(self, lyr):
+    def bottomup(self):
+        self.finder.find_satpath()
         # self._show_blocks()
         x = 0
 
@@ -109,16 +117,6 @@ class Path(VKRepository):
         msg = outputlog(self)
         ofile.write(msg)
         ofile.close()
-
-    # def expand_node(self, node):
-    #     if type(node) == list:
-    #         for nd in node:
-    #             self.expand_node(nd)
-    #     elif type(node) == dict:
-    #         for nv in self.chvdict:
-    #             if (nv not in node) or (node[nv] == {'*'}):
-    #                 node[nv] = self.chvdict[nv]
-    #     return node
 
     def add_vk2(self, vk2):
         bits = set(self.bdic1).intersection(vk2.bits)

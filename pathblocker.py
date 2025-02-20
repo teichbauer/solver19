@@ -10,7 +10,7 @@ class PathBlocker:
     def clone(self, newrepo): # to be removed?
         inst = PathBlocker(newrepo)
         for n, lst in self.blockers.items():
-            inst.blockers[n] = self.blockers[n][:]
+            inst.blockers[n] = self.blockers[n].clone()
         return inst
     
     def add_single(self, single_block, leng):

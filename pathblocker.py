@@ -1,14 +1,10 @@
 from utils.basics import pd, verify_sat
-from utils.noder import *
+from utils.noder import Noder
+from utils.sequencer import Sequencer
 
 class PathBlocker:
     def __init__(self, path):
         self.path = path
-        if path.classname == 'VKRepository':
-            self.novs = [path.layer.nov]
-        else:
-            self.novs = sorted(path.lyr_dic, reverse=True)
-        self.pbtree = {} # path-blocker-tree
         self.blockers = {}
     
     def clone(self, newrepo): # to be removed?

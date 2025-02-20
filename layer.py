@@ -67,7 +67,7 @@ class Layer:
             Center.last_nov = self.nov
             Center.sat_pool = [] # list of sat-path(dics)
             print(f"NOV:{self.nov}")
-            path = Path(Center.layers[60])
+            path = Path(Center.layers[60].repo)
             # pathrepo = Center.layers[60].repo.clone()
             path.grow(Center.layers[57])
             # pathrepo.write_logmsg('./logs/loginfo.txt')

@@ -5,9 +5,21 @@ from center import Center
 from utils.pathfinder import PathFinder
 
 class Path(VKRepository):
-    def __init__(self, lyr):
-        VKRepository.__init__(self, lyr, 'Path')
-        self.finder = PathFinder(self, Center.layers)
+    def __init__(self, seed_repo): # seed_repo: inst of VKrepository/Path
+        self.bbpool = {}
+        self.bdic1 = {}
+        for b, bbdic in seed_repo.bdic1.items():
+            self.bdic1[b] = {}
+            for v, bb in bbdic.items():
+                self.bdic1[b][v] = bb.clone(self)
+                self.bbpool[(b,v)] = self.bdic1[b][v]
+        self.bdic2   = {b: lst[:] for b, lst in seed_repo.bdic2.items()}
+        self.vk2dic  = {kn:vk2 for kn, vk2 in seed_repo.vk2dic.items()}
+        self.inflog  = seed_repo.inflog.copy()
+        self.lyr_dic = {'nov': seed_repo.layer.nov}
+        self.pblocker = seed_repo.pblocker.clone(self)
+        self.exclmgr = seed_repo.exclmgr.clone(self)
+        # self.finder = PathFinder(self, Center.layers)
 
     # ------------------------------------------------------------------
     # growing path on a new layer, handle layer-root-bits touching path
@@ -37,8 +49,7 @@ class Path(VKRepository):
                     pblock_added = self.pblocker.add_block(block)
                 else: 
                     hit_cvs, _ = bgrid.cvs_subset(rb, vk2.dic[rb]) # _: mis_cvs
-                    node = self.expand_node(
-                        {vk2.nov: vk2.cvs.copy(), bgrid.nov: hit_cvs})
+                    node = {vk2.nov: vk2.cvs.copy(), bgrid.nov: hit_cvs}
                     bit, val = vk2.other_bv(rb)
                     self.add_bblocker( bit, val, node,
                         {vk2.kname: f"R{vk2.nov}-{bgrid.nov}/{rb}"} )
@@ -99,20 +110,19 @@ class Path(VKRepository):
         ofile.write(msg)
         ofile.close()
 
-    def expand_node(self, node):
-        if type(node) == list:
-            for nd in node:
-                self.expand_node(nd)
-        elif type(node) == dict:
-            for nv in self.chvdict:
-                if (nv not in node) or (node[nv] == {'*'}):
-                    node[nv] = self.chvdict[nv]
-        return node
+    # def expand_node(self, node):
+    #     if type(node) == list:
+    #         for nd in node:
+    #             self.expand_node(nd)
+    #     elif type(node) == dict:
+    #         for nv in self.chvdict:
+    #             if (nv not in node) or (node[nv] == {'*'}):
+    #                 node[nv] = self.chvdict[nv]
+    #     return node
 
     def add_vk2(self, vk2):
         bits = set(self.bdic1).intersection(vk2.bits)
         if len(bits) > 0:
-            # vk2_node = self.expand_node({vk2.nov: vk2.cvs})
             vk2_node = {vk2.nov: vk2.cvs}
             for bit in bits:
                 bb_dic = self.bdic1[bit]

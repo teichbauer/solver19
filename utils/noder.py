@@ -115,8 +115,6 @@ class Noder:
                     return True
         lst.append(single)
         return True
-
-    #  
     #---------- END OF class methods --------------------
     #endregion
 
@@ -125,25 +123,10 @@ class Noder:
         ninst.srcdic = copy.deepcopy(self.srcdic)
         return ninst
 
-    def expand(self, chvdict): # after path.grow updated snode-dic
-        for node in self.nodes:
-            for nv, chv in chvdict.items(): # sonde-nov
-                if nv not in node:
-                    node[nv] = chv
-
     def containing_single(self, single_node):
         for nd in self.nodes:
             if self.node_contains_xnode(nd, single_node): return True
         return False   
-
-
-    def _fill(self, node):
-        if self.path.classname != 'Path': return node
-        nd = copy.deepcopy(node)
-        for nv, cvs in self.path.chvdict.items():
-            if nv not in node:
-                nd[nv] = cvs
-        return nd
 
     def add_node(self, node, srcdic=None):
         added = False
@@ -152,10 +135,7 @@ class Noder:
                 added = self.add_node(nd, srcdic) or added
             # return added
         elif self.is_single(node):
-            # if self.path.pblocker.single_blocked(node): 
-            #     return False
             added = self.single_to_lst(node, self.nodes)
-            # return node_to_lst(self._fill(node), self.nodes, expand_steps)
         else:
             doit = Sequencer(node)
             while not doit.done:

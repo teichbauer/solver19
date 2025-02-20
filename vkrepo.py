@@ -6,28 +6,15 @@ from bblocker import BitBlocker
 from exclmgr import ExclMgr
 
 class VKRepository:
-    def __init__(self, layer, cn='VKRepository'):
-        self.classname = cn
+    def __init__(self, layer):
         self.bbpool = {} # {{<bit>,<bval): <bit-blocker>}}
-        if cn == 'VKRepository':
-            self.layer   = layer  # related layer
-            self.inflog  = {}   # {key:[info,info,..], key:[], ...}
-            self.bdic1   = {}   # {bit: bblocker, bit:bblocker, ..}
-            self.bdic2   = {}   # {bit: [k2n, k2n,..], bit:[], ..}
-            self.vk2dic  = {}   # {k2n:vk2, k2n: vk2,...}
-            self.pblocker = PathBlocker(self)
-            self.exclmgr = ExclMgr(self)
-        else:
-            self.bdic1 = {
-                b:{v: bb.clone(self) for v, bb in bbdic.items()} 
-                for b, bbdic in layer.repo.bdic1.items()
-            }
-            self.bdic2   = {b: lst[:] for b, lst in layer.repo.bdic2.items()}
-            self.vk2dic  = {kn:vk2 for kn, vk2 in layer.repo.vk2dic.items()}
-            self.inflog  = layer.repo.inflog.copy()
-            self.lyr_dic = {layer.nov: layer}
-            self.pblocker = layer.repo.pblocker.clone(self)
-            self.exclmgr = layer.repo.exclmgr.clone(self)
+        self.layer   = layer  # related layer
+        self.inflog  = {}   # {key:[info,info,..], key:[], ...}
+        self.bdic1   = {}   # {bit: bblocker, bit:bblocker, ..}
+        self.bdic2   = {}   # {bit: [k2n, k2n,..], bit:[], ..}
+        self.vk2dic  = {}   # {k2n:vk2, k2n: vk2,...}
+        self.pblocker = PathBlocker(self)
+        self.exclmgr = ExclMgr(self)
     
     def insert_vk2(self, vk2):
         name = vk2.kname

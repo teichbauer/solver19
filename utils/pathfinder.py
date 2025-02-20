@@ -1,3 +1,14 @@
+from pathblocker import PathBlocker
+class SatPath:
+    def __init__(self, pfinder):
+        self.path = pfinder.pth
+        self.pfinder = pfinder
+        self.pblocker = PathBlocker(self.path)
+
+    def explore(self, layer):
+        rbs = 0
+
+
 class PathFinder:
     def __init__(self, path, layers):
         self.path = path

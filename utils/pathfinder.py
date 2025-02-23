@@ -17,9 +17,15 @@ class PathFinder:
         self.layers = [layers[nv] for nv in novs]
 
     def find_satpath(self):
+        # grow with root-bits/bitblockers of all layers
+        for layer in self.layers:
+            self.path.grow0(layer)
+        # --------------------------
+        # grow with vk2s
         pindex = 0
         layer = self.layers[pindex]
         satpath = SatPath(self.path)
+
         sats = satpath.explore(layer)
         x = 9
 

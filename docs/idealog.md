@@ -1,17 +1,24 @@
 
 ### 2025-01-27
 ```
+top level clause: F = K1 ^ K2 ^ K3 ^... ^ Kn (3SAT: each K: (a + b + c))
+----------------------------------------------------------------
 on path.py:line(20) in path(L60+L57).grow(L54)/self.add_lyr_root
 -------------------------------------------------------------------
-path has a bit-blocker(19-0) and S54 has 
-root[20-1 19-0 7-0]. [19-0] will have hit-cvs:(015), no-hit-cvs:(2367)
-There existed a bit-blocker on a node:{54(*) 57(1) 60(23)} this node
-means: when node is hit, bit-blocker(19-0) will fire: making the top level
-F hit. And this (19-0) is on Layer54(015) -- meaning, for
- {54(015) 57(1) 60(23)} (intersection of L54(015) with node), it is a A-block.
-and on (19-1) == L54(2367) bit-blocker will not matter. So this means,
+path has a bit-blocker(19-0) and S54 [20-1 19-0 7-0](0123567) when 
+bit(19) = 0: L54 will have hit-cvs:(015), no-hit-cvs:(2367)
+There existed a bit-blocker BB(19-0) on a node:{57(1) 60(23)} this means: 
+when node is hit/bit(19)==0, BB(19-0) will fire: making the top level F hit. 
+This means, bit(19)==0, where L54 has chvals(015), F is hit, meaning
+{54(015) 57(1) 60(23)} is a path-block. 
+And, when bit(19) == 1, where L54 has chvals: (2367) BB(19-0) doesn't matter.
+
+And, as for bit(19)==1, if there exist a bit-block B(19-1), the L54(2367) 
+are in the path. And if there exists a BB(19-1), a path-block will be generated
+and for L54(015) BB(19-1) doesn't matter.
+
 bit-blocker(19-0){node} should not exist. The actions to be taken here:
-add a ABlock{54(015) 57(1) 60(23)} to Ablocker, and remove bb(19-0)
+add a PathBlock{54(015) 57(1) 60(23)} to pblocker, and remove bb(19-0)
 Also if bb(19-1) exists, also remove that and generate/add a Ablock.
 ```
 

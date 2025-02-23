@@ -31,46 +31,81 @@ class Path(VKRepository):
     # ------------------------------------------------------------------
     # growing path on a new layer, handle layer-root-bits touching path
     # ------------------------------------------------------------------
-    def add_lyr_root(self, bgrid): # bgrid from new layer
-        # handle root-bits touching path bit-blocker-bits (bdic1-bits)
-        bdic1_rbits = sorted(set(self.bdic1).intersection(bgrid.bits))
-        for rb1 in bdic1_rbits:
-            # The logic here, see IL2025-02-27 (docs/idealog.md:2025-01-27)
-            bb_dic = self.bdic1.pop(rb1) # bbs on this bit popped out/removed
-            for bb in bb_dic.values():
-                hit_cvs, _ = bgrid.cvs_subset(bb.bit, bb.val) # _ : mis_cvs
+    def grow_lyr_root(self, layer): # bgrid from new layer
+        # handle root-bits touching path bit-blocker-bits bdic1_rbits
+        bdic1_rbits = sorted(set(self.bdic1).intersection(layer.bgrid.bits))
+        for rbit in bdic1_rbits: # new-layer's bgrid, on this root-bit rbit: 
+            # get [<hit-0-cvs>,<hit-1-cvs]
+            hit01cvs = layer.bgrid.cvs_subset(rbit, 0) # [hit-0-cvs, hit-1-cvs]
+            # ----------------------------------------------------------------
+            # Now from path-side: since every bb (on bv=0, bv=1) in bb_dic
+            # it will be removed (become path-block). So bb_dic on this rbit
+            # be pooped out from path.bdic1
+            bb_dic = self.bdic1.pop(rbit) # bb_dic is from path: popped-out
+            for bv in (0, 1):
+                bb = bb_dic.pop(bv, None)
+                if not bb: continue # not every bit in bdic1 has both (0,1)
+                # when lyr has chval in hit_cva, and there exists a bit-blocker
+                # node on this bb(bit/bitval): making the clause hit False, 
+                # this becomes a path-block - node.update{lyr.nov: hit_cvs}
+                # should be excluded from sat-path
                 for nd in bb.noder.nodes:
-                    nd[bgrid.nov] = hit_cvs
-                    self.pblocker.add_block(nd, len(nd))
+                    node = copy.deepcopy(nd)
+                    node[layer.bgrid.nov] = hit01cvs[bv] # cvs-set for bv
+                    self.pblocker.add_block(node, len(node))
+            # now every bb in bb_dic is popped out. so it is now empty
+        # -----------------------------------------------------------------
         # handle root-bits touching vk2s from path.bdic2 
-        cmm_rbits = sorted(set(self.bdic2).intersection(bgrid.bits))
-        for rb in cmm_rbits:
-            kns = self.bdic2[rb][:]
+        cmm_rbits = sorted(set(self.bdic2).intersection(layer.bgrid.bits))
+        for rbit in cmm_rbits:
+            kns = self.bdic2[rbit][:]
             while len(kns) > 0:
-                vk2 = self.vk2dic[kns.pop(0)]
-                if set(vk2.bits).issubset(bgrid.bits):
-                    hit_cvs = bgrid.vk2_hits(vk2)
-                    m =f"{vk2.kname} in {bgrid.nov}-root, blocking {hit_cvs}"
+                vk2 = self.vk2dic[kns.pop(0)] # loop from front to end
+                if set(vk2.bits).issubset(layer.bgrid.bits):
+                    # vk2's 2 bit both are on layer's root-bits
+                    hit_cvs = layer.bgrid.vk2_hits(vk2)
+                    m =f"{vk2.kname} in {layer.nov}-root, blocking {hit_cvs}"
                     print(m)
-                    block = {vk2.nov:vk2.cvs.copy(), bgrid.nov: hit_cvs}
+                    block = {vk2.nov:vk2.cvs.copy(), layer.nov: hit_cvs}
                     pblock_added = self.pblocker.add_block(block)
                 else: 
-                    hit_cvs, _ = bgrid.cvs_subset(rb, vk2.dic[rb]) # _: mis_cvs
-                    node = {vk2.nov: vk2.cvs.copy(), bgrid.nov: hit_cvs}
-                    bit, val = vk2.other_bv(rb)
+                    # vk2 has 1 bit on layer's root-bit
+                    # with vk2[rbit] on layer's root bit: rbit, get hit-cvs
+                    hit_cvs, _ = layer.bgrid.cvs_subset(rbit, vk2.dic[rbit]) 
+                    node = {vk2.nov: vk2.cvs.copy(), layer.nov: hit_cvs}
+                    bit, val = vk2.other_bv(rbit) # bit/bv for new bit-block
                     self.add_bblocker( bit, val, node,
-                        {vk2.kname: f"R{vk2.nov}-{bgrid.nov}/{rb}"} )
+                        {vk2.kname: f"R{vk2.nov}-{layer.nov}/{rbit}"} )
                 # for hit_cvs, vk2 -> bit-blocker with <node> 
-                # for mis_cvs vk2 cannot hit. So vk2 will be removed
+                # for mis_cvs(here: _) vk2 cannot hit. So vk2 will be removed
                 self.remove_vk2(vk2)  # IL2024-11-23a + IL2024-11-28
-    # end of add_lyr_root
+    # end of grow_lyr_root
 
-    def grow(self, lyr): # grow on next layer-node
-        self.lyr_dic[lyr.nov] = lyr
+    def grow0(self, layer):
+        self.lyr_dic[layer.nov] = layer
         # ---------------------------------
         # handle lyr-root-bits touching path.bdic1 or bdic2(vk2s)
-        self.add_lyr_root(lyr.bgrid)
+        self.grow_lyr_root(layer)
+        # --------------------------------
+        # obsorb all lyr.bdic1's bit-blockers
+        self.grow_layer_bb(layer)
 
+    def grow(self, lyr): # grow on next layer-node
+        self.grow0(lyr)
+        # --------------------------------
+        # add lyr's vk2s
+        self.grow_vk2s(lyr)
+
+        #region purpose of calling self.filter_vk2s(local=False)
+        # all vk2s may have sit on 1/2 bits of bdic1 where bit-blockers are
+        # This may it may generate new bit-blocker - and this bit-blocker may 
+        # even have collide with other vk2/or with other bdic1-bits.
+        # handle all that in filter_vk2s here.
+        #endregion
+        self.filter_vk2s(local=False) # vk2s from multi-layer: local=False
+        x = 0
+
+    def grow_layer_bb(self, lyr):
         #region obsorbing lyr.bdic1/bit-blockers -----------
         # lyr.bdic1[bit] where bit-value can be 0/1 (one of 0/1 or both)
         # lyr/bdic1[3][0]: bit-blocker for (3,0)
@@ -87,17 +122,30 @@ class Path(VKRepository):
                     path_dic[v] = bb.clone(self)  
             conflicts_existed = path_dic[v].check_spouse()
 
-        for vk2 in lyr.repo.vk2dic.values():
-            self.add_vk2(vk2)
-        #region purpose of calling self.filter_vk2s(local=False)
-        # all vk2s may have sit on 1/2 bits of bdic1 where bit-blockers are
-        # This may it may generate new bit-blocker - and this bit-blocker may 
-        # even have collide with other vk2/or with other bdic1-bits.
-        # handle all that in filter_vk2s here.
-        # Since now possiblly multi-layers are involved, local=False
-        #endregion
-        self.filter_vk2s(local=False)
-        x = 0
+    def grow_vk2s(self, layer):
+        for vk2 in layer.repo.vk2dic.values():
+            bits = set(self.bdic1).intersection(vk2.bits)
+            if len(bits) > 0:
+                vk2_node = {vk2.nov: vk2.cvs}
+                for bit in bits:
+                    bb_dic = self.bdic1[bit]
+                    for v in bb_dic:
+                        # msg = bb_dic[v].output()
+                        # print(f'vk2/kname: {vk2.kname} - ',)
+                        # print(msg)
+                        cmm = bb_dic[v].intersect(vk2_node)
+                        if len(cmm) == 0: continue
+                        # print('cmm: ',)
+                        # msg = Noder.pout(cmm)
+                        # print(msg)
+                        self.exclmgr.add(vk2.kname, cmm)
+                        if v != vk2.dic[bit]:
+                            new_bit, new_val = vk2.other_bv(bit)
+                            self.add_bblocker(new_bit,  new_val, cmm,
+                                            {vk2.kname: f'U{vk2.nov}'})
+            self.insert_vk2(vk2)
+            # handle case of 2 overlapping bits with existing vk2
+            self.proc_vk2pair(vk2) # if vk2 has a twin in vk2dic
 
     def _show_blocks(self):
         self.pblocker.output()

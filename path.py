@@ -61,20 +61,18 @@ class Path(VKRepository):
             kns = self.bdic2[rbit][:]
             while len(kns) > 0:
                 vk2 = self.vk2dic[kns.pop(0)] # loop from front to end
-                if set(vk2.bits).issubset(layer.bgrid.bits):
-                    # vk2's 2 bit both are on layer's root-bits
+                if set(vk2.bits).issubset(cmm_rbits): # both bits in root-bits
                     hit_cvs = layer.bgrid.vk2_hits(vk2)
                     m =f"{vk2.kname} in {layer.nov}-root, blocking {hit_cvs}"
                     print(m)
                     block = {vk2.nov:vk2.cvs.copy(), layer.nov: hit_cvs}
                     pblock_added = self.pblocker.add_block(block)
-                else: 
-                    # vk2 has 1 bit on layer's root-bit
+                else: # vk2 has 1 bit on layer's root-bit -> a new-bit-block
                     # with vk2[rbit] on layer's root bit: rbit, get hit-cvs
                     hit_cvs, _ = layer.bgrid.cvs_subset(rbit, vk2.dic[rbit]) 
                     node = {vk2.nov: vk2.cvs.copy(), layer.nov: hit_cvs}
-                    bit, val = vk2.other_bv(rbit) # bit/bv for new bit-block
-                    self.add_bblocker( bit, val, node,
+                    new_bb_bit, new_bb_val = vk2.other_bv(rbit) 
+                    self.add_bblocker( new_bb_bit, new_bb_val, node,
                         {vk2.kname: f"R{vk2.nov}-{layer.nov}/{rbit}"} )
                 # for hit_cvs, vk2 -> bit-blocker with <node> 
                 # for mis_cvs(here: _) vk2 cannot hit. So vk2 will be removed
@@ -82,6 +80,7 @@ class Path(VKRepository):
     # end of grow_lyr_root
 
     def grow0(self, layer):
+        # called by grow as the first step
         self.lyr_dic[layer.nov] = layer
         # ---------------------------------
         # handle lyr-root-bits touching path.bdic1 or bdic2(vk2s)
@@ -90,11 +89,11 @@ class Path(VKRepository):
         # obsorb all lyr.bdic1's bit-blockers
         self.grow_layer_bb(layer)
 
-    def grow(self, lyr): # grow on next layer-node
-        self.grow0(lyr)
+    def grow(self, layer): # grow on next layer-node
+        self.grow0(layer)
         # --------------------------------
         # add lyr's vk2s
-        self.grow_vk2s(lyr)
+        self.grow_vk2s(layer)
 
         #region purpose of calling self.filter_vk2s(local=False)
         # all vk2s may have sit on 1/2 bits of bdic1 where bit-blockers are
@@ -105,16 +104,16 @@ class Path(VKRepository):
         self.filter_vk2s(local=False) # vk2s from multi-layer: local=False
         x = 0
 
-    def grow_layer_bb(self, lyr):
+    def grow_layer_bb(self, layer):
         #region obsorbing lyr.bdic1/bit-blockers -----------
         # lyr.bdic1[bit] where bit-value can be 0/1 (one of 0/1 or both)
         # lyr/bdic1[3][0]: bit-blocker for (3,0)
         # lyr/bdic1[3][1]: bit-blocker for (3,1)
         # endregion ----------------------------------------
-        for bit, lyr_dic in lyr.repo.bdic1.items():
+        for bit, layer_dic in layer.repo.bdic1.items():
             # path may have this bit. if it does, 0 or 1 may in it
             path_dic = self.bdic1.setdefault(bit, {}) # path.bdic1[bit]: {..}
-            for v, bb in lyr_dic.items(): # v: bit-value, bb: bit-blocker
+            for v, bb in layer_dic.items(): # v: bit-value, bb: bit-blocker
                 if v in path_dic:   # in case this bit-value is in: merge
                     path_dic[v].merge(bb)
                 else:       # not in clone it from lyr into path.bdic1[bit][v]
@@ -141,8 +140,10 @@ class Path(VKRepository):
                         self.exclmgr.add(vk2.kname, cmm)
                         if v != vk2.dic[bit]:
                             new_bit, new_val = vk2.other_bv(bit)
-                            self.add_bblocker(new_bit,  new_val, cmm,
-                                            {vk2.kname: f'U{vk2.nov}'})
+                            self.add_bblocker(new_bit,  
+                                              new_val, 
+                                              cmm,
+                                             {vk2.kname: f'U{vk2.nov}'})
             self.insert_vk2(vk2)
             # handle case of 2 overlapping bits with existing vk2
             self.proc_vk2pair(vk2) # if vk2 has a twin in vk2dic

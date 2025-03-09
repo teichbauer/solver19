@@ -16,14 +16,25 @@ class Noder:
                 self.add_node(copy.deepcopy(nd), src)
         self.srcdic = {}
     
-    #region 
+    #region class methods
     #---------------- BEGINNING OF class methods ---------------------
-    #    
     @classmethod
     def is_single(cls, node):
         for cvs in node.values():
             if len(cvs) > 1: return False
         return True
+
+    @classmethod
+    def flip_cvs(cls, node, sub_chvdic): 
+        # sub_chvdic: a subset of path.chvdict containing 2b flippped novs
+        # example: sub_chvdic: {57:{0,1,2,3,4,6,7}, 54:{0,1,2,3,5,6,7}}, 
+        # node:   {60:{23}  57:{01}      54:{015}}
+        # return: {60:{23}  57:{23467}   54:{2367}}
+        _node = copy.deepcopy(node)
+        for selected_nv, selected_chvs in sub_chvdic.items():
+            if selected_nv in node:
+                _node[selected_nv] = selected_chvs - node[selected_nv]
+        return _node
 
     @classmethod
     def _node_intersect(cls, n1, n2): # both n1 and n2 can be compound or single
@@ -124,7 +135,8 @@ class Noder:
 
     def containing_single(self, single_node):
         for nd in self.nodes:
-            if self.node_contains_xnode(nd, single_node): return True
+            if self.node_contains_xnode(nd, single_node): 
+                return True
         return False   
 
     def add_node(self, node, srcdic=None):

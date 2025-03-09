@@ -1,4 +1,5 @@
 from pathblocker import PathBlocker
+from bblocker import BitBlocker
 class SatPath:
     def __init__(self, path):
         self.path = path.clone()
@@ -17,9 +18,10 @@ class PathFinder:
         self.layers = [layers[nv] for nv in novs]
 
     def find_satpath(self):
+        BitBlocker.let_pb_filter_bb = False
         # grow with root-bits/bitblockers of all layers
         for layer in self.layers:
-            self.path.grow0(layer)
+            self.path.grow0(layer) # pb_filter_bb = False
         # --------------------------
         # grow with vk2s
         pindex = 0

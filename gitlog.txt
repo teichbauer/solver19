@@ -1,3 +1,6 @@
+2025-03-08->19.378
+- in bblocker.py/BitBlocker: class variable let_pb_filter_bb = True/False for
+  for switching: when bottom-up, don't let path-blocker filter bit-blocker
 2025-02-22->19.377
 - refactored path/grow_lyr_root. And more refactorings on this path.py
 2025-02-20->19.376

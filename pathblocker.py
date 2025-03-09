@@ -56,15 +56,41 @@ class PathBlocker:
                     added = self.add_block(sq.get_next(), leng) or added
             return added
     
+    def filter_single_bb(self, single_bb):
+        nvs = set(single_bb)
+        for leng, pblocker in self.blockers.items():
+            for nd in pblocker.nodes:
+                sentries = nvs.intersection(nd)
+                dic = {}
+                if len(sentries) > 0:
+                    for nv in sentries:
+                        cx = single_bb[nv].intersection(nd[nv])
+                        if len(cx):
+                            break
+                        else:
+                            dic[nv] = cx
+                    if len(dic) == 0:
+                        continue
+                    else:
+                        x = 9
+                else: # len(sentries) == 0
+                    sub_chvdic = self.path.chvdict.copy()
+                    for nv in nd:
+                        if nv not in sub_chvdic:
+                            sub_chvdic.pop(nv)
+                        single_bb.update(Noder.flip_cvs(nd, sub_chvdic))
+            return single_bb
+        return False
+
+
     def single_blocked(self, single): 
         # test if a single-thrd-dict-node is blocked
         ind = 1
         while ind <= len(single):
-            if ind in self.blockers and \
-                self.blockers[ind].containing_single(single):
-                return True
-            else: 
-                ind += 1
+            if ind in self.blockers:
+                if self.blockers[ind].containing_single(single):
+                    return True
+            ind += 1
         return False
 
     def output(self):
